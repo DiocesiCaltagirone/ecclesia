@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+# Installa dipendenze sistema per WeasyPrint
+FROM python:3.11-slim
+
+# Installa dipendenze sistema per WeasyPrint
+RUN apt-get update && apt-get install -y \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
+    libjpeg-dev \
+    libopenjp2-7 \
+    libffi-dev \
+    libgobject-2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copia requirements e installa
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia codice
+COPY . .
+
+# Crea directory uploads
+RUN mkdir -p uploads/rendiconti uploads/firme uploads/timbri
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

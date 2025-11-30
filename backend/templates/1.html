@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Rendiconto Parrocchiale</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.5cm 2cm;
+            @bottom-center {
+                content: "Pagina " counter(page) " di " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+        
+        /* ========== PAGINA 1 - FRONTESPIZIO ========== */
+        .page-frontespizio {
+            page-break-after: always;
+            text-align: center;
+            padding-top: 4cm;
+        }
+        
+        .diocesi-header {
+            font-size: 11pt;
+            color: #34495e;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 0.5cm;
+            font-weight: 300;
+        }
+        
+        .page-frontespizio h1 {
+            font-size: 28pt;
+            font-weight: 700;
+            margin: 1.5cm 0;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-top: 3px solid #3498db;
+            border-bottom: 3px solid #3498db;
+            padding: 0.8cm 0;
+        }
+        
+        .ente-box {
+            text-align: left;
+            margin: 2cm auto 0;
+            max-width: 16cm;
+            padding: 1.2cm;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f8f9fa;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .ente-box p {
+            margin: 10px 0;
+            font-size: 11pt;
+            color: #2c3e50;
+        }
+        
+        .ente-box .label {
+            font-weight: 600;
+            display: inline-block;
+            width: 140px;
+            color: #34495e;
+        }
+        
+        .periodo-box {
+            margin-top: 2cm;
+            padding: 0.8cm;
+            background: #3498db;
+            color: white;
+            font-size: 14pt;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        /* ========== CORPO - MOVIMENTI ========== */
+        .page-corpo {
+            page-break-after: always;
+        }
+        
+        h2 {
+            font-size: 16pt;
+            font-weight: 600;
+            margin: 1cm 0 0.5cm 0;
+            padding-bottom: 0.3cm;
+            border-bottom: 2px solid #3498db;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5cm 0;
+            font-size: 9pt;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #34495e;
+            color: white;
+        }
+        
+        table th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        table tbody tr {
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        table tbody tr:hover {
+            background: #e8f4f8;
+        }
+        
+        table td {
+            padding: 10px;
+        }
+        
+        .td-data {
+            width: 85px;
+            text-align: center;
+            font-weight: 500;
+            color: #7f8c8d;
+        }
+        
+        .td-importo {
+            width: 100px;
+            text-align: right;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .entrata {
+            color: #27ae60;
+        }
+        
+        .uscita {
+            color: #e74c3c;
+        }
+        
+        .totali-box {
+            margin-top: 1cm;
+            padding: 0.8cm;
+            background: #ecf0f1;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .totali-box table {
+            margin: 0;
+            box-shadow: none;
+        }
+        
+        .totali-box td {
+            padding: 10px;
+            font-size: 11pt;
+            border: none;
+        }
+        
+        .totali-box .label {
+            text-align: right;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        .totali-box .value {
+            text-align: right;
+            font-weight: 700;
+            font-size: 13pt;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .saldo-finale {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #3498db !important;
+            color: white !important;
+            font-size: 15pt !important;
+        }
+        
+        .saldo-finale .label,
+        .saldo-finale .value {
+            color: white !important;
+        }
+        
+        /* ========== ULTIMA PAGINA - FIRME ========== */
+        .page-firme {
+            page-break-before: always;
+            padding-top: 2cm;
+        }
+        
+        .dichiarazione {
+            margin: 1cm 0;
+            padding: 0.8cm;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+        
+        .firme-container {
+            margin-top: 3cm;
+            display: table;
+            width: 100%;
+        }
+        
+        .firma-box {
+            display: table-cell;
+            width: 48%;
+            vertical-align: top;
+            padding: 0 1cm;
+        }
+        
+        .firma-box-left {
+            border-right: 1px dashed #bdc3c7;
+        }
+        
+        .firma-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 0.5cm;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .firma-ls {
+            text-align: center;
+            font-size: 10pt;
+            color: #7f8c8d;
+            font-style: italic;
+            margin: 0.5cm 0;
+        }
+        
+        .firma-spazio {
+            min-height: 3.5cm;
+            border-bottom: 1px solid #34495e;
+            margin: 0.5cm 0;
+            position: relative;
+        }
+        
+        .firma-digitale {
+            max-width: 180px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .timbro {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 100px;
+            opacity: 0.7;
+        }
+        
+        .firma-nome {
+            text-align: center;
+            font-size: 10pt;
+            font-weight: 600;
+            margin-top: 0.3cm;
+            color: #2c3e50;
+        }
+        
+        .firma-data {
+            text-align: center;
+            font-size: 9pt;
+            color: #7f8c8d;
+            margin-top: 0.2cm;
+        }
+        
+        .approvazione-box {
+            margin-top: 2cm;
+            padding: 0.6cm;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            text-align: center;
+            font-weight: 600;
+            color: #155724;
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer {
+            margin-top: 2cm;
+            padding-top: 0.5cm;
+            border-top: 1px solid #bdc3c7;
+            text-align: center;
+            font-size: 8pt;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- PAGINA 1 - FRONTESPIZIO -->
+    <!-- ============================================ -->
+    <div class="page-frontespizio">
+        <div class="diocesi-header">
+            {% if ente.diocesi %}{{ ente.diocesi }}{% else %}Diocesi di Caltagirone{% endif %}
+        </div>
+        
+        <h1>Rendiconto<br>Economico<br>Parrocchiale</h1>
+        
+        <div class="ente-box">
+            <p><span class="label">Parrocchia:</span> {{ ente.denominazione }}</p>
+            <p><span class="label">Indirizzo:</span> {{ ente.indirizzo }}</p>
+            <p><span class="label">Comune:</span> {{ ente.cap }} {{ ente.comune }} ({{ ente.provincia }})</p>
+            {% if ente.codice_fiscale %}
+            <p><span class="label">Codice Fiscale:</span> {{ ente.codice_fiscale }}</p>
+            {% endif %}
+            {% if ente.parroco %}
+            <p><span class="label">Parroco:</span> {{ ente.parroco }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="periodo-box">
+            PERIODO: {{ periodo_inizio }} - {{ periodo_fine }}
+        </div>
+        
+        <div class="footer">
+            Documento generato il {{ data_compilazione }}
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGINE 2-N - CORPO RENDICONTO -->
+    <!-- ============================================ -->
+    <div class="page-corpo">
+        
+        <h2>Dettaglio Movimenti Contabili</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="td-data">Data</th>
+                    <th>Causale</th>
+                    <th>Categoria</th>
+                    <th>Conto</th>
+                    <th class="td-importo">Entrate</th>
+                    <th class="td-importo">Uscite</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in movimenti %}
+                <tr>
+                    <td class="td-data">{{ mov.data }}</td>
+                    <td>{{ mov.causale }}</td>
+                    <td>{{ mov.categoria }}</td>
+                    <td>{{ mov.conto }}</td>
+                    <td class="td-importo entrata">
+                        {% if mov.tipo == 'entrata' %}€ {{ "%.2f"|format(mov.importo) }}{% endif %}
+                    </td>
+                    <td class="td-importo uscita">
+                        {% if mov.tipo == 'uscita' %}€ {{ "%.2f"|format(mov.importo) }}{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="totali-box">
+            <table>
+                <tr>
+                    <td class="label">Totale Entrate:</td>
+                    <td class="value entrata">€ {{ "%.2f"|format(totale_entrate) }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Totale Uscite:</td>
+                    <td class="value uscita">€ {{ "%.2f"|format(totale_uscite) }}</td>
+                </tr>
+                <tr class="saldo-finale">
+                    <td class="label">SALDO FINALE:</td>
+                    <td class="value">€ {{ "%.2f"|format(saldo) }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ULTIMA PAGINA - FIRME E APPROVAZIONE -->
+    <!-- ============================================ -->
+    <div class="page-firme">
+        
+        <div class="dichiarazione">
+            <p><strong>Il sottoscritto Parroco</strong> dichiara che il presente rendiconto corrisponde alle risultanze delle scritture contabili della parrocchia per il periodo indicato, e che i dati esposti sono veritieri e conformi alla documentazione conservata agli atti.</p>
+        </div>
+        
+        {% if approvato %}
+        <div class="approvazione-box">
+            ✓ RENDICONTO APPROVATO DALLA DIOCESI DI CALTAGIRONE
+        </div>
+        {% endif %}
+        
+        <div class="firme-container">
+            <!-- FIRMA PARROCO -->
+            <div class="firma-box firma-box-left">
+                <div class="firma-title">Il Parroco</div>
+                <div class="firma-spazio">
+                    <!-- Firma parroco resta vuota -->
+                </div>
+                <div class="firma-nome">{{ parroco_nome }}</div>
+                <div class="firma-data">{{ data_compilazione }}</div>
+            </div>
+            
+            <!-- FIRMA VESCOVO -->
+            <div class="firma-box">
+                <div class="firma-title">L'Ordinario Diocesano</div>
+                <div class="firma-ls">(L.S.)</div>
+                <div class="firma-spazio">
+                    {% if approvato %}
+                    <img src="file://{{ firma_vescovo_path }}" class="firma-digitale" alt="Firma Vescovo">
+                    {% if timbro_path %}
+                    <img src="file://{{ timbro_path }}" class="timbro" alt="Timbro Diocesi">
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <div class="firma-nome">S.E. Mons. Calogero Peri</div>
+                {% if approvato %}
+                <div class="firma-data">Caltagirone, {{ data_compilazione }}</div>
+                {% else %}
+                <div class="firma-data">(Dopo approvazione)</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="footer">
+            Sistema Gestionale Diocesi di Caltagirone<br>
+            {% if approvato %}
+            <strong>DOCUMENTO UFFICIALE - FIRMATO DIGITALMENTE</strong>
+            {% else %}
+            Documento in attesa di approvazione
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>
