@@ -30,7 +30,7 @@ function Dashboard() {
       }
 
       // USA L'API CHE FUNZIONA (quella di SelectEnte)
-      const response = await fetch('http://localhost:8000/api/enti/my-enti', {
+      const response = await fetch('/api/enti/my-enti', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

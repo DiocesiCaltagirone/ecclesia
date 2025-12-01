@@ -43,7 +43,7 @@ const ParrocchieDiocesi = () => {
   const loadParrocchie = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/amministrazione/parrocchie-diocesi', {
+      const response = await fetch('/api/amministrazione/parrocchie-diocesi', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -63,7 +63,7 @@ const ParrocchieDiocesi = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/amministrazione/parrocchie-diocesi', {
+      const response = await fetch('/api/amministrazione/parrocchie-diocesi', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -88,7 +88,7 @@ const ParrocchieDiocesi = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/parrocchie-diocesi/${id}`, {
+      const response = await fetch(`/api/amministrazione/parrocchie-diocesi/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -119,7 +119,7 @@ const ParrocchieDiocesi = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/parrocchie-diocesi/${editingParrocchia.id}`, {
+      const response = await fetch(`/api/amministrazione/parrocchie-diocesi/${editingParrocchia.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -155,7 +155,7 @@ const ParrocchieDiocesi = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8000/api/template-categorie/applica-a-ente/${parrocchia.id}`,
+        `/api/template-categorie/applica-a-ente/${parrocchia.id}`,
         {
           method: 'POST',
           headers: {
@@ -204,7 +204,7 @@ const ParrocchieDiocesi = () => {
         if (comune && denominazione) {
           try {
             const token = localStorage.getItem('token');
-            await fetch('http://localhost:8000/api/amministrazione/parrocchie-diocesi', {
+            await fetch('/api/amministrazione/parrocchie-diocesi', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,

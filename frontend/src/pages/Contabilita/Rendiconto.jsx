@@ -24,7 +24,7 @@ const Rendiconto = () => {
 
   const caricaRendiconti = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/contabilita/rendiconti', { headers });
+      const res = await fetch('/api/contabilita/rendiconti', { headers });
       if (res.ok) {
         const data = await res.json();
         setRendiconti(data.rendiconti || []);
@@ -39,7 +39,7 @@ const Rendiconto = () => {
   const visualizzaMotivo = async (rendiconto) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/contabilita/rendiconti/${rendiconto.id}`,
+        `/api/contabilita/rendiconti/${rendiconto.id}`,
         { headers }
       );
 
@@ -63,7 +63,7 @@ const Rendiconto = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}`,
+        `/api/contabilita/rendiconti/${rendicontoId}`,
         {
           method: 'DELETE',
           headers
@@ -96,7 +96,7 @@ const Rendiconto = () => {
 
     try {
       setInviando(true);
-      const res = await fetch('http://localhost:8000/api/contabilita/rendiconti', {
+      const res = await fetch('/api/contabilita/rendiconti', {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -124,7 +124,7 @@ const Rendiconto = () => {
 
   const downloadPdf = async (rendicontoId) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
+      const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
@@ -372,7 +372,7 @@ const Rendiconto = () => {
                   <p className="font-semibold mb-2">📄 Documento allegato:</p>
                   <button
                     onClick={() => window.open(
-                      `http://localhost:8000/api/contabilita/rendiconti/allegati/${motivoDettaglio.allegato_id}/download`,
+                      `/api/contabilita/rendiconti/allegati/${motivoDettaglio.allegato_id}/download`,
                       '_blank'
                     )}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

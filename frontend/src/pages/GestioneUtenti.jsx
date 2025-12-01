@@ -82,7 +82,7 @@ const GestioneUtenti = () => {
   const fetchEnti = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/amministrazione/enti', {
+      const response = await fetch('/api/amministrazione/enti', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -100,7 +100,7 @@ const GestioneUtenti = () => {
   const fetchUtenti = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/amministrazione/utenti', {
+      const response = await fetch('/api/amministrazione/utenti', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -180,7 +180,7 @@ const GestioneUtenti = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:8000/api/amministrazione/utenti/${utenteSelezionato.id}`, {
+      const response = await fetch(`/api/amministrazione/utenti/${utenteSelezionato.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -198,7 +198,7 @@ const GestioneUtenti = () => {
       if (response.ok) {
         if (utenteSelezionato.enti && utenteSelezionato.enti.length > 0) {
           for (const ente of utenteSelezionato.enti) {
-            await fetch(`http://localhost:8000/api/amministrazione/utenti-enti/${utenteSelezionato.id}/${ente.id}`, {
+            await fetch(`/api/amministrazione/utenti-enti/${utenteSelezionato.id}/${ente.id}`, {
               method: 'DELETE',
               headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -207,7 +207,7 @@ const GestioneUtenti = () => {
 
         for (const ente of entiSelezionati) {
           if (ente.ente_id && ente.ruolo) {
-            await fetch('http://localhost:8000/api/amministrazione/utenti-enti', {
+            await fetch('/api/amministrazione/utenti-enti', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -259,7 +259,7 @@ const GestioneUtenti = () => {
         attivo: true
       };
 
-      const response = await fetch('http://localhost:8000/api/amministrazione/utenti', {
+      const response = await fetch('/api/amministrazione/utenti', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -273,7 +273,7 @@ const GestioneUtenti = () => {
 
         for (const ente of entiSelezionati) {
           if (ente.ente_id && ente.ruolo) {
-            await fetch('http://localhost:8000/api/amministrazione/utenti-enti', {
+            await fetch('/api/amministrazione/utenti-enti', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -320,7 +320,7 @@ const GestioneUtenti = () => {
   const handleResetPassword = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/utenti/${utenteSelezionato.id}/reset-password`, {
+      const response = await fetch(`/api/amministrazione/utenti/${utenteSelezionato.id}/reset-password`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -345,7 +345,7 @@ const GestioneUtenti = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/utenti/${utenteId}`, {
+      const response = await fetch(`/api/amministrazione/utenti/${utenteId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -379,7 +379,7 @@ const GestioneUtenti = () => {
         [permesso]: !valoreAttuale
       };
 
-      const response = await fetch(`http://localhost:8000/api/amministrazione/utenti-enti/${utenteId}/${enteId}/permessi`, {
+      const response = await fetch(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}/permessi`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

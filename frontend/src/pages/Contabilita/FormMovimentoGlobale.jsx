@@ -34,7 +34,7 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
 
   const fetchConti = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/contabilita/registri', { headers });
+      const res = await fetch('/api/contabilita/registri', { headers });
       if (res.ok) {
         const data = await res.json();
         setConti(data || []);

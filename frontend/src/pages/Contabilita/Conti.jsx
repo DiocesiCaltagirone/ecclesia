@@ -39,7 +39,7 @@ const Conti = () => {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('ente_id');
 
-      const response = await fetch('http://localhost:8000/api/contabilita/registri', {
+      const response = await fetch('/api/contabilita/registri', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'X-Ente-Id': enteId
@@ -63,8 +63,8 @@ const Conti = () => {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('ente_id');
       const url = editingConto
-        ? `http://localhost:8000/api/contabilita/registri/${editingConto.id}`
-        : 'http://localhost:8000/api/contabilita/registri';
+        ? `/api/contabilita/registri/${editingConto.id}`
+        : '/api/contabilita/registri';
 
       const method = editingConto ? 'PUT' : 'POST';
 
@@ -100,7 +100,7 @@ const Conti = () => {
     try {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('ente_id');
-      const response = await fetch(`http://localhost:8000/api/contabilita/registri/${id}`, {
+      const response = await fetch(`/api/contabilita/registri/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

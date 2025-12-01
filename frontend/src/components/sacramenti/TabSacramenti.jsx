@@ -30,7 +30,7 @@ const TabSacramenti = ({ persona }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:8000/sacramenti/persone/${persona.id}/riepilogo`,
+        `/sacramenti/persone/${persona.id}/riepilogo`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSacramenti(response.data);

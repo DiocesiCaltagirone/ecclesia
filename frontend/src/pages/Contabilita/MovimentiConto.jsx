@@ -79,7 +79,7 @@ const MovimentiConto = () => {
   const fetchMovimenti = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:8000/api/contabilita/movimenti/conto/${registroId}`, { headers });
+      const res = await fetch(`/api/contabilita/movimenti/conto/${registroId}`, { headers });
       if (res.ok) {
         const data = await res.json();
         setContoNome(data.conto_nome);
@@ -95,7 +95,7 @@ const MovimentiConto = () => {
 
   const fetchCategorie = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/contabilita/categorie', { headers });
+      const res = await fetch('/api/contabilita/categorie', { headers });
       if (res.ok) {
         const data = await res.json();
         setCategorie(data.categorie || []);
@@ -222,8 +222,8 @@ const MovimentiConto = () => {
   const handleSaveMovimento = async (payload, movimentoId) => {
     try {
       const url = movimentoId
-        ? `http://localhost:8000/api/contabilita/movimenti/${movimentoId}`
-        : 'http://localhost:8000/api/contabilita/movimenti';
+        ? `/api/contabilita/movimenti/${movimentoId}`
+        : '/api/contabilita/movimenti';
 
       const method = movimentoId ? 'PUT' : 'POST';
 
@@ -287,7 +287,7 @@ const MovimentiConto = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/api/contabilita/movimenti/${movimento.id}`, {
+      const res = await fetch(`/api/contabilita/movimenti/${movimento.id}`, {
         method: 'DELETE',
         headers
       });

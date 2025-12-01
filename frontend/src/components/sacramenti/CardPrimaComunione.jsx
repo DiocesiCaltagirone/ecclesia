@@ -13,7 +13,7 @@ const CardPrimaComunione = ({ data, onEdit, onDelete }) => {
       setDeleting(true);
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:8000/sacramenti/prime-comunioni/${data.id}`,
+        `/sacramenti/prime-comunioni/${data.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       onDelete();

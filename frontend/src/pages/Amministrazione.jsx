@@ -42,13 +42,13 @@ const Amministrazione = () => {
       const token = localStorage.getItem('token');
 
       // Carica numero Enti
-      const entiRes = await fetch('http://localhost:8000/api/amministrazione/enti', {
+      const entiRes = await fetch('/api/amministrazione/enti', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const enti = await entiRes.json();
 
       // Carica numero Utenti (escluso economo)
-      const utentiRes = await fetch('http://localhost:8000/api/amministrazione/utenti', {
+      const utentiRes = await fetch('/api/amministrazione/utenti', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const utenti = await utentiRes.json();
@@ -84,7 +84,7 @@ const Amministrazione = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/auth/change-password', {
+      const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ old_password: passwordData.vecchia, new_password: passwordData.nuova })
@@ -112,7 +112,7 @@ const Amministrazione = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/auth/update-profile', {
+      const response = await fetch('/api/auth/update-profile', {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsData)

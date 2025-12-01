@@ -48,7 +48,7 @@ const ContabilitaLayout = () => {
         const enteId = localStorage.getItem('ente_id');
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`http://localhost:8000/api/enti/${enteId}`, {
+        const response = await fetch(`/api/enti/${enteId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'X-Ente-Id': enteId
@@ -80,7 +80,7 @@ const ContabilitaLayout = () => {
           });
         }
 
-        const entiResponse = await fetch('http://localhost:8000/api/enti/my-enti', {
+        const entiResponse = await fetch('/api/enti/my-enti', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -90,7 +90,7 @@ const ContabilitaLayout = () => {
         }
 
         // Carica categorie per il form transazione
-        const categorieResponse = await fetch('http://localhost:8000/api/contabilita/categorie', {
+        const categorieResponse = await fetch('/api/contabilita/categorie', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'X-Ente-Id': enteId
@@ -156,7 +156,7 @@ const ContabilitaLayout = () => {
     console.log('🔍 DEBUG - Payload:', payload);
 
     try {
-      const response = await fetch('http://localhost:8000/api/contabilita/registri', {
+      const response = await fetch('/api/contabilita/registri', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -188,7 +188,7 @@ const ContabilitaLayout = () => {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('ente_id');
 
-      const response = await fetch('http://localhost:8000/api/contabilita/movimenti', {
+      const response = await fetch('/api/contabilita/movimenti', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

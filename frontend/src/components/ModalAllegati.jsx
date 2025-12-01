@@ -15,7 +15,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8000/api/contabilita/movimenti/${movimento.id}/allegati`,
+        `/api/contabilita/movimenti/${movimento.id}/allegati`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -49,7 +49,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
         formData.append('file', file);
 
         const response = await fetch(
-          `http://localhost:8000/api/contabilita/movimenti/${movimento.id}/allegati`,
+          `/api/contabilita/movimenti/${movimento.id}/allegati`,
           {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -78,7 +78,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8000/api/contabilita/allegati/${allegato.id}/download`,
+        `/api/contabilita/allegati/${allegato.id}/download`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -107,7 +107,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8000/api/contabilita/allegati/${allegato.id}`,
+        `/api/contabilita/allegati/${allegato.id}`,
         {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }

@@ -45,7 +45,7 @@ const GestioneEnti = () => {
   const fetchEnti = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/amministrazione/enti', {
+      const response = await fetch('/api/amministrazione/enti', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -68,7 +68,7 @@ const GestioneEnti = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/amministrazione/enti', {
+      const response = await fetch('/api/amministrazione/enti', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -107,7 +107,7 @@ const GestioneEnti = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/utenti-enti/${utenteId}/${enteId}`, {
+      const response = await fetch(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -154,7 +154,7 @@ const GestioneEnti = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/enti/${enteSelezionato.id}`, {
+      const response = await fetch(`/api/amministrazione/enti/${enteSelezionato.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -184,7 +184,7 @@ const GestioneEnti = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/amministrazione/enti/${enteId}`, {
+      const response = await fetch(`/api/amministrazione/enti/${enteId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -218,7 +218,7 @@ const GestioneEnti = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8000/api/template-categorie/applica-a-ente/${ente.id}`,
+        `/api/template-categorie/applica-a-ente/${ente.id}`,
         {
           method: 'POST',
           headers: {

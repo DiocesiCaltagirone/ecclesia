@@ -66,7 +66,7 @@ const NuovoRendiconto = () => {
 
   const verificaBozzaEsistente = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/contabilita/rendiconti?stato=bozza', { headers });
+      const res = await fetch('/api/contabilita/rendiconti?stato=bozza', { headers });
       if (res.ok) {
         const data = await res.json();
         const bozze = data.rendiconti || [];
@@ -88,7 +88,7 @@ const NuovoRendiconto = () => {
   const caricaDocumenti = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/contabilita/rendiconti/${id}/documenti`,
+        `/api/contabilita/rendiconti/${id}/documenti`,
         { headers }
       );
       if (res.ok) {
@@ -113,7 +113,7 @@ const NuovoRendiconto = () => {
 
     try {
       setCreando(true);
-      const res = await fetch('http://localhost:8000/api/contabilita/rendiconti', {
+      const res = await fetch('/api/contabilita/rendiconti', {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,7 +146,7 @@ const NuovoRendiconto = () => {
     try {
       setUploading(true);
       const res = await fetch(
-        `http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}/documenti`,
+        `/api/contabilita/rendiconti/${rendicontoId}/documenti`,
         {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId },
@@ -175,7 +175,7 @@ const NuovoRendiconto = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}`,
+        `/api/contabilita/rendiconti/${rendicontoId}`,
         { method: 'DELETE', headers }
       );
 
@@ -201,7 +201,7 @@ const NuovoRendiconto = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}/invia`,
+        `/api/contabilita/rendiconti/${rendicontoId}/invia`,
         { method: 'POST', headers }
       );
 
@@ -220,7 +220,7 @@ const NuovoRendiconto = () => {
 
   const downloadPdf = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
+      const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);

@@ -13,7 +13,7 @@ const CardBattesimo = ({ data, onEdit, onDelete }) => {
       setDeleting(true);
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:8000/sacramenti/battesimi/${data.id}`,
+        `/sacramenti/battesimi/${data.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       onDelete();

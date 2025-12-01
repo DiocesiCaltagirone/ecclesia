@@ -40,7 +40,7 @@ const TemplateCategorieAdmin = () => {
   const loadCategorie = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/template-categorie', {
+      const response = await fetch('/api/template-categorie', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -124,7 +124,7 @@ const TemplateCategorieAdmin = () => {
       // Genera codice automatico progressivo
       const codice = generaCodiceAutomatico(formData.categoria_padre_id);
       
-      const response = await fetch('http://localhost:8000/api/template-categorie', {
+      const response = await fetch('/api/template-categorie', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -182,7 +182,7 @@ const TemplateCategorieAdmin = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/template-categorie/${id}`, {
+      const response = await fetch(`/api/template-categorie/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -210,7 +210,7 @@ const TemplateCategorieAdmin = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/template-categorie/${editingCategoria.id}`, {
+      const response = await fetch(`/api/template-categorie/${editingCategoria.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

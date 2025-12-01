@@ -42,7 +42,7 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('selectedEnteId');
       const response = await axios.get(
-        `http://localhost:8000/api/enti/${enteId}`,
+        `/api/enti/${enteId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEnteCorrente(response.data);
@@ -55,7 +55,7 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        'http://localhost:8000/api/comuni',
+        '/api/comuni',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCitta(response.data);
@@ -68,7 +68,7 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:8000/api/enti?comune=${comune}`,
+        `/api/enti?comune=${comune}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setParrocchie(response.data);
@@ -98,13 +98,13 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
 
       if (data?.id) {
         await axios.put(
-          `http://localhost:8000/sacramenti/cresime/${data.id}`,
+          `/sacramenti/cresime/${data.id}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         await axios.post(
-          'http://localhost:8000/sacramenti/cresime',
+          '/sacramenti/cresime',
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );

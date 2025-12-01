@@ -154,7 +154,7 @@ const Rapporti = () => {
     try {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('ente_id');
-      const response = await axios.get('http://localhost:8000/api/contabilita/registri', {
+      const response = await axios.get('/api/contabilita/registri', {
         headers: {
           Authorization: `Bearer ${token}`,
           'X-Ente-Id': enteId
@@ -174,7 +174,7 @@ const Rapporti = () => {
       console.log('🔑 TOKEN:', token ? 'PRESENTE' : 'ASSENTE');
       console.log('🏛️ ENTE_ID:', enteId);
 
-      const response = await axios.get('http://localhost:8000/api/contabilita/categorie', {
+      const response = await axios.get('/api/contabilita/categorie', {
         headers: {
           Authorization: `Bearer ${token}`,
           'X-Ente-Id': enteId
@@ -349,7 +349,7 @@ const Rapporti = () => {
       });
 
       const response = await axios.post(
-        'http://localhost:8000/api/contabilita/report',
+        '/api/contabilita/report',
         {
           tipo: tipoReport,
           ...filtri,

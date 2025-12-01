@@ -35,7 +35,7 @@ const Categorie = () => {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/contabilita/categorie', { headers });
+      const res = await fetch('/api/contabilita/categorie', { headers });
       if (res.ok) {
         const data = await res.json();
         setCategorie(data.categorie || []);
@@ -94,8 +94,8 @@ const Categorie = () => {
     }
 
     const url = editing
-      ? `http://localhost:8000/api/contabilita/categorie/${editing.id}`
-      : 'http://localhost:8000/api/contabilita/categorie';
+      ? `/api/contabilita/categorie/${editing.id}`
+      : '/api/contabilita/categorie';
 
     const payload = {
       nome: formData.nome.trim(),
@@ -139,7 +139,7 @@ const Categorie = () => {
     if (!deletingCategoria) return;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/contabilita/categorie/${deletingCategoria.id}`, {
+      const res = await fetch(`/api/contabilita/categorie/${deletingCategoria.id}`, {
         method: 'DELETE',
         headers
       });

@@ -28,7 +28,7 @@ const EconomatoContabilita = () => {
 
   const caricaRendiconti = async () => {
     try {
-      let url = 'http://localhost:8000/api/contabilita/economo/rendiconti?';
+      let url = '/api/contabilita/economo/rendiconti?';
       if (filtroStato) url += `stato=${filtroStato}&`;
       if (filtroComune) url += `comune=${filtroComune}`;
       if (filtroRicerca) url += `comune=${filtroRicerca}`;
@@ -51,7 +51,7 @@ const EconomatoContabilita = () => {
     try {
       if (tipo === 'approva') {
         // APPROVA (resta uguale)
-        const url = `http://localhost:8000/api/contabilita/economo/rendiconti/${rendicontoId}/approva`;
+        const url = `/api/contabilita/economo/rendiconti/${rendicontoId}/approva`;
         const res = await fetch(url, {
           method: 'PUT',
           headers
@@ -80,7 +80,7 @@ const EconomatoContabilita = () => {
         }
 
         const res = await fetch(
-          `http://localhost:8000/api/contabilita/economo/rendiconti/${rendicontoId}/respingi`,
+          `/api/contabilita/economo/rendiconti/${rendicontoId}/respingi`,
           {
             method: 'POST',
             headers: {
@@ -122,7 +122,7 @@ const EconomatoContabilita = () => {
       formData.append('motivo', motivoEsonero);
 
       const res = await fetch(
-        `http://localhost:8000/api/contabilita/economo/rendiconti/${rendicontoId}/esonera-documenti`,
+        `/api/contabilita/economo/rendiconti/${rendicontoId}/esonera-documenti`,
         {
           method: 'POST',
           headers: {
@@ -151,7 +151,7 @@ const EconomatoContabilita = () => {
 
   const downloadPdf = async (rendicontoId) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
+      const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);

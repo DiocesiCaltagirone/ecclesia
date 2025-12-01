@@ -42,7 +42,7 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
       const token = localStorage.getItem('token');
       const enteId = localStorage.getItem('selectedEnteId');
       const response = await axios.get(
-        `http://localhost:8000/api/enti/${enteId}`,
+        `/api/enti/${enteId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEnteCorrente(response.data);
@@ -56,7 +56,7 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
       const token = localStorage.getItem('token');
       // Assumo che ci sia un endpoint per ottenere i comuni
       const response = await axios.get(
-        'http://localhost:8000/api/comuni',
+        '/api/comuni',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCitta(response.data);
@@ -75,7 +75,7 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:8000/api/enti?comune=${comune}`,
+        `/api/enti?comune=${comune}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setParrocchie(response.data);
@@ -107,14 +107,14 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
       if (data?.id) {
         // UPDATE
         await axios.put(
-          `http://localhost:8000/sacramenti/battesimi/${data.id}`,
+          `/sacramenti/battesimi/${data.id}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // CREATE
         await axios.post(
-          'http://localhost:8000/sacramenti/battesimi',
+          '/sacramenti/battesimi',
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
