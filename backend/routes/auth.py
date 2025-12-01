@@ -116,7 +116,8 @@ async def login(
             "email": email,
             "nome": nome,
             "cognome": cognome,
-            "titolo": titolo
+            "titolo": titolo,
+            "is_economo": is_economo
         },
         "enti": enti
     }
