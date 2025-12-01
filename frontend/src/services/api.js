@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = '';
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:8000' : '';
 
 // Crea istanza axios
 const api = axios.create({

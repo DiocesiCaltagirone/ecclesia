@@ -167,9 +167,94 @@ def update_registro(
     current_user: dict = Depends(get_current_user),
     x_ente_id: str = Header(None, alias="X-Ente-Id")
 ):
-    """Modifica registro contabile (nome e tipo)"""
-    ente_id = current_user.get('ente_id') or x_ente_id
+    """
+    Modifica registro contabile (nome, tipo e saldo iniziale)
     
+    Il saldo iniziale può essere modificato solo se non esistono
+    rendiconti approvati che includono questo conto.
+    """
+    ente_id = current_user.get('ente_id') or x_ente_id
+    nuovo_saldo_iniziale = data.get("saldo_iniziale")
+    
+    # Se si vuole modificare il saldo iniziale, verifica rendiconti approvati
+    if nuovo_saldo_iniziale is not None:
+        check_rendiconti = """
+            SELECT COUNT(*) FROM rendiconti r
+            WHERE r.ente_id = :ente_id
+            AND r.stato = 'approvato'
+            AND EXISTS (
+                SELECT 1 FROM movimenti_contabili m
+                WHERE m.rendiconto_id = r.id
+                AND m.registro_id = :registro_id
+            )
+        """
+        result = db.execute(text(check_rendiconti), {
+            "ente_id": ente_id,
+            "registro_id": registro_id
+        })
+        count = result.fetchone()[0]
+        
+        if count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossibile modificare il saldo iniziale: esistono rendiconti approvati per questo conto"
+            )
+        
+        # Aggiorna o crea il movimento di saldo iniziale
+        nuovo_saldo = float(nuovo_saldo_iniziale)
+        
+        # Cerca movimento saldo iniziale esistente
+        check_movimento = """
+            SELECT id, importo FROM movimenti_contabili
+            WHERE registro_id = :registro_id
+            AND tipo_speciale = 'saldo_iniziale'
+        """
+        mov_result = db.execute(text(check_movimento), {"registro_id": registro_id}).fetchone()
+        
+        if nuovo_saldo > 0:
+            if mov_result:
+                # Aggiorna movimento esistente
+                update_mov = """
+                    UPDATE movimenti_contabili
+                    SET importo = :importo
+                    WHERE id = :id
+                """
+                db.execute(text(update_mov), {
+                    "id": mov_result[0],
+                    "importo": nuovo_saldo
+                })
+            else:
+                # Crea nuovo movimento saldo iniziale
+                import uuid
+                movimento_id = str(uuid.uuid4())
+                insert_mov = """
+                    INSERT INTO movimenti_contabili (
+                        id, ente_id, registro_id, categoria_id,
+                        data_movimento, tipo_movimento, importo,
+                        causale, bloccato, tipo_speciale, created_by
+                    ) VALUES (
+                        :id, :ente_id, :registro_id, NULL,
+                        CURRENT_DATE, 'entrata', :importo,
+                        'Saldo iniziale alla creazione del conto',
+                        FALSE, 'saldo_iniziale', :user_id
+                    )
+                """
+                db.execute(text(insert_mov), {
+                    "id": movimento_id,
+                    "ente_id": ente_id,
+                    "registro_id": registro_id,
+                    "importo": nuovo_saldo,
+                    "user_id": current_user.get('user_id')
+                })
+        else:
+            # Se saldo = 0, elimina movimento saldo iniziale se esiste
+            if mov_result:
+                delete_mov = """
+                    DELETE FROM movimenti_contabili WHERE id = :id
+                """
+                db.execute(text(delete_mov), {"id": mov_result[0]})
+    
+    # Aggiorna nome e tipo del registro
     query = """
         UPDATE registri_contabili 
         SET nome = :nome,
