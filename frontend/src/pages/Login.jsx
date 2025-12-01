@@ -34,7 +34,7 @@ function Login() {
       });
 
       const userData = userResponse.data;
-      
+
       // Salva l'ente_id se l'utente ha almeno un ente
       if (userData.enti && userData.enti.length > 0) {
         const primoEnteId = userData.enti[0].id;
@@ -42,7 +42,7 @@ function Login() {
       }
 
       // REDIRECT IN BASE AL RUOLO
-      if (data.user.username === 'admin') {
+      if (data.user.is_economo) {
         navigate('/amministrazione');
       } else {
         navigate('/select-ente');
@@ -226,11 +226,10 @@ function Login() {
             </p>
 
             {resetMessage && (
-              <div className={`mb-4 border-l-4 px-4 py-3 rounded-r-lg ${
-                resetMessage.includes('✅') 
-                  ? 'bg-green-50 border-green-500 text-green-700' 
+              <div className={`mb-4 border-l-4 px-4 py-3 rounded-r-lg ${resetMessage.includes('✅')
+                  ? 'bg-green-50 border-green-500 text-green-700'
                   : 'bg-red-50 border-red-500 text-red-700'
-              }`}>
+                }`}>
                 <p className="text-sm">{resetMessage}</p>
               </div>
             )}
