@@ -866,10 +866,37 @@ def create_movimento(
     """Crea nuovo movimento contabile"""
     ente_id = current_user.get('ente_id') or x_ente_id
     movimento_id = str(uuid.uuid4())
-    
-    # 🆕 CONTROLLO: Verifica se la data è in un periodo già chiuso (bozza o approvato)
+
+# 🆕 CONTROLLO: Verifica che la data non sia prima del saldo iniziale del conto
+    registro_id = data.get("registro_id")
     data_movimento = data["data_movimento"]
     
+    query_saldo_iniziale = text("""
+        SELECT data_movimento 
+        FROM movimenti_contabili 
+        WHERE registro_id = :registro_id 
+        AND tipo_speciale = 'saldo_iniziale'
+        LIMIT 1
+    """)
+    saldo_iniziale = db.execute(query_saldo_iniziale, {"registro_id": registro_id}).fetchone()
+    
+    if saldo_iniziale:
+        data_saldo = saldo_iniziale[0]
+        # Converti in date se necessario
+        if isinstance(data_movimento, str):
+            from datetime import datetime
+            data_mov_date = datetime.strptime(data_movimento, "%Y-%m-%d").date()
+        else:
+            data_mov_date = data_movimento
+            
+        if data_mov_date < data_saldo:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Impossibile aggiungere movimenti con data {data_movimento}. Il conto è stato creato il {data_saldo.strftime('%d/%m/%Y')}. Puoi inserire movimenti solo da quella data in poi."
+            )
+
+
+    # 🆕 CONTROLLO: Verifica se la data è in un periodo già chiuso (bozza o approvato)
     query_rendiconto = text("""
         SELECT periodo_fine 
         FROM rendiconti 
