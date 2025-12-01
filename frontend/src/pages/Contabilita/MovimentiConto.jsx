@@ -164,25 +164,32 @@ const MovimentiConto = () => {
 
     setMovimentiFiltrati(risultato);
 
-    // Calcola statistiche: saldi iniziali + movimenti NON bloccati
+    // Calcola saldo iniziale (separato)
+    const saldoIniziale = risultato
+      .filter(m => m.tipo_speciale === 'saldo_iniziale')
+      .reduce((sum, m) => sum + parseFloat(m.importo), 0);
+
+    // Calcola statistiche: SOLO movimenti NON bloccati e NON saldo iniziale
     const entrate = risultato
       .filter(m =>
         m.tipo_movimento === 'entrata' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
+        m.tipo_speciale !== 'saldo_iniziale' &&
+        !m.bloccato
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     const uscite = risultato
       .filter(m =>
         m.tipo_movimento === 'uscita' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
+        m.tipo_speciale !== 'saldo_iniziale' &&
+        !m.bloccato
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     setStats({
       totaleEntrate: entrate,
       totaleUscite: uscite,
-      saldo: entrate - uscite
+      saldo: saldoIniziale + entrate - uscite
     });
   };
 
