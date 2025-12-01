@@ -209,14 +209,17 @@ def delete_registro(
     """
     Elimina registro contabile (soft delete)
     
-    Verifica che non ci siano movimenti associati prima di procedere.
+    Verifica che non ci siano movimenti NON di saldo iniziale prima di procedere.
+    Elimina automaticamente i movimenti di saldo iniziale.
     Rimuove anche le associazioni con le categorie del piano dei conti.
     """
     ente_id = current_user.get('ente_id') or x_ente_id
     
-    # Verifica movimenti associati
+    # Verifica movimenti NON di saldo iniziale
     check_query = """
-        SELECT COUNT(*) FROM movimenti_contabili WHERE registro_id = :registro_id
+        SELECT COUNT(*) FROM movimenti_contabili 
+        WHERE registro_id = :registro_id
+        AND (tipo_speciale IS NULL OR tipo_speciale != 'saldo_iniziale')
     """
     result = db.execute(text(check_query), {"registro_id": registro_id})
     count = result.fetchone()[0]
@@ -226,6 +229,14 @@ def delete_registro(
             status_code=400,
             detail=f"Impossibile eliminare: ci sono {count} movimenti associati a questo conto"
         )
+    
+    # Elimina movimenti di saldo iniziale
+    delete_saldo_query = """
+        DELETE FROM movimenti_contabili 
+        WHERE registro_id = :registro_id
+        AND tipo_speciale = 'saldo_iniziale'
+    """
+    db.execute(text(delete_saldo_query), {"registro_id": registro_id})
     
     # Rimuovi associazioni con categorie
     remove_assoc_query = """
