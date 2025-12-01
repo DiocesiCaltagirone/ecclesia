@@ -320,12 +320,24 @@ async def login(
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     
+    # Recupera anche email, nome, cognome, titolo
+    query_dettagli = text("""
+        SELECT email, nome, cognome, titolo
+        FROM utenti WHERE id = :user_id
+    """)
+    dettagli = db.execute(query_dettagli, {"user_id": user_id}).fetchone()
+    
     return {
         "access_token": access_token,
         "token_type": "bearer",
         "user": {
             "id": user_id,
-            "username": username
+            "username": username,
+            "email": dettagli[0] if dettagli else None,
+            "nome": dettagli[1] if dettagli else None,
+            "cognome": dettagli[2] if dettagli else None,
+            "titolo": dettagli[3] if dettagli else None,
+            "is_economo": is_economo
         }
     }
 
