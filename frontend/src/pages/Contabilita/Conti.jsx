@@ -72,7 +72,7 @@ const Conti = () => {
         tipo: formData.tipo,
         nome: formData.nome,
         iban: formData.numero,
-        saldo_iniziale: 0.00
+        saldo_iniziale: formData.saldo_iniziale
       };
 
       const response = await fetch(url, {
@@ -372,7 +372,6 @@ const Conti = () => {
                     })}
                     className="w-full pl-7 pr-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
                     placeholder="0.00"
-                    disabled={editingConto !== null}
                   />
                 </div>
                 {editingConto && (
