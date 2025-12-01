@@ -112,7 +112,7 @@ def create_registro(
             print(f"✅ Creo movimento saldo iniziale: €{saldo_iniziale}")
             
             movimento_id = str(uuid.uuid4())
-            categoria_riporto_id = '00000000-0000-0000-0000-000000000001'
+            categoria_riporto_id = None
             
             query_movimento = text("""
                 INSERT INTO movimenti_contabili (
