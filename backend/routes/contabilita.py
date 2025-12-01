@@ -378,7 +378,7 @@ async def get_registri(
             raise HTTPException(status_code=400, detail="Ente ID mancante")
         
         # Calcola saldo SOLO dai movimenti NON bloccati
-        # (i movimenti bloccati sono già chiusi in rendiconti precedenti)
+        # Include anche il saldo_iniziale dal movimento speciale
         query = text("""
             SELECT 
                 r.id, 
@@ -399,7 +399,15 @@ async def get_registri(
                       AND m.ente_id = :ente_id
                       AND (m.bloccato = FALSE OR m.bloccato IS NULL)),
                     0
-                ) as saldo_attuale
+                ) as saldo_attuale,
+                COALESCE(
+                    (SELECT m.importo
+                    FROM movimenti_contabili m
+                    WHERE m.registro_id = r.id
+                      AND m.tipo_speciale = 'saldo_iniziale'
+                    LIMIT 1),
+                    0
+                ) as saldo_iniziale
             FROM registri_contabili r
             WHERE r.ente_id = :ente_id
               AND r.attivo = TRUE
@@ -411,8 +419,9 @@ async def get_registri(
         registri = []
         for row in result:
             saldo_attuale = float(row[5]) if row[5] else 0.0
+            saldo_iniziale = float(row[6]) if row[6] else 0.0
             
-            print(f"📊 Conto: {row[1]} - Saldo: {saldo_attuale}")
+            print(f"📊 Conto: {row[1]} - Saldo: {saldo_attuale} - Saldo Iniziale: {saldo_iniziale}")
             
             registri.append({
                 "id": str(row[0]),
@@ -420,6 +429,7 @@ async def get_registri(
                 "tipo": row[2],
                 "descrizione": row[3],
                 "saldo_attuale": saldo_attuale,
+                "saldo_iniziale": saldo_iniziale,
                 "attivo": row[4]
             })
         
