@@ -141,17 +141,15 @@ const MovimentiConto = () => {
       );
     }
 
-    // Ordina per visualizzazione (crescente o decrescente)
-    risultato.sort((a, b) => {
-      const dataA = new Date(a.data_movimento);
-      const dataB = new Date(b.data_movimento);
-      return ordineCrescente ? dataA - dataB : dataB - dataA;
+    // PRIMA calcola saldo in ordine CRONOLOGICO (dal più vecchio)
+    const risultatoOrdinatoCronologico = [...risultato].sort((a, b) => {
+      return new Date(a.data_movimento) - new Date(b.data_movimento);
     });
 
-    // Calcola saldo progressivo SOLO per movimenti NON bloccati
-    // I movimenti bloccati mostrano saldo 0 (come nella Movimentazione Generale)
+    // Calcola saldo progressivo in ordine cronologico
     let saldoProgressivo = 0;
-    risultato = risultato.map(mov => {
+    const saldiMap = {};
+    risultatoOrdinatoCronologico.forEach(mov => {
       if (!mov.bloccato) {
         if (mov.tipo_movimento === 'entrata') {
           saldoProgressivo += parseFloat(mov.importo);
@@ -159,8 +157,21 @@ const MovimentiConto = () => {
           saldoProgressivo -= parseFloat(mov.importo);
         }
       }
-      return { ...mov, saldo_progressivo: mov.bloccato ? 0 : saldoProgressivo };
+      saldiMap[mov.id] = mov.bloccato ? 0 : saldoProgressivo;
     });
+
+    // POI ordina per visualizzazione (crescente o decrescente)
+    risultato.sort((a, b) => {
+      const dataA = new Date(a.data_movimento);
+      const dataB = new Date(b.data_movimento);
+      return ordineCrescente ? dataA - dataB : dataB - dataA;
+    });
+
+    // Applica i saldi calcolati
+    risultato = risultato.map(mov => ({
+      ...mov,
+      saldo_progressivo: saldiMap[mov.id]
+    }));
 
     setMovimentiFiltrati(risultato);
 
