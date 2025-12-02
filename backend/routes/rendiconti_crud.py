@@ -519,7 +519,7 @@ async def elimina_rendiconto(
         
         # Elimina documenti fisici
         cur.execute("""
-            SELECT path_storage FROM rendiconti_documenti
+            SELECT path_file FROM rendiconti_documenti
             WHERE rendiconto_id = %s
         """, (str(rendiconto_id),))
         
