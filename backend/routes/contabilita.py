@@ -1046,17 +1046,17 @@ def create_giroconto(
             nota_uscita += f" - {note_utente}"
             nota_entrata += f" - {note_utente}"
         
-        # Crea movimento USCITA (dal conto origine)
+        # STEP 1: Crea movimento USCITA (SENZA collegamento)
         query_uscita = text("""
             INSERT INTO movimenti_contabili (
                 id, ente_id, registro_id, categoria_id,
                 data_movimento, tipo_movimento, importo,
-                causale, note, tipo_speciale, giroconto_collegato_id,
+                causale, note, tipo_speciale,
                 bloccato, created_by
             ) VALUES (
                 :id, :ente_id, :registro_id, :categoria_id,
                 :data_movimento, 'uscita', :importo,
-                :causale, :note, 'giroconto', :collegato_id,
+                :causale, :note, 'giroconto',
                 FALSE, :user_id
             )
         """)
@@ -1070,23 +1070,22 @@ def create_giroconto(
             "importo": importo,
             "causale": nota_uscita,
             "note": nota_uscita,
-            "collegato_id": movimento_entrata_id,
             "user_id": current_user.get('id')
         })
         
         print(f"✅ Movimento uscita creato: {movimento_uscita_id}")
         
-        # Crea movimento ENTRATA (nel conto destinazione)
+        # STEP 2: Crea movimento ENTRATA (SENZA collegamento)
         query_entrata = text("""
             INSERT INTO movimenti_contabili (
                 id, ente_id, registro_id, categoria_id,
                 data_movimento, tipo_movimento, importo,
-                causale, note, tipo_speciale, giroconto_collegato_id,
+                causale, note, tipo_speciale,
                 bloccato, created_by
             ) VALUES (
                 :id, :ente_id, :registro_id, :categoria_id,
                 :data_movimento, 'entrata', :importo,
-                :causale, :note, 'giroconto', :collegato_id,
+                :causale, :note, 'giroconto',
                 FALSE, :user_id
             )
         """)
@@ -1100,11 +1099,29 @@ def create_giroconto(
             "importo": importo,
             "causale": nota_entrata,
             "note": nota_entrata,
-            "collegato_id": movimento_uscita_id,
             "user_id": current_user.get('id')
         })
         
         print(f"✅ Movimento entrata creato: {movimento_entrata_id}")
+        
+        # STEP 3: Aggiorna i collegamenti (ora entrambi esistono)
+        query_update = text("""
+            UPDATE movimenti_contabili 
+            SET giroconto_collegato_id = :collegato_id
+            WHERE id = :id
+        """)
+        
+        db.execute(query_update, {
+            "id": movimento_uscita_id,
+            "collegato_id": movimento_entrata_id
+        })
+        
+        db.execute(query_update, {
+            "id": movimento_entrata_id,
+            "collegato_id": movimento_uscita_id
+        })
+        
+        print(f"✅ Collegamenti aggiornati")
         
         db.commit()
         
