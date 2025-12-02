@@ -202,10 +202,11 @@ const MovimentiGenerale = () => {
         return sum + (m.tipo_movimento === 'entrata' ? parseFloat(m.importo) : -parseFloat(m.importo));
       }, 0);
 
-    // Calcola statistiche: saldi iniziali + movimenti NON bloccati
+    // Calcola statistiche: saldi iniziali + movimenti NON bloccati (esclusi giroconti)
     const entrate = risultato
       .filter(m =>
         m.tipo_movimento === 'entrata' &&
+        m.tipo_speciale !== 'giroconto' &&
         (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
@@ -213,6 +214,7 @@ const MovimentiGenerale = () => {
     const uscite = risultato
       .filter(m =>
         m.tipo_movimento === 'uscita' &&
+        m.tipo_speciale !== 'giroconto' &&
         (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
