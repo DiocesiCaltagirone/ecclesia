@@ -15,7 +15,8 @@ const ContabilitaLayout = () => {
     tipo: 'banca',
     nome: '',
     numero: '',
-    saldo_iniziale: 0
+    saldo_iniziale: 0,
+    data_inizio: new Date().toISOString().split('T')[0]
   });
   const [showModalTransazione, setShowModalTransazione] = useState(false);
   const [categorie, setCategorie] = useState([]);
@@ -146,7 +147,8 @@ const ContabilitaLayout = () => {
     const payload = {
       tipo: formConto.tipo,
       nome: formConto.nome,
-      saldo_iniziale: formConto.saldo_iniziale || 0  // ✅ PRENDE IL VALORE DAL FORM!
+      saldo_iniziale: formConto.saldo_iniziale || 0,
+      data_inizio: formConto.data_inizio
     };
 
     console.log('🔍 DEBUG - Payload inviato:', payload);  // Per verificare
@@ -170,7 +172,7 @@ const ContabilitaLayout = () => {
 
       if (response.ok) {
         setShowModalConto(false);
-        setFormConto({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0 });
+        setFormConto({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
         window.location.reload();
       } else {
         const errorData = await response.json();
@@ -555,6 +557,25 @@ const ContabilitaLayout = () => {
                 />
               </div>
 
+              {/* ✅ DATA INIZIO CONTABILITÀ */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Data inizio contabilità <span className="text-gray-400">(opzionale)</span>
+                </label>
+                <p className="text-[10px] text-gray-500 mb-1.5 leading-tight">
+                  📅 Da quale data iniziare a registrare i movimenti
+                </p>
+                <input
+                  type="date"
+                  value={formConto.data_inizio || new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setFormConto({
+                    ...formConto,
+                    data_inizio: e.target.value
+                  })}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Saldo iniziale <span className="text-gray-400">(opzionale)</span>
@@ -584,7 +605,7 @@ const ContabilitaLayout = () => {
                   type="button"
                   onClick={() => {
                     setShowModalConto(false);
-                    setFormConto({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0 });
+                    setFormConto({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
                   }}
                   className="flex-1 px-4 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm font-medium"
                 >
