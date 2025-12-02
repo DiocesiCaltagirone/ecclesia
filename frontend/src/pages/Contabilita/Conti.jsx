@@ -72,7 +72,8 @@ const Conti = () => {
         tipo: formData.tipo,
         nome: formData.nome,
         iban: formData.numero,
-        saldo_iniziale: formData.saldo_iniziale
+        saldo_iniziale: formData.saldo_iniziale,
+        data_inizio: formData.data_inizio
       };
 
       const response = await fetch(url, {
@@ -127,7 +128,7 @@ const Conti = () => {
       });
     } else {
       setEditingConto(null);
-      setFormData({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0 });
+      setFormData({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
     }
     setShowModal(true);
   };
@@ -135,7 +136,7 @@ const Conti = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingConto(null);
-    setFormData({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0 });
+    setFormData({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
   };
 
   const formatCurrency = (value) => {
@@ -348,6 +349,26 @@ const Conti = () => {
                   onChange={(e) => setFormData({ ...formData, numero: e.target.value.toUpperCase() })}
                   className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm font-mono focus:ring-2 focus:ring-blue-500"
                   placeholder="IT00X... / 1234 5678"
+                />
+              </div>
+
+              {/* ✅ DATA INIZIO CONTABILITÀ */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Data inizio contabilità <span className="text-gray-400">(opzionale)</span>
+                </label>
+                <p className="text-[10px] text-gray-500 mb-1.5 leading-tight">
+                  📅 Da quale data iniziare a registrare i movimenti
+                </p>
+                <input
+                  type="date"
+                  value={formData.data_inizio || new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    data_inizio: e.target.value
+                  })}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                  disabled={editingConto !== null}
                 />
               </div>
 

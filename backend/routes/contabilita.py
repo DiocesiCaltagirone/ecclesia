@@ -85,6 +85,7 @@ def create_registro(
         tipo = data.get('tipo')
         nome = data.get('nome')
         saldo_iniziale = float(data.get('saldo_iniziale', 0))
+        data_inizio = data.get('data_inizio') or datetime.now().strftime('%Y-%m-%d')
         
         print(f"📊 Creazione conto: {nome} - Saldo iniziale: {saldo_iniziale}")
         
@@ -121,7 +122,7 @@ def create_registro(
                     causale, bloccato, tipo_speciale, created_by
                 ) VALUES (
                     :id, :ente_id, :registro_id, :categoria_id,
-                    CURRENT_DATE, 'entrata', :importo,
+                    :data_inizio, 'entrata', :importo,
                     'Saldo iniziale alla creazione del conto',
                     FALSE, 'saldo_iniziale', :user_id
                 )
@@ -133,6 +134,7 @@ def create_registro(
                 "registro_id": registro_id,
                 "categoria_id": categoria_riporto_id,
                 "importo": saldo_iniziale,
+                "data_inizio": data_inizio,
                 "user_id": current_user.get('id')
             })
             
