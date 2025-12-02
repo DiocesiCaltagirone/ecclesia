@@ -953,6 +953,181 @@ def create_movimento(
     db.commit()
     return {"id": movimento_id, "message": "Movimento creato"}
 
+@router.post("/movimenti/giroconto")
+def create_giroconto(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    """
+    Crea un giroconto (trasferimento tra due conti).
+    
+    Genera automaticamente 2 movimenti collegati:
+    - Uscita dal conto origine con nota "Giroconto per C/C [destinazione]"
+    - Entrata nel conto destinazione con nota "Giroconto da C/C [origine]"
+    """
+    try:
+        ente_id = current_user.get('ente_id') or x_ente_id
+        
+        if not ente_id:
+            raise HTTPException(status_code=400, detail="Ente ID mancante")
+        
+        conto_origine_id = data.get('conto_origine_id')
+        conto_destinazione_id = data.get('conto_destinazione_id')
+        data_movimento = data.get('data_movimento')
+        importo = float(data.get('importo', 0))
+        note_utente = data.get('note', '').strip()
+        
+        # Validazioni
+        if not conto_origine_id or not conto_destinazione_id:
+            raise HTTPException(status_code=400, detail="Seleziona entrambi i conti")
+        
+        if conto_origine_id == conto_destinazione_id:
+            raise HTTPException(status_code=400, detail="I conti origine e destinazione devono essere diversi")
+        
+        if importo <= 0:
+            raise HTTPException(status_code=400, detail="L'importo deve essere maggiore di zero")
+        
+        if not data_movimento:
+            raise HTTPException(status_code=400, detail="Data movimento obbligatoria")
+        
+        print(f"🔄 Creazione giroconto: €{importo} da {conto_origine_id} a {conto_destinazione_id}")
+        
+        # Recupera nomi dei conti
+        query_conti = text("""
+            SELECT id, nome FROM registri_contabili 
+            WHERE id IN (:id1, :id2) AND ente_id = :ente_id
+        """)
+        conti_result = db.execute(query_conti, {
+            "id1": conto_origine_id,
+            "id2": conto_destinazione_id,
+            "ente_id": ente_id
+        }).fetchall()
+        
+        if len(conti_result) != 2:
+            raise HTTPException(status_code=404, detail="Uno o entrambi i conti non trovati")
+        
+        conti_dict = {str(c[0]): c[1] for c in conti_result}
+        nome_origine = conti_dict.get(conto_origine_id, "N/D")
+        nome_destinazione = conti_dict.get(conto_destinazione_id, "N/D")
+        
+        # Trova o crea categoria "Giroconto"
+        categoria_query = text("""
+            SELECT id FROM piano_conti 
+            WHERE ente_id = :ente_id 
+            AND descrizione = 'Giroconto'
+            LIMIT 1
+        """)
+        categoria_result = db.execute(categoria_query, {"ente_id": ente_id}).fetchone()
+        
+        if categoria_result:
+            categoria_giroconto_id = str(categoria_result[0])
+            print(f"✅ Categoria Giroconto esistente: {categoria_giroconto_id}")
+        else:
+            # Crea categoria di sistema
+            categoria_giroconto_id = str(uuid.uuid4())
+            db.execute(text("""
+                INSERT INTO piano_conti (id, ente_id, codice, descrizione, tipo, is_sistema, livello)
+                VALUES (:id, :ente_id, 'GIR', 'Giroconto', 'economico', TRUE, 1)
+            """), {"id": categoria_giroconto_id, "ente_id": ente_id})
+            print(f"✅ Categoria Giroconto creata: {categoria_giroconto_id}")
+        
+        # Genera ID per i due movimenti
+        movimento_uscita_id = str(uuid.uuid4())
+        movimento_entrata_id = str(uuid.uuid4())
+        
+        # Costruisci note automatiche
+        nota_uscita = f"Giroconto per C/C {nome_destinazione}"
+        nota_entrata = f"Giroconto da C/C {nome_origine}"
+        
+        # Aggiungi note utente se presenti
+        if note_utente:
+            nota_uscita += f" - {note_utente}"
+            nota_entrata += f" - {note_utente}"
+        
+        # Crea movimento USCITA (dal conto origine)
+        query_uscita = text("""
+            INSERT INTO movimenti_contabili (
+                id, ente_id, registro_id, categoria_id,
+                data_movimento, tipo_movimento, importo,
+                causale, note, tipo_speciale, giroconto_collegato_id,
+                bloccato, created_by
+            ) VALUES (
+                :id, :ente_id, :registro_id, :categoria_id,
+                :data_movimento, 'uscita', :importo,
+                :causale, :note, 'giroconto', :collegato_id,
+                FALSE, :user_id
+            )
+        """)
+        
+        db.execute(query_uscita, {
+            "id": movimento_uscita_id,
+            "ente_id": ente_id,
+            "registro_id": conto_origine_id,
+            "categoria_id": categoria_giroconto_id,
+            "data_movimento": data_movimento,
+            "importo": importo,
+            "causale": nota_uscita,
+            "note": nota_uscita,
+            "collegato_id": movimento_entrata_id,
+            "user_id": current_user.get('id')
+        })
+        
+        print(f"✅ Movimento uscita creato: {movimento_uscita_id}")
+        
+        # Crea movimento ENTRATA (nel conto destinazione)
+        query_entrata = text("""
+            INSERT INTO movimenti_contabili (
+                id, ente_id, registro_id, categoria_id,
+                data_movimento, tipo_movimento, importo,
+                causale, note, tipo_speciale, giroconto_collegato_id,
+                bloccato, created_by
+            ) VALUES (
+                :id, :ente_id, :registro_id, :categoria_id,
+                :data_movimento, 'entrata', :importo,
+                :causale, :note, 'giroconto', :collegato_id,
+                FALSE, :user_id
+            )
+        """)
+        
+        db.execute(query_entrata, {
+            "id": movimento_entrata_id,
+            "ente_id": ente_id,
+            "registro_id": conto_destinazione_id,
+            "categoria_id": categoria_giroconto_id,
+            "data_movimento": data_movimento,
+            "importo": importo,
+            "causale": nota_entrata,
+            "note": nota_entrata,
+            "collegato_id": movimento_uscita_id,
+            "user_id": current_user.get('id')
+        })
+        
+        print(f"✅ Movimento entrata creato: {movimento_entrata_id}")
+        
+        db.commit()
+        
+        print(f"✅ Giroconto completato: €{importo} da {nome_origine} a {nome_destinazione}")
+        
+        return {
+            "message": "Giroconto creato con successo",
+            "movimento_uscita_id": movimento_uscita_id,
+            "movimento_entrata_id": movimento_entrata_id,
+            "importo": importo,
+            "da": nome_origine,
+            "a": nome_destinazione
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ ERRORE creazione giroconto: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.put("/movimenti/{movimento_id}")
 def update_movimento(

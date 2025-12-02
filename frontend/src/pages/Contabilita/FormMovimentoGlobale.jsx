@@ -4,6 +4,10 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
   const [conti, setConti] = useState([]);
   const [loadingConti, setLoadingConti] = useState(true);
 
+  // 🆕 Stati per giroconto
+  const [isGiroconto, setIsGiroconto] = useState(false);
+  const [contoDestinazione, setContoDestinazione] = useState('');
+
   const [formData, setFormData] = useState({
     registro_id: '',
     data_movimento: '',
@@ -52,7 +56,8 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
     const base = categorie.filter(cat => !cat.parent_id);
     setCategorieBase(base);
 
-    if (movimento && categorie.length > 0) {
+    // 🔧 FIX: Aggiunto movimento.id per distinguere modifica da nuovo con registro preimpostato
+    if (movimento && movimento.id && categorie.length > 0) {
       const isModifica = movimento.id && movimento.categoria_id;
 
       let categoriaId = '';
@@ -103,11 +108,12 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
         note: movimento.note || ''
       });
 
-    } else if (!movimento) {
-      // Completamente nuovo
+    // 🔧 FIX: Cambiato da "else if (!movimento)" a "else" per catturare anche nuovo con registro_id
+    } else {
+      // Nuovo movimento (con o senza registro_id preimpostato)
       const today = new Date().toISOString().split('T')[0];
       setFormData({
-        registro_id: '',
+        registro_id: movimento?.registro_id || '',  // 🔧 FIX: Prende registro_id se passato
         data_movimento: today,
         tipo_movimento: 'uscita',
         categoria_id: '',
@@ -126,8 +132,19 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
     setFormData(prev => ({
       ...prev,
       registro_id: nuovoConto
-      // NON resetta le categorie! Rimangono quelle già selezionate
     }));
+    // Se il conto destinazione è uguale al nuovo conto origine, resetta
+    if (contoDestinazione === nuovoConto) {
+      setContoDestinazione('');
+    }
+  };
+
+  // 🆕 Handler per toggle giroconto
+  const handleGirocontoToggle = (checked) => {
+    setIsGiroconto(checked);
+    if (!checked) {
+      setContoDestinazione('');
+    }
   };
 
   const handleCategoriaChange = (value) => {
@@ -173,8 +190,16 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
     if (!formData.data_movimento) newErrors.data_movimento = 'Richiesta';
     if (!formData.importo || parseFloat(formData.importo) <= 0) newErrors.importo = 'Importo > 0';
 
-    const categoriaFinale = formData.microcategoria_id || formData.sottocategoria_id || formData.categoria_id;
-    if (!categoriaFinale) newErrors.categoria = 'Seleziona categoria';
+    // 🆕 Validazione giroconto
+    if (isGiroconto) {
+      if (!contoDestinazione) {
+        newErrors.contoDestinazione = 'Seleziona conto destinazione';
+      }
+    } else {
+      // Solo per movimenti normali: richiedi categoria
+      const categoriaFinale = formData.microcategoria_id || formData.sottocategoria_id || formData.categoria_id;
+      if (!categoriaFinale) newErrors.categoria = 'Seleziona categoria';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -186,25 +211,57 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
 
     setSaving(true);
     try {
-      const categoriaFinale = formData.microcategoria_id || formData.sottocategoria_id || formData.categoria_id;
+      // 🆕 Se è un giroconto, chiama endpoint specifico
+      if (isGiroconto) {
+        const payload = {
+          conto_origine_id: formData.registro_id,
+          conto_destinazione_id: contoDestinazione,
+          data_movimento: formData.data_movimento,
+          importo: parseFloat(formData.importo),
+          note: formData.note.trim()
+        };
 
-      const payload = {
-        registro_id: formData.registro_id,
-        data_movimento: formData.data_movimento,
-        tipo_movimento: formData.tipo_movimento,
-        importo: parseFloat(formData.importo),
-        categoria_id: categoriaFinale,
-        note: formData.note.trim()
-      };
+        const res = await fetch('/api/contabilita/movimenti/giroconto', {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      await onSave(payload, movimento?.id);
-      onClose();
+        if (res.ok) {
+          onClose();
+          // Ricarica dati
+          if (typeof onSave === 'function') {
+            await onSave({}, null); // Trigger refresh
+          }
+        } else {
+          const errorData = await res.json();
+          alert(errorData.detail || 'Errore creazione giroconto');
+        }
+      } else {
+        // Movimento normale
+        const categoriaFinale = formData.microcategoria_id || formData.sottocategoria_id || formData.categoria_id;
+
+        const payload = {
+          registro_id: formData.registro_id,
+          data_movimento: formData.data_movimento,
+          tipo_movimento: formData.tipo_movimento,
+          importo: parseFloat(formData.importo),
+          categoria_id: categoriaFinale,
+          note: formData.note.trim()
+        };
+
+        await onSave(payload, movimento?.id);
+        onClose();
+      }
     } catch (error) {
       alert('Errore durante il salvataggio');
     } finally {
       setSaving(false);
     }
   };
+
+  // 🆕 Filtra conti per destinazione (escludi conto origine)
+  const contiDestinazioneDisponibili = conti.filter(c => c.id !== formData.registro_id);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -224,9 +281,11 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
         {/* FORM SUPER-COMPATTO */}
         <form onSubmit={handleSubmit} className="p-3 space-y-2">
 
-          {/* 🆕 CONTO */}
+          {/* CONTO ORIGINE */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-0.5">Conto *</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-0.5">
+              {isGiroconto ? 'Conto Origine *' : 'Conto *'}
+            </label>
             <select
               value={formData.registro_id}
               onChange={(e) => handleContoChange(e.target.value)}
@@ -246,6 +305,41 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
             {errors.registro_id && <p className="text-red-500 text-xs mt-0.5">{errors.registro_id}</p>}
           </div>
 
+          {/* 🆕 CHECKBOX GIROCONTO + CONTO DESTINAZIONE */}
+          {!movimento?.id && (
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isGiroconto}
+                  onChange={(e) => handleGirocontoToggle(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-xs font-semibold text-gray-700">Giroconto</span>
+              </label>
+
+              {/* Dropdown destinazione (visibile solo se giroconto attivo) */}
+              {isGiroconto && (
+                <select
+                  value={contoDestinazione}
+                  onChange={(e) => setContoDestinazione(e.target.value)}
+                  className={`flex-1 px-2 py-1 border rounded text-xs ${errors.contoDestinazione ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                >
+                  <option value="">→ Seleziona destinazione...</option>
+                  {contiDestinazioneDisponibili.map(conto => (
+                    <option key={conto.id} value={conto.id}>
+                      {conto.nome} {conto.tipo ? `(${conto.tipo})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+          {errors.contoDestinazione && (
+            <p className="text-red-500 text-xs">{errors.contoDestinazione}</p>
+          )}
+
           {/* DATA */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-0.5">Data *</label>
@@ -258,81 +352,86 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
             {errors.data_movimento && <p className="text-red-500 text-xs mt-0.5">{errors.data_movimento}</p>}
           </div>
 
-          {/* CATEGORIA */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-0.5">Categoria *</label>
-            <select
-              value={formData.categoria_id}
-              onChange={(e) => handleCategoriaChange(e.target.value)}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
-            >
-              <option value="">Seleziona...</option>
-              {categorieBase && categorieBase.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.nome}</option>
-              ))}
-            </select>
-          </div>
+          {/* 🆕 SEZIONE CATEGORIA/TIPO - NASCOSTA SE GIROCONTO */}
+          {!isGiroconto && (
+            <>
+              {/* CATEGORIA */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-0.5">Categoria *</label>
+                <select
+                  value={formData.categoria_id}
+                  onChange={(e) => handleCategoriaChange(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                >
+                  <option value="">Seleziona...</option>
+                  {categorieBase && categorieBase.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                  ))}
+                </select>
+              </div>
 
-          {/* SOTTOCATEGORIA */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-0.5">Sottocategoria</label>
-            <select
-              value={formData.sottocategoria_id}
-              onChange={(e) => handleSottocategoriaChange(e.target.value)}
-              disabled={!sottocategorie || sottocategorie.length === 0}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-50 disabled:text-gray-400"
-            >
-              <option value="">{!sottocategorie || sottocategorie.length === 0 ? '---' : 'Nessuna'}</option>
-              {sottocategorie && sottocategorie.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.nome}</option>
-              ))}
-            </select>
-          </div>
+              {/* SOTTOCATEGORIA */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-0.5">Sottocategoria</label>
+                <select
+                  value={formData.sottocategoria_id}
+                  onChange={(e) => handleSottocategoriaChange(e.target.value)}
+                  disabled={!sottocategorie || sottocategorie.length === 0}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-50 disabled:text-gray-400"
+                >
+                  <option value="">{!sottocategorie || sottocategorie.length === 0 ? '---' : 'Nessuna'}</option>
+                  {sottocategorie && sottocategorie.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                  ))}
+                </select>
+              </div>
 
-          {/* MICROCATEGORIA */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-0.5">Microcategoria</label>
-            <select
-              value={formData.microcategoria_id}
-              onChange={(e) => handleMicrocategoriaChange(e.target.value)}
-              disabled={!microcategorie || microcategorie.length === 0}
-              className="w-full px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-50 disabled:text-gray-400"
-            >
-              <option value="">{!microcategorie || microcategorie.length === 0 ? '---' : 'Nessuna'}</option>
-              {microcategorie && microcategorie.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.nome}</option>
-              ))}
-            </select>
-          </div>
+              {/* MICROCATEGORIA */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-0.5">Microcategoria</label>
+                <select
+                  value={formData.microcategoria_id}
+                  onChange={(e) => handleMicrocategoriaChange(e.target.value)}
+                  disabled={!microcategorie || microcategorie.length === 0}
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-50 disabled:text-gray-400"
+                >
+                  <option value="">{!microcategorie || microcategorie.length === 0 ? '---' : 'Nessuna'}</option>
+                  {microcategorie && microcategorie.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                  ))}
+                </select>
+              </div>
 
-          {errors.categoria && <p className="text-red-500 text-xs">{errors.categoria}</p>}
+              {errors.categoria && <p className="text-red-500 text-xs">{errors.categoria}</p>}
 
-          {/* TIPO MOVIMENTO */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-0.5">Tipo</label>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleChange('tipo_movimento', 'uscita')}
-                className={`flex-1 px-2 py-1 rounded text-xs font-semibold ${formData.tipo_movimento === 'uscita'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-100 text-gray-600'
-                  }`}
-              >
-                📤 Uscita
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChange('tipo_movimento', 'entrata')}
-                className={`flex-1 px-2 py-1 rounded text-xs font-semibold ${formData.tipo_movimento === 'entrata'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-100 text-gray-600'
-                  }`}
-              >
-                📥 Entrata
-              </button>
-            </div>
-          </div>
+              {/* TIPO MOVIMENTO */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-0.5">Tipo</label>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleChange('tipo_movimento', 'uscita')}
+                    className={`flex-1 px-2 py-1 rounded text-xs font-semibold ${formData.tipo_movimento === 'uscita'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-100 text-gray-600'
+                      }`}
+                  >
+                    📤 Uscita
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('tipo_movimento', 'entrata')}
+                    className={`flex-1 px-2 py-1 rounded text-xs font-semibold ${formData.tipo_movimento === 'entrata'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-100 text-gray-600'
+                      }`}
+                  >
+                    📥 Entrata
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* IMPORTO */}
           <div>
@@ -354,16 +453,30 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
 
           {/* NOTE */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-0.5">Note</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-0.5">
+              Note {isGiroconto && <span className="text-gray-400">(opzionale)</span>}
+            </label>
             <textarea
               value={formData.note}
               onChange={(e) => handleChange('note', e.target.value)}
               rows="2"
-              placeholder="Descrizione..."
+              placeholder={isGiroconto ? "Note aggiuntive..." : "Descrizione..."}
               maxLength="200"
               className="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
             />
           </div>
+
+          {/* 🆕 INFO GIROCONTO */}
+          {isGiroconto && formData.registro_id && contoDestinazione && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800">
+              <div className="font-semibold mb-1">📋 Riepilogo Giroconto:</div>
+              <div>• Uscita da: <strong>{conti.find(c => c.id === formData.registro_id)?.nome}</strong></div>
+              <div>• Entrata in: <strong>{conti.find(c => c.id === contoDestinazione)?.nome}</strong></div>
+              <div className="mt-1 text-[10px] text-blue-600">
+                Verranno creati 2 movimenti automaticamente collegati
+              </div>
+            </div>
+          )}
 
           {/* BUTTONS */}
           <div className="flex gap-1.5 pt-1">
@@ -377,10 +490,14 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
             </button>
             <button
               type="submit"
-              className="flex-1 px-2 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+              className={`flex-1 px-2 py-1.5 text-white rounded text-xs font-semibold disabled:opacity-50 ${
+                isGiroconto 
+                  ? 'bg-purple-600 hover:bg-purple-700' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
               disabled={saving}
             >
-              {saving ? 'Salvo...' : '💾 Salva'}
+              {saving ? 'Salvo...' : isGiroconto ? '🔄 Esegui Giroconto' : '💾 Salva'}
             </button>
           </div>
         </form>
