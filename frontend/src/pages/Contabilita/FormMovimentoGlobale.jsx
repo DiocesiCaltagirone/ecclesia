@@ -108,7 +108,7 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
         note: movimento.note || ''
       });
 
-    // 🔧 FIX: Cambiato da "else if (!movimento)" a "else" per catturare anche nuovo con registro_id
+      // 🔧 FIX: Cambiato da "else if (!movimento)" a "else" per catturare anche nuovo con registro_id
     } else {
       // Nuovo movimento (con o senza registro_id preimpostato)
       const today = new Date().toISOString().split('T')[0];
@@ -229,10 +229,8 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
 
         if (res.ok) {
           onClose();
-          // Ricarica dati
-          if (typeof onSave === 'function') {
-            await onSave({}, null); // Trigger refresh
-          }
+          // Forza refresh della pagina per ricaricare i movimenti
+          window.location.reload();
         } else {
           const errorData = await res.json();
           alert(errorData.detail || 'Errore creazione giroconto');
@@ -490,11 +488,10 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
             </button>
             <button
               type="submit"
-              className={`flex-1 px-2 py-1.5 text-white rounded text-xs font-semibold disabled:opacity-50 ${
-                isGiroconto 
-                  ? 'bg-purple-600 hover:bg-purple-700' 
+              className={`flex-1 px-2 py-1.5 text-white rounded text-xs font-semibold disabled:opacity-50 ${isGiroconto
+                  ? 'bg-purple-600 hover:bg-purple-700'
                   : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+                }`}
               disabled={saving}
             >
               {saving ? 'Salvo...' : isGiroconto ? '🔄 Esegui Giroconto' : '💾 Salva'}

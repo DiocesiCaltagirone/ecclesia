@@ -109,7 +109,7 @@ def create_registro(
         row = result.fetchone()
         
         # Se saldo iniziale > 0, crea movimento automatico
-        if saldo_iniziale > 0:
+        if saldo_iniziale >= 0:  # Crea sempre il movimento, anche se importo è 0
             print(f"✅ Creo movimento saldo iniziale: €{saldo_iniziale}")
             
             movimento_id = str(uuid.uuid4())
