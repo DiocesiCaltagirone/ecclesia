@@ -178,13 +178,13 @@ const MovimentiGenerale = () => {
 
       // Prima confronta le date
       if (dataA.getTime() !== dataB.getTime()) {
-        return ordineCrescente ? dataA - dataB : dataB - dataA;
+        return ordineCrescente ? dataB - dataA : dataA - dataB;
       }
 
       // Se stessa data, ordina per created_at
       const createdA = new Date(a.created_at || 0);
       const createdB = new Date(b.created_at || 0);
-      return ordineCrescente ? createdA - createdB : createdB - createdA;
+      return ordineCrescente ? createdB - createdA : createdA - createdB;
     });
 
     // Applica i saldi calcolati
