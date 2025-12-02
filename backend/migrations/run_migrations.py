@@ -34,11 +34,11 @@ def get_db_config():
     # Se siamo dentro Docker, usa il nome del service
     if os.path.exists('/.dockerenv') or os.environ.get('DOCKER_CONTAINER'):
         return {
-            'host': 'parrocchia-postgres',
+            'host': 'postgres',
             'port': '5432',
             'database': 'parrocchia_db',
             'user': 'parrocchia',
-            'password': 'parrocchia'
+            'password': 'parrocchia2025'
         }
     
     # Altrimenti prova a leggere da .env o usa default locale
