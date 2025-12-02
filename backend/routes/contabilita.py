@@ -851,7 +851,8 @@ def get_movimenti_conto(
             "tipo_speciale": mov[8],
             "categoria_id": str(mov[9]) if mov[9] else None,
             "categoria_completa": categoria_completa,
-            "saldo_progressivo": round(saldo_progressivo, 2)
+            "saldo_progressivo": round(saldo_progressivo, 2),
+            "created_at": mov[12].isoformat() if mov[12] else None
         })
     
     return {
