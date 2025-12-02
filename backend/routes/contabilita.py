@@ -705,22 +705,23 @@ def get_movimenti_generali(
     ente_id = current_user.get('ente_id') or x_ente_id
     
     query = """
-        SELECT 
-            m.id,
-            m.data_movimento,
-            m.tipo_movimento,
-            m.importo,
-            m.descrizione,
-            m.note,
-            m.allegati,
-            m.bloccato,
-            m.tipo_speciale,
-            r.nome as conto_nome,
-            r.id as registro_id,
-            c.id as categoria_id,
-            c.descrizione as categoria_nome,
-            c.categoria_padre_id
-        FROM movimenti_contabili m
+    SELECT 
+        m.id,
+        m.data_movimento,
+        m.tipo_movimento,
+        m.importo,
+        m.descrizione,
+        m.note,
+        m.allegati,
+        m.bloccato,
+        m.tipo_speciale,
+        r.nome as conto_nome,
+        r.id as registro_id,
+        c.id as categoria_id,
+        c.descrizione as categoria_nome,
+        c.categoria_padre_id,
+        m.created_at
+    FROM movimenti_contabili m
         LEFT JOIN registri_contabili r ON m.registro_id = r.id
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id
@@ -756,19 +757,20 @@ def get_movimenti_generali(
         categoria_completa = build_categoria_completa(db, mov[11], mov[12], mov[13])
         
         movimenti_list.append({
-            "id": str(mov[0]),
-            "data_movimento": mov[1].isoformat() if mov[1] else None,
-            "tipo_movimento": mov[2],
-            "importo": float(mov[3]) if mov[3] else 0,
-            "descrizione": mov[4],
-            "note": mov[5],
-            "allegati": mov[6] or [],
-            "bloccato": mov[7],
-            "tipo_speciale": mov[8],
-            "conto_nome": mov[9],
-            "registro_id": str(mov[10]) if mov[10] else None,
-            "categoria_id": str(mov[11]) if mov[11] else None,
-            "categoria_completa": categoria_completa
+             "id": str(mov[0]),
+             "data_movimento": mov[1].isoformat() if mov[1] else None,
+             "tipo_movimento": mov[2],
+             "importo": float(mov[3]) if mov[3] else 0,
+             "descrizione": mov[4],
+             "note": mov[5],
+             "allegati": mov[6] or [],
+             "bloccato": mov[7],
+             "tipo_speciale": mov[8],
+             "conto_nome": mov[9],
+             "registro_id": str(mov[10]) if mov[10] else None,
+             "categoria_id": str(mov[11]) if mov[11] else None,
+             "categoria_completa": categoria_completa,
+             "created_at": mov[14].isoformat() if mov[14] else None
         })
     
     # Calcola saldo progressivo per ogni conto
@@ -814,6 +816,7 @@ def get_movimenti_conto(
             c.id as categoria_id,
             c.descrizione as categoria_nome,
             c.categoria_padre_id
+            m.created_at
         FROM movimenti_contabili m
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id AND m.registro_id = :registro_id
