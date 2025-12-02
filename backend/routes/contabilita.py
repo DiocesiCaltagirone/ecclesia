@@ -815,7 +815,7 @@ def get_movimenti_conto(
             m.tipo_speciale,
             c.id as categoria_id,
             c.descrizione as categoria_nome,
-            c.categoria_padre_id
+            c.categoria_padre_id,
             m.created_at
         FROM movimenti_contabili m
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
