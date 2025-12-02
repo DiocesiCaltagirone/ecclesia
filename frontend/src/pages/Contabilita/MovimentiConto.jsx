@@ -161,10 +161,20 @@ const MovimentiConto = () => {
     });
 
     // POI ordina per visualizzazione (crescente o decrescente)
+    // Se stessa data, ordina per created_at
     risultato.sort((a, b) => {
       const dataA = new Date(a.data_movimento);
       const dataB = new Date(b.data_movimento);
-      return ordineCrescente ? dataA - dataB : dataB - dataA;
+
+      // Prima confronta le date
+      if (dataA.getTime() !== dataB.getTime()) {
+        return ordineCrescente ? dataA - dataB : dataB - dataA;
+      }
+
+      // Se stessa data, ordina per created_at
+      const createdA = new Date(a.created_at || 0);
+      const createdB = new Date(b.created_at || 0);
+      return ordineCrescente ? createdA - createdB : createdB - createdA;
     });
 
     // Applica i saldi calcolati
@@ -175,32 +185,25 @@ const MovimentiConto = () => {
 
     setMovimentiFiltrati(risultato);
 
-    // Calcola saldo iniziale (separato)
-    const saldoIniziale = risultato
-      .filter(m => m.tipo_speciale === 'saldo_iniziale')
-      .reduce((sum, m) => sum + parseFloat(m.importo), 0);
-
-    // Calcola statistiche: SOLO movimenti NON bloccati e NON saldo iniziale
+    // Calcola statistiche: saldi iniziali + movimenti NON bloccati (come in MovimentiGenerale)
     const entrate = risultato
       .filter(m =>
         m.tipo_movimento === 'entrata' &&
-        m.tipo_speciale !== 'saldo_iniziale' &&
-        !m.bloccato
+        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     const uscite = risultato
       .filter(m =>
         m.tipo_movimento === 'uscita' &&
-        m.tipo_speciale !== 'saldo_iniziale' &&
-        !m.bloccato
+        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     setStats({
       totaleEntrate: entrate,
       totaleUscite: uscite,
-      saldo: saldoIniziale + entrate - uscite
+      saldo: entrate - uscite
     });
   };
 

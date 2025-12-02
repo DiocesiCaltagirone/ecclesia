@@ -171,10 +171,20 @@ const MovimentiGenerale = () => {
     });
 
     // POI ordina per visualizzazione (crescente o decrescente)
+    // Se stessa data, ordina per created_at
     risultato.sort((a, b) => {
       const dataA = new Date(a.data_movimento);
       const dataB = new Date(b.data_movimento);
-      return ordineCrescente ? dataA - dataB : dataB - dataA;
+
+      // Prima confronta le date
+      if (dataA.getTime() !== dataB.getTime()) {
+        return ordineCrescente ? dataA - dataB : dataB - dataA;
+      }
+
+      // Se stessa data, ordina per created_at
+      const createdA = new Date(a.created_at || 0);
+      const createdB = new Date(b.created_at || 0);
+      return ordineCrescente ? createdA - createdB : createdB - createdA;
     });
 
     // Applica i saldi calcolati
