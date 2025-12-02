@@ -14,7 +14,7 @@ const MovimentiConto = () => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [showFiltri, setShowFiltri] = useState(false);
-  const [ordineCrescente, setOrdineCrescente] = useState(false);
+  const [ordineCrescente, setOrdineCrescente] = useState(true);
   const [saldiNascosti, setSaldiNascosti] = useState(false);
 
   // Menu contestuale

@@ -12,7 +12,7 @@ const MovimentiGenerale = () => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [showFiltri, setShowFiltri] = useState(false);
-  const [ordineCrescente, setOrdineCrescente] = useState(false);
+  const [ordineCrescente, setOrdineCrescente] = useState(true);
   const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0, movimento: null });
   const [contiNascosti, setContiNascosti] = useState(new Set());
   const menuRef = useRef(null);
