@@ -332,10 +332,9 @@ def delete_registro(
     """
     db.execute(text(remove_assoc_query), {"registro_id": registro_id})
     
-    # Soft delete del registro
+    # Hard delete del registro
     query = """
-        UPDATE registri_contabili 
-        SET attivo = FALSE
+        DELETE FROM registri_contabili
         WHERE id = :id AND ente_id = :ente_id
         RETURNING id, nome
     """
