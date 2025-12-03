@@ -1631,10 +1631,7 @@ async def genera_report(
         # Costruisci risposta
         movimenti_list = []
         for m in movimenti:
-            # Determina il livello della categoria
-            # Livello 3 (micro): ha nonno
-            # Livello 2 (sotto): ha padre ma non nonno  
-            # Livello 1 (madre): non ha padre
+           # Determina il livello della categoria del movimento
             categoria_nome = m[6]
             categoria_id = str(m[7]) if m[7] else None
             categoria_padre_nome = m[8]
@@ -1642,15 +1639,47 @@ async def genera_report(
             categoria_nonno_nome = m[10]
             categoria_nonno_id = str(m[11]) if m[11] else None
             
-            if categoria_nonno_id:
-                livello = 3
-                gerarchia = f"{categoria_nonno_nome} > {categoria_padre_nome} > {categoria_nome}"
-            elif categoria_padre_id:
-                livello = 2
-                gerarchia = f"{categoria_padre_nome} > {categoria_nome}"
+            # Determina cosa mostrare in base a cosa è stato selezionato
+            gerarchia = "Non categorizzato"
+            
+            if cat_sel:
+                # Verifica quale livello è stato selezionato dall'utente
+                cat_sel_str = [str(c) for c in cat_sel]
+                
+                if categoria_nonno_id and categoria_nonno_id in cat_sel_str:
+                    # Selezionata la categoria nonno (livello 1) → mostra solo nonno
+                    gerarchia = categoria_nonno_nome
+                elif categoria_padre_id and categoria_padre_id in cat_sel_str:
+                    # Selezionata la categoria padre (livello 1 o 2) → mostra fino al padre
+                    if categoria_nonno_nome:
+                        gerarchia = f"{categoria_nonno_nome} > {categoria_padre_nome}"
+                    else:
+                        gerarchia = categoria_padre_nome
+                elif categoria_id and categoria_id in cat_sel_str:
+                    # Selezionata questa categoria specifica → mostra gerarchia completa
+                    if categoria_nonno_nome:
+                        gerarchia = f"{categoria_nonno_nome} > {categoria_padre_nome} > {categoria_nome}"
+                    elif categoria_padre_nome:
+                        gerarchia = f"{categoria_padre_nome} > {categoria_nome}"
+                    else:
+                        gerarchia = categoria_nome
+                else:
+                    # Categoria figlia di una selezionata → mostra la categoria selezionata
+                    # Risali la gerarchia per trovare quella selezionata
+                    if categoria_nonno_id:
+                        gerarchia = categoria_nonno_nome
+                    elif categoria_padre_id:
+                        gerarchia = categoria_padre_nome
+                    else:
+                        gerarchia = categoria_nome
             else:
-                livello = 1
-                gerarchia = categoria_nome
+                # Nessun filtro categoria → mostra gerarchia completa
+                if categoria_nonno_nome:
+                    gerarchia = f"{categoria_nonno_nome} > {categoria_padre_nome} > {categoria_nome}"
+                elif categoria_padre_nome:
+                    gerarchia = f"{categoria_padre_nome} > {categoria_nome}"
+                else:
+                    gerarchia = categoria_nome or "Non categorizzato"
             
             movimenti_list.append({
                 "id": str(m[0]),
@@ -1665,8 +1694,7 @@ async def genera_report(
                 "categoria_padre_id": categoria_padre_id,
                 "categoria_nonno": categoria_nonno_nome,
                 "categoria_nonno_id": categoria_nonno_id,
-                "livello": livello,
-                "gerarchia": gerarchia or "Non categorizzato"
+                "gerarchia": gerarchia
             })
         
         return {
