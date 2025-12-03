@@ -1585,7 +1585,18 @@ async def genera_report(
         
         if cat_sel:
             placeholders = ','.join([f':cat_{i}' for i in range(len(cat_sel))])
-            query += f" AND m.categoria_id IN ({placeholders})"
+            # Include categorie selezionate + tutte le sottocategorie (figli e nipoti)
+            query += f""" AND (
+                m.categoria_id IN ({placeholders})
+                OR m.categoria_id IN (
+                    SELECT id FROM piano_conti WHERE categoria_padre_id IN ({placeholders})
+                )
+                OR m.categoria_id IN (
+                    SELECT id FROM piano_conti WHERE categoria_padre_id IN (
+                        SELECT id FROM piano_conti WHERE categoria_padre_id IN ({placeholders})
+                    )
+                )
+            )"""
             for i, cat_id in enumerate(cat_sel):
                 params[f'cat_{i}'] = cat_id
         
