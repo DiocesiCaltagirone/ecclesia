@@ -1557,13 +1557,15 @@ async def genera_report(
         
         # Query movimenti
         query = """
-            SELECT 
+            SELECT
                 m.id, m.data_movimento, m.causale, m.importo, m.tipo_movimento,
                 r.nome as conto_nome,
-                c.descrizione as categoria_nome
+                c.descrizione as categoria_nome,
+                cp.descrizione as categoria_padre_nome
             FROM movimenti_contabili m
             LEFT JOIN registri_contabili r ON m.registro_id = r.id
             LEFT JOIN piano_conti c ON m.categoria_id = c.id
+            LEFT JOIN piano_conti cp ON c.categoria_padre_id = cp.id
             WHERE m.ente_id = :ente_id
         """
         
@@ -1631,7 +1633,8 @@ async def genera_report(
                 "importo": float(m[3]),
                 "tipo_movimento": m[4],
                 "conto": m[5],
-                "categoria": m[6] or "Non categorizzato"
+                "categoria": m[6] or "Non categorizzato",
+                "categoria_padre": m[7] or None
             })
         
         return {
