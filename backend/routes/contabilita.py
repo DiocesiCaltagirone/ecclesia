@@ -1555,17 +1555,22 @@ async def genera_report(
         cat_sel = data.get('categorieSelezionate', [])
         tipi_mov = data.get('tipiMovimento', {'entrate': True, 'uscite': True})
         
-        # Query movimenti
+        # Query movimenti con gerarchia completa categorie
         query = """
             SELECT
                 m.id, m.data_movimento, m.causale, m.importo, m.tipo_movimento,
                 r.nome as conto_nome,
                 c.descrizione as categoria_nome,
-                cp.descrizione as categoria_padre_nome
+                c.id as categoria_id,
+                cp.descrizione as categoria_padre_nome,
+                cp.id as categoria_padre_id,
+                cpp.descrizione as categoria_nonno_nome,
+                cpp.id as categoria_nonno_id
             FROM movimenti_contabili m
             LEFT JOIN registri_contabili r ON m.registro_id = r.id
             LEFT JOIN piano_conti c ON m.categoria_id = c.id
             LEFT JOIN piano_conti cp ON c.categoria_padre_id = cp.id
+            LEFT JOIN piano_conti cpp ON cp.categoria_padre_id = cpp.id
             WHERE m.ente_id = :ente_id
         """
         
@@ -1626,6 +1631,27 @@ async def genera_report(
         # Costruisci risposta
         movimenti_list = []
         for m in movimenti:
+            # Determina il livello della categoria
+            # Livello 3 (micro): ha nonno
+            # Livello 2 (sotto): ha padre ma non nonno  
+            # Livello 1 (madre): non ha padre
+            categoria_nome = m[6]
+            categoria_id = str(m[7]) if m[7] else None
+            categoria_padre_nome = m[8]
+            categoria_padre_id = str(m[9]) if m[9] else None
+            categoria_nonno_nome = m[10]
+            categoria_nonno_id = str(m[11]) if m[11] else None
+            
+            if categoria_nonno_id:
+                livello = 3
+                gerarchia = f"{categoria_nonno_nome} > {categoria_padre_nome} > {categoria_nome}"
+            elif categoria_padre_id:
+                livello = 2
+                gerarchia = f"{categoria_padre_nome} > {categoria_nome}"
+            else:
+                livello = 1
+                gerarchia = categoria_nome
+            
             movimenti_list.append({
                 "id": str(m[0]),
                 "data_movimento": m[1].isoformat() if m[1] else None,
@@ -1633,8 +1659,14 @@ async def genera_report(
                 "importo": float(m[3]),
                 "tipo_movimento": m[4],
                 "conto": m[5],
-                "categoria": m[6] or "Non categorizzato",
-                "categoria_padre": m[7] or None
+                "categoria": categoria_nome or "Non categorizzato",
+                "categoria_id": categoria_id,
+                "categoria_padre": categoria_padre_nome,
+                "categoria_padre_id": categoria_padre_id,
+                "categoria_nonno": categoria_nonno_nome,
+                "categoria_nonno_id": categoria_nonno_id,
+                "livello": livello,
+                "gerarchia": gerarchia or "Non categorizzato"
             })
         
         return {
