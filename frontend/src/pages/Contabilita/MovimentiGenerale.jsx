@@ -237,11 +237,12 @@ const MovimentiGenerale = () => {
     });
   };
 
-  const openModal = (movimento = null) => {
+  const openModal = async (movimento = null) => {
     if (movimento && movimento.bloccato) {
       alert('⚠️ Impossibile modificare: questo movimento è incluso in un rendiconto in revisione.\n\nPotrai modificarlo solo dopo che l\'economo avrà respinto il rendiconto.');
       return;
     }
+    await fetchCategorie(); // Ricarica categorie
     setEditing(movimento);
     setShowModal(true);
   };

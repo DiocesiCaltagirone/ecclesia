@@ -217,7 +217,7 @@ const MovimentiConto = () => {
     });
   };
 
-  const openModal = (movimento = null) => {
+  const openModal = async (movimento = null) => {
     if (movimento && (movimento.bloccato || movimento.tipo_speciale === 'saldo_iniziale')) {
       if (movimento.tipo_speciale === 'saldo_iniziale') return; // Non mostrare alert
       alert('⚠️ Impossibile modificare: movimento in rendiconto');
@@ -232,6 +232,7 @@ const MovimentiConto = () => {
     } else {
       setEditing({ registro_id: registroId });
     }
+    await fetchCategorie(); // Ricarica categorie
     setShowModal(true);
   };
 
