@@ -538,7 +538,7 @@ const Rapporti = () => {
                     {new Date(mov.data_movimento).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </td>
                   <td className="px-3 py-1.5 text-gray-700 text-[11px]">{mov.conto || '-'}</td>
-                  <td className="px-3 py-1.5 text-gray-600 text-[11px]">{mov.categoria}</td>
+                  <td className="px-3 py-1.5 text-gray-600 text-[11px]">{mov.gerarchia || mov.categoria}</td>
                   <td className="px-3 py-1.5 text-right font-semibold text-green-700">
                     {mov.tipo_movimento === 'entrata' ? `+${parseFloat(mov.importo).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '-'}
                   </td>
