@@ -213,7 +213,7 @@ def update_registro(
         """
         mov_result = db.execute(text(check_movimento), {"registro_id": registro_id}).fetchone()
         
-        if nuovo_saldo > 0:
+        if nuovo_saldo >= 0:
             if mov_result:
                 # Aggiorna movimento esistente
                 update_mov = """
@@ -248,13 +248,6 @@ def update_registro(
                     "importo": nuovo_saldo,
                     "user_id": current_user.get('user_id')
                 })
-        else:
-            # Se saldo = 0, elimina movimento saldo iniziale se esiste
-            if mov_result:
-                delete_mov = """
-                    DELETE FROM movimenti_contabili WHERE id = :id
-                """
-                db.execute(text(delete_mov), {"id": mov_result[0]})
     
     # Aggiorna nome e tipo del registro
     query = """
