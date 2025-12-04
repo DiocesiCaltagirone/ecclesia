@@ -98,6 +98,18 @@ const MovimentiGenerale = () => {
     }
   };
 
+  const fetchCategorie = async () => {
+    try {
+      const res = await fetch('/api/contabilita/categorie', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setCategorie(data.categorie || []);
+      }
+    } catch (error) {
+      console.error('Errore caricamento categorie:', error);
+    }
+  };
+
   const applicaFiltri = () => {
     let risultato = [...movimenti];
 
@@ -242,7 +254,7 @@ const MovimentiGenerale = () => {
       alert('⚠️ Impossibile modificare: questo movimento è incluso in un rendiconto in revisione.\n\nPotrai modificarlo solo dopo che l\'economo avrà respinto il rendiconto.');
       return;
     }
-    await fetchCategorie(); // Ricarica categorie
+    // Le categorie sono già caricate da fetchData()
     setEditing(movimento);
     setShowModal(true);
   };
@@ -267,7 +279,7 @@ const MovimentiGenerale = () => {
       });
 
       if (res.ok) {
-        await fetchMovimenti();
+        await fetchData();
         closeModal();
       } else {
         const errorData = await res.json();
