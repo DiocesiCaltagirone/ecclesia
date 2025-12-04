@@ -307,7 +307,7 @@ CREATE TABLE IF NOT EXISTS registri_contabili (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     ente_id UUID NOT NULL REFERENCES enti(id),
     nome VARCHAR(100) NOT NULL,
-    tipo VARCHAR(50) CHECK (tipo IN ('cassa', 'banca', 'postale')),
+    tipo VARCHAR(50),
     iban VARCHAR(50),
     saldo_iniziale DECIMAL(10,2) DEFAULT 0,
     saldo_attuale DECIMAL(10,2) DEFAULT 0,
