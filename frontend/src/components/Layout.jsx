@@ -125,7 +125,7 @@ function Layout() {
     }
 
     try {
-      const response = await api.put('/api/auth/change-password', {
+      const response = await api.post('/api/auth/change-password', {
         old_password: passwordData.vecchia,
         new_password: passwordData.nuova
       });
