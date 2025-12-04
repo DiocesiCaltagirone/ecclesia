@@ -427,6 +427,71 @@ async def get_ente(
         "numero_abitanti": result[18]
     }
 
+@app.put("/api/enti/{ente_id}")
+async def update_ente(
+    ente_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Aggiorna dati ente"""
+    data = await request.json()
+    
+    # Verifica che l'ente esista
+    check = db.execute(text("SELECT id FROM enti WHERE id = :ente_id"), {"ente_id": ente_id}).fetchone()
+    if not check:
+        raise HTTPException(status_code=404, detail="Ente non trovato")
+    
+    # Aggiorna i campi
+    query = text("""
+        UPDATE enti SET
+            denominazione = COALESCE(:denominazione, denominazione),
+            codice_fiscale = :codice_fiscale,
+            partita_iva = :partita_iva,
+            indirizzo = :indirizzo,
+            cap = :cap,
+            comune = :comune,
+            provincia = :provincia,
+            regione = :regione,
+            telefono = :telefono,
+            fax = :fax,
+            email = :email,
+            sito_web = :sito_web,
+            parroco = :parroco,
+            vicario = :vicario,
+            diocesi = :diocesi,
+            anno_fondazione = :anno_fondazione,
+            santo_patrono = :santo_patrono,
+            numero_abitanti = :numero_abitanti
+        WHERE id = :ente_id
+    """)
+    
+    db.execute(query, {
+        "ente_id": ente_id,
+        "denominazione": data.get("denominazione"),
+        "codice_fiscale": data.get("codice_fiscale"),
+        "partita_iva": data.get("partita_iva"),
+        "indirizzo": data.get("indirizzo"),
+        "cap": data.get("cap"),
+        "comune": data.get("comune"),
+        "provincia": data.get("provincia"),
+        "regione": data.get("regione"),
+        "telefono": data.get("telefono"),
+        "fax": data.get("fax"),
+        "email": data.get("email"),
+        "sito_web": data.get("sito_web"),
+        "parroco": data.get("parroco"),
+        "vicario": data.get("vicario"),
+        "diocesi": data.get("diocesi"),
+        "anno_fondazione": data.get("anno_fondazione"),
+        "santo_patrono": data.get("santo_patrono"),
+        "numero_abitanti": data.get("numero_abitanti")
+    })
+    db.commit()
+    
+    return {"success": True, "message": "Ente aggiornato con successo"}
+
+
 # ============================================
 # ENDPOINTS ECONOMO (Super-Admin)
 # ============================================
