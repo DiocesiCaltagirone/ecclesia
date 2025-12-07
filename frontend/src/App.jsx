@@ -69,8 +69,9 @@ function App() {
             <Route path="conti/:registroId/movimenti" element={<MovimentiConto />} />
             <Route path="rapporti" element={<Rapporti />} />
             <Route path="rendiconto" element={<Rendiconto />} />
-            <Route path="rendiconto/nuovo" element={<NuovoRendiconto />} />      {/* ← NUOVO */}
-            <Route path="rendiconto/lista" element={<ListaRendiconti />} />      {/* ← NUOVO */}
+            <Route path="rendiconto/nuovo" element={<NuovoRendiconto />} />
+            <Route path="rendiconto/:id" element={<NuovoRendiconto />} />
+            <Route path="rendiconto/lista" element={<ListaRendiconti />} />
           </Route>
 
           <Route path="/gestione-enti" element={

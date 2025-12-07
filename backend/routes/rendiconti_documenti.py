@@ -672,6 +672,7 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             'categorie_uscite': categorie_uscite,
             'conti': conti,
             'totale_attivo': totale_attivo,
+            'totale_disponibilita': totale_attivo,
             'riporto_precedente': riporto_precedente,
             'approvato': rend[5] == 'approvato'
         }

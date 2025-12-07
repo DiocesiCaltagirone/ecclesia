@@ -3,10 +3,11 @@ import HeaderAmministrazione from '../components/HeaderAmministrazione';
 
 const EconomatoContabilita = () => {
   const [rendiconti, setRendiconti] = useState([]);
-  const [filtroInRevisione, setFiltroInRevisione] = useState(true);
+  const [filtroInviato, setFiltroInviato] = useState(true);
   const [filtroRespinti, setFiltroRespinti] = useState(false);
   const [filtroApprovati, setFiltroApprovati] = useState(false);
-  const [filtroBozze, setFiltroBozze] = useState(false);
+  const [filtroParrocchia, setFiltroParrocchia] = useState(false);
+  const [filtroDefinitivo, setFiltroDefinitivo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filtroStato, setFiltroStato] = useState('');
   const [filtroComune, setFiltroComune] = useState('');
@@ -16,8 +17,7 @@ const EconomatoContabilita = () => {
   const [azione, setAzione] = useState(null);
   const [motivoRespingimento, setMotivoRespingimento] = useState('');
   const [allegatoRespingimento, setAllegatoRespingimento] = useState(null);
-  const [modalEsonero, setModalEsonero] = useState(null);
-  const [motivoEsonero, setMotivoEsonero] = useState('');
+
 
   const token = localStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}` };
@@ -50,10 +50,10 @@ const EconomatoContabilita = () => {
 
     try {
       if (tipo === 'approva') {
-        // APPROVA (resta uguale)
+        // APPROVA
         const url = `/api/contabilita/economo/rendiconti/${rendicontoId}/approva`;
         const res = await fetch(url, {
-          method: 'PUT',
+          method: 'POST',
           headers
         });
 
@@ -109,46 +109,6 @@ const EconomatoContabilita = () => {
     }
   };
 
-  const handleEsonera = async (rendicontoId) => {
-    if (!motivoEsonero.trim()) {
-      alert('Il motivo è obbligatorio');
-      return;
-    }
-
-    try {
-      setAzione(rendicontoId);
-
-      const formData = new FormData();
-      formData.append('motivo', motivoEsonero);
-
-      const res = await fetch(
-        `/api/contabilita/economo/rendiconti/${rendicontoId}/esonera-documenti`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
-        }
-      );
-
-      if (res.ok) {
-        alert('✅ Esonero concesso! Il parroco può ora inviare il rendiconto.');
-        setModalEsonero(null);
-        setMotivoEsonero('');
-        await caricaRendiconti();
-      } else {
-        const error = await res.json();
-        alert('Errore: ' + error.detail);
-      }
-    } catch (error) {
-      console.error('Errore esonero:', error);
-      alert('Errore di connessione');
-    } finally {
-      setAzione(null);
-    }
-  };
-
   const downloadPdf = async (rendicontoId) => {
     try {
       const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
@@ -170,11 +130,13 @@ const EconomatoContabilita = () => {
 
   const getBadgeStato = (stato) => {
     const badges = {
-      'in_revisione': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ In Revisione' },
+      'parrocchia': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '📝 Parrocchia' },
+      'definitivo': { bg: 'bg-gray-100', text: 'text-gray-800', label: '📌 Definitivo' },
+      'inviato': { bg: 'bg-blue-100', text: 'text-blue-800', label: '📤 Inviato' },
       'approvato': { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Approvato' },
       'respinto': { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Respinto' }
     };
-    const badge = badges[stato] || badges['in_revisione'];
+    const badge = badges[stato] || { bg: 'bg-gray-100', text: 'text-gray-600', label: stato };
     return (
       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${badge.bg} ${badge.text}`}>
         {badge.label}
@@ -190,10 +152,11 @@ const EconomatoContabilita = () => {
 
   // Filtra rendiconti in base ai checkbox
   const rendicontiFiltrati = rendiconti.filter(r => {
-    if (filtroInRevisione && r.stato === 'in_revisione') return true;
+    if (filtroInviato && r.stato === 'inviato') return true;
     if (filtroRespinti && r.stato === 'respinto') return true;
     if (filtroApprovati && r.stato === 'approvato') return true;
-    if (filtroBozze && r.stato === 'bozza') return true;
+    if (filtroParrocchia && r.stato === 'parrocchia') return true;
+    if (filtroDefinitivo && r.stato === 'definitivo') return true;
     return false;
   });
 
@@ -248,11 +211,11 @@ const EconomatoContabilita = () => {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filtroInRevisione}
-                onChange={(e) => setFiltroInRevisione(e.target.checked)}
+                checked={filtroInviato}
+                onChange={(e) => setFiltroInviato(e.target.checked)}
                 className="w-4 h-4"
               />
-              <span className="text-sm">🟡 In Revisione</span>
+              <span className="text-sm">📤 Inviati</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -262,7 +225,7 @@ const EconomatoContabilita = () => {
                 onChange={(e) => setFiltroRespinti(e.target.checked)}
                 className="w-4 h-4"
               />
-              <span className="text-sm">🔴 Respinti</span>
+              <span className="text-sm">❌ Respinti</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -272,17 +235,27 @@ const EconomatoContabilita = () => {
                 onChange={(e) => setFiltroApprovati(e.target.checked)}
                 className="w-4 h-4"
               />
-              <span className="text-sm">🟢 Approvati</span>
+              <span className="text-sm">✅ Approvati</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filtroBozze}
-                onChange={(e) => setFiltroBozze(e.target.checked)}
+                checked={filtroParrocchia}
+                onChange={(e) => setFiltroParrocchia(e.target.checked)}
                 className="w-4 h-4"
               />
-              <span className="text-sm">📝 Bozze</span>
+              <span className="text-sm">📝 Parrocchia</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filtroDefinitivo}
+                onChange={(e) => setFiltroDefinitivo(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">📌 Definitivi</span>
             </label>
 
           </div>
@@ -311,8 +284,9 @@ const EconomatoContabilita = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Tutti</option>
-                <option value="bozza">Bozza</option>
-                <option value="in_revisione">In Revisione</option>
+                <option value="parrocchia">Parrocchia</option>
+                <option value="definitivo">Definitivo</option>
+                <option value="inviato">Inviato</option>
                 <option value="approvato">Approvato</option>
                 <option value="respinto">Respinto</option>
               </select>
@@ -400,27 +374,7 @@ const EconomatoContabilita = () => {
                           </svg>
                         </button>
 
-                        {/* Bottone Esonera per BOZZE */}
-                        {rend.stato === 'bozza' && (
-                          rend.documenti_esonero ? (
-                            <span className="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-semibold rounded-lg">
-                              ✅ Esoneratio
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => setModalEsonero(rend.id)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
-                              title="Esonera documenti mancanti"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                              </svg>
-                              🔓 Esonera
-                            </button>
-                          )
-                        )}
-
-                        {rend.stato === 'in_revisione' && (
+                        {rend.stato === 'inviato' && (
                           <>
                             {/* Approva */}
                             <button
@@ -543,82 +497,6 @@ const EconomatoContabilita = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                       Conferma Respingimento
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Esonero Documenti */}
-        {modalEsonero && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-yellow-50">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                  </svg>
-                  Esonera Documenti Mancanti
-                </h3>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
-                      💡 <strong>Esonerando i documenti</strong>, consenti al parroco di inviare il rendiconto
-                      anche senza tutti i 5 documenti obbligatori. I documenti già caricati verranno comunque inviati.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Motivo dell'esonero <span className="text-red-600">*</span>
-                    </label>
-                    <textarea
-                      value={motivoEsonero}
-                      onChange={(e) => setMotivoEsonero(e.target.value)}
-                      rows="5"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                      placeholder="Es: Impossibile reperire documenti per incendio archivio parrocchiale..."
-                    />
-                  </div>
-
-                  <p className="text-xs text-gray-500">
-                    Il motivo verrà registrato e sarà visibile nello storico del rendiconto.
-                  </p>
-                </div>
-              </div>
-              <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 rounded-b-xl">
-                <button
-                  onClick={() => {
-                    setModalEsonero(null);
-                    setMotivoEsonero('');
-                  }}
-                  className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  Annulla
-                </button>
-                <button
-                  onClick={() => handleEsonera(modalEsonero)}
-                  className="px-5 py-2.5 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-md disabled:opacity-50 flex items-center gap-2"
-                  disabled={azione === modalEsonero || !motivoEsonero.trim()}
-                >
-                  {azione === modalEsonero ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Concessione...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Conferma Esonero
                     </>
                   )}
                 </button>
