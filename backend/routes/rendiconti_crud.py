@@ -74,14 +74,14 @@ async def crea_rendiconto(
         cur.execute("""
             SELECT id, stato FROM rendiconti
             WHERE ente_id = %s 
-              AND stato = 'bozza'
+              AND stato = 'parrocchia'
         """, (ente_id,))
         
         existing = cur.fetchone()
         if existing:
             raise HTTPException(
                 status_code=400,
-                detail="Esiste già un rendiconto in bozza. Completalo o eliminalo prima di crearne uno nuovo."
+                detail="Esiste già un rendiconto attivo. Eliminalo o invialo prima di crearne uno nuovo."
             )
         
         # Verifica sovrapposizione periodi
@@ -120,11 +120,24 @@ async def crea_rendiconto(
         totale_uscite = float(totali[1]) if totali[1] else 0.0
         saldo = totale_entrate - totale_uscite
         
-        # Crea il rendiconto in stato BOZZA
+        # Prima di creare: rendi DEFINITIVO l'ultimo rendiconto 'parrocchia' precedente
+        cur.execute("""
+            UPDATE rendiconti 
+            SET stato = 'definitivo'
+            WHERE ente_id = %s 
+              AND stato = 'parrocchia'
+              AND periodo_fine < %s
+        """, (ente_id, dati.periodo_inizio))
+        
+        resi_definitivi = cur.rowcount
+        if resi_definitivi > 0:
+            print(f"📌 Resi DEFINITIVI {resi_definitivi} rendiconti precedenti")
+        
+        # Crea il rendiconto in stato PARROCCHIA
         cur.execute("""
            INSERT INTO rendiconti 
            (ente_id, periodo_inizio, periodo_fine, totale_entrate, totale_uscite, saldo, stato)
-           VALUES (%s, %s, %s, %s, %s, %s, 'bozza')
+           VALUES (%s, %s, %s, %s, %s, %s, 'parrocchia')
             RETURNING id, updated_at
         """, (
             ente_id,
@@ -283,7 +296,7 @@ async def crea_rendiconto(
             "ente_id": str(ente_id),
             "periodo_inizio": str(dati.periodo_inizio),
             "periodo_fine": str(dati.periodo_fine),
-            "stato": "bozza",
+            "stato": "parrocchia",
             "totale_entrate": float(totale_entrate),
             "totale_uscite": float(totale_uscite),
             "saldo": float(saldo),
@@ -412,13 +425,13 @@ async def get_rendiconto(
                 r.totale_entrate,
                 r.totale_uscite,
                 r.saldo,
-                r.note,
+                r.osservazioni_economo,
                 r.documenti_esonero,
                 r.data_invio,
-                r.data_approvazione,
+                r.data_revisione,
                 r.data_respingimento,
                 r.motivo_respingimento,
-                r.created_at
+                r.updated_at
             FROM rendiconti r
             JOIN utenti_enti ue ON r.ente_id = ue.ente_id
             WHERE r.id = %s AND ue.utente_id = %s
@@ -437,13 +450,13 @@ async def get_rendiconto(
             "totale_entrate": float(row[5]) if row[5] else 0.0,
             "totale_uscite": float(row[6]) if row[6] else 0.0,
             "saldo": float(row[7]) if row[7] else 0.0,
-            "note": row[8],
+            "osservazioni_economo": row[8],
             "documenti_esonero": row[9] if row[9] else False,
             "data_invio": row[10].isoformat() if row[10] else None,
-            "data_approvazione": row[11].isoformat() if row[11] else None,
+            "data_revisione": row[11].isoformat() if row[11] else None,
             "data_respingimento": row[12].isoformat() if row[12] else None,
             "motivo_respingimento": row[13],
-            "created_at": row[14].isoformat()
+            "created_at": row[14].isoformat() if row[14] else None
         }
         
     except HTTPException:
@@ -487,11 +500,11 @@ async def elimina_rendiconto(
         stato = rendiconto[1]
         ente_id = rendiconto[2]
         
-        # Verifica che sia eliminabile
-        if stato not in ['bozza', 'respinto']:
+        # Verifica che sia eliminabile (solo parrocchia o respinto)
+        if stato not in ['parrocchia', 'respinto']:
             raise HTTPException(
                 status_code=403,
-                detail=f"Impossibile eliminare un rendiconto in stato: {stato}"
+                detail=f"Impossibile eliminare un rendiconto in stato: {stato}. Solo i rendiconti in stato 'parrocchia' o 'respinto' possono essere eliminati."
             )
         
         # 🆕 SBLOCCA MOVIMENTI
@@ -519,7 +532,7 @@ async def elimina_rendiconto(
         
         # Elimina documenti fisici
         cur.execute("""
-            SELECT path_file FROM rendiconti_documenti
+            SELECT path_storage FROM rendiconti_documenti
             WHERE rendiconto_id = %s
         """, (str(rendiconto_id),))
         
@@ -548,3 +561,226 @@ async def elimina_rendiconto(
     finally:
         cur.close()
         conn.close()
+
+# ============================================
+# ENDPOINT ECONOMO DIOCESANO
+# ============================================
+
+@router.get("/economo/rendiconti")
+async def get_rendiconti_economo(
+    stato: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Recupera tutti i rendiconti inviati alla diocesi (per Economo)
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Verifica che l'utente sia economo
+        cur.execute("""
+            SELECT ruolo FROM utenti_enti 
+            WHERE utente_id = %s AND ruolo = 'economo'
+            LIMIT 1
+        """, (current_user['user_id'],))
+        
+        if not cur.fetchone():
+            raise HTTPException(status_code=403, detail="Accesso riservato all'Economo Diocesano")
+        
+        query = """
+            SELECT 
+                r.id,
+                r.ente_id,
+                e.denominazione as nome_ente,
+                r.periodo_inizio,
+                r.periodo_fine,
+                r.stato,
+                r.totale_entrate,
+                r.totale_uscite,
+                r.saldo,
+                r.data_invio,
+                r.motivo_respingimento,
+                r.data_respingimento,
+                r.updated_at,
+                (SELECT COUNT(*) FROM rendiconti_documenti WHERE rendiconto_id = r.id) as num_documenti
+            FROM rendiconti r
+            JOIN enti e ON r.ente_id = e.id
+            WHERE r.stato IN ('inviato', 'approvato', 'respinto')
+        """
+        
+        params = []
+        
+        if stato:
+            query += " AND r.stato = %s"
+            params.append(stato)
+        
+        query += " ORDER BY r.data_invio DESC"
+        
+        cur.execute(query, params)
+        rows = cur.fetchall()
+        
+        rendiconti = []
+        for row in rows:
+            rendiconti.append({
+                "id": str(row[0]),
+                "ente_id": str(row[1]),
+                "nome_ente": row[2],
+                "periodo_inizio": str(row[3]),
+                "periodo_fine": str(row[4]),
+                "stato": row[5],
+                "totale_entrate": float(row[6]) if row[6] else 0.0,
+                "totale_uscite": float(row[7]) if row[7] else 0.0,
+                "saldo": float(row[8]) if row[8] else 0.0,
+                "data_invio": row[9].isoformat() if row[9] else None,
+                "motivo_respingimento": row[10],
+                "data_respingimento": row[11].isoformat() if row[11] else None,
+                "updated_at": row[12].isoformat() if row[12] else None,
+                "num_documenti": row[13]
+            })
+        
+        return {"rendiconti": rendiconti}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Errore: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@router.post("/economo/rendiconti/{rendiconto_id}/approva")
+async def approva_rendiconto(
+    rendiconto_id: UUID,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Economo approva un rendiconto inviato → diventa DEFINITIVO
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Verifica che l'utente sia economo
+        cur.execute("""
+            SELECT ruolo FROM utenti_enti 
+            WHERE utente_id = %s AND ruolo = 'economo'
+            LIMIT 1
+        """, (current_user['user_id'],))
+        
+        if not cur.fetchone():
+            raise HTTPException(status_code=403, detail="Accesso riservato all'Economo Diocesano")
+        
+        # Verifica che il rendiconto esista e sia in stato 'inviato'
+        cur.execute("""
+            SELECT id, stato, ente_id FROM rendiconti
+            WHERE id = %s
+        """, (str(rendiconto_id),))
+        
+        rendiconto = cur.fetchone()
+        if not rendiconto:
+            raise HTTPException(status_code=404, detail="Rendiconto non trovato")
+        
+        if rendiconto[1] != 'inviato':
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Solo i rendiconti in stato 'inviato' possono essere approvati. Stato attuale: {rendiconto[1]}"
+            )
+        
+        # Approva il rendiconto
+        cur.execute("""
+            UPDATE rendiconti 
+            SET stato = 'approvato',
+                data_revisione = NOW(),
+                updated_at = NOW()
+            WHERE id = %s
+        """, (str(rendiconto_id),))
+        
+        conn.commit()
+        
+        return {
+            "message": "Rendiconto approvato con successo",
+            "id": str(rendiconto_id),
+            "nuovo_stato": "approvato"
+        }
+        
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Errore: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+@router.post("/economo/rendiconti/{rendiconto_id}/respingi")
+async def respingi_rendiconto(
+    rendiconto_id: UUID,
+    motivazione: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Economo respinge un rendiconto inviato → torna a PARROCCHIA
+    I movimenti restano BLOCCATI (si sbloccano solo se il parroco elimina)
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Verifica che l'utente sia economo
+        cur.execute("""
+            SELECT ruolo FROM utenti_enti 
+            WHERE utente_id = %s AND ruolo = 'economo'
+            LIMIT 1
+        """, (current_user['user_id'],))
+        
+        if not cur.fetchone():
+            raise HTTPException(status_code=403, detail="Accesso riservato all'Economo Diocesano")
+        
+        # Verifica che il rendiconto esista e sia in stato 'inviato'
+        cur.execute("""
+            SELECT id, stato, ente_id FROM rendiconti
+            WHERE id = %s
+        """, (str(rendiconto_id),))
+        
+        rendiconto = cur.fetchone()
+        if not rendiconto:
+            raise HTTPException(status_code=404, detail="Rendiconto non trovato")
+        
+        if rendiconto[1] != 'inviato':
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Solo i rendiconti in stato 'inviato' possono essere respinti. Stato attuale: {rendiconto[1]}"
+            )
+        
+        # Respingi il rendiconto (movimenti restano bloccati!)
+        cur.execute("""
+            UPDATE rendiconti 
+            SET stato = 'respinto',
+                motivo_respingimento = %s,
+                data_respingimento = NOW(),
+                respinto_da = %s,
+                updated_at = NOW()
+            WHERE id = %s
+        """, (motivazione, current_user['user_id'], str(rendiconto_id)))
+        
+        conn.commit()
+        
+        return {
+            "message": "Rendiconto respinto. Il parroco può eliminarlo per sbloccare i movimenti e correggere.",
+            "id": str(rendiconto_id),
+            "nuovo_stato": "respinto"
+        }
+        
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Errore: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()        

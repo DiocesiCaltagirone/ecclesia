@@ -160,7 +160,6 @@ def create_registro(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.put("/registri/{registro_id}")
 def update_registro(
     registro_id: str,
@@ -278,7 +277,6 @@ def update_registro(
         "saldo_attuale": float(row[3]) if row[3] is not None else 0.0
     }
 
-
 @router.delete("/registri/{registro_id}")
 def delete_registro(
     registro_id: str,
@@ -348,7 +346,6 @@ def delete_registro(
         "id": str(row[0]),
         "nome": row[1]
     }
-
 
 @router.get("/registri")
 async def get_registri(
@@ -439,7 +436,6 @@ async def get_registri(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # ============================================
 # ENDPOINTS: CATEGORIE (PIANO DEI CONTI)
 # ============================================
@@ -512,7 +508,6 @@ def get_categorie(
         "categorie": result
     }
 
-
 @router.post("/categorie")
 def create_categoria(
     data: dict,
@@ -563,7 +558,6 @@ def create_categoria(
     db.commit()
     return {"id": categoria_id, "message": "Categoria creata"}
 
-
 @router.put("/categorie/{categoria_id}")
 def update_categoria(
     categoria_id: str,
@@ -596,7 +590,6 @@ def update_categoria(
     
     db.commit()
     return {"message": "Categoria aggiornata"}
-
 
 @router.delete("/categorie/{categoria_id}")
 def delete_categoria(
@@ -639,7 +632,6 @@ def delete_categoria(
     db.commit()
     return {"message": "Categoria eliminata"}
 
-
 @router.post("/categorie/{categoria_id}/toggle-registro")
 def toggle_registro(
     categoria_id: str,
@@ -668,7 +660,6 @@ def toggle_registro(
     
     db.commit()
     return {"message": "Aggiornato"}
-
 
 # ============================================
 # ENDPOINTS: MOVIMENTI CONTABILI
@@ -770,7 +761,6 @@ def get_movimenti_generali(
     
     return {"movimenti": movimenti_con_saldo}
 
-
 @router.get("/movimenti/conto/{registro_id}")
 def get_movimenti_conto(
     registro_id: str,
@@ -853,7 +843,6 @@ def get_movimenti_conto(
         "movimenti": movimenti_list
     }
 
-
 @router.post("/movimenti")
 def create_movimento(
     data: dict,
@@ -892,7 +881,6 @@ def create_movimento(
                 status_code=400, 
                 detail=f"Impossibile aggiungere movimenti con data {data_movimento}. Il conto è stato creato il {data_saldo.strftime('%d/%m/%Y')}. Puoi inserire movimenti solo da quella data in poi."
             )
-
 
     # 🆕 CONTROLLO: Verifica se la data è in un periodo già chiuso (bozza o approvato)
     query_rendiconto = text("""
@@ -1141,7 +1129,6 @@ def create_giroconto(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.put("/movimenti/{movimento_id}")
 def update_movimento(
     movimento_id: str,
@@ -1204,7 +1191,6 @@ def update_movimento(
     db.commit()
     return {"message": "Movimento aggiornato"}
 
-
 @router.delete("/movimenti/{movimento_id}")
 def delete_movimento(
     movimento_id: str,
@@ -1242,7 +1228,6 @@ def delete_movimento(
     db.commit()
     
     return {"message": "Movimento eliminato"}
-
 
 # ============================================
 # ENDPOINTS: ALLEGATI MOVIMENTI
@@ -1352,7 +1337,6 @@ async def carica_allegato(
         print(f"❌ Errore caricamento allegato: {e}")
         raise HTTPException(status_code=500, detail=f"Errore caricamento: {str(e)}")
 
-
 @router.get("/movimenti/{movimento_id}/allegati")
 async def lista_allegati(
     movimento_id: str,
@@ -1388,7 +1372,6 @@ async def lista_allegati(
     except Exception as e:
         print(f"❌ Errore lista allegati: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/allegati/{allegato_id}/download")
 async def scarica_allegato(
@@ -1432,7 +1415,6 @@ async def scarica_allegato(
     except Exception as e:
         print(f"❌ Errore download allegato: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.delete("/allegati/{allegato_id}")
 async def elimina_allegato(
@@ -1483,7 +1465,6 @@ async def elimina_allegato(
         print(f"❌ Errore eliminazione allegato: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/movimenti/{movimento_id}/allegati/count")
 async def conta_allegati(
     movimento_id: str,
@@ -1505,7 +1486,6 @@ async def conta_allegati(
     except Exception as e:
         print(f"❌ Errore conteggio allegati: {e}")
         return {"count": 0}
-
 
 # ============================================
 # ENDPOINTS: REPORT CONTABILI
@@ -1716,7 +1696,6 @@ async def genera_report(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # ============================================
 # ENDPOINTS: RENDICONTI (ECONOMO)
 # ============================================
@@ -1797,7 +1776,6 @@ async def lista_rendiconti_economo(
     except Exception as e:
         print(f"❌ Errore lista rendiconti economo: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.put("/economo/rendiconti/{rendiconto_id}/approva")
 async def approva_rendiconto(
@@ -1881,7 +1859,6 @@ async def approva_rendiconto(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/economo/rendiconti/{rendiconto_id}/respingi")
 async def respingi_rendiconto(
@@ -1976,7 +1953,6 @@ async def respingi_rendiconto(
         print(f"❌ Errore respingimento: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/rendiconti/allegati/{allegato_id}/download")
 async def download_allegato_rendiconto(
     allegato_id: str,
@@ -2005,100 +1981,6 @@ async def download_allegato_rendiconto(
         filename=filename,
         media_type=mime_type
     )
-
-
-@router.get("/rendiconti/{rendiconto_id}/pdf")
-async def scarica_pdf_rendiconto(
-    rendiconto_id: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """
-    Scarica PDF del rendiconto.
-    
-    Comportamento:
-    - Approvato: PDF firmato con timbro Vescovo
-    - In revisione: PDF base
-    - Bozza/Respinto: genera PDF al volo (preview)
-    """
-    try:
-        # Importa funzione generazione PDF
-        import sys
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from routes.rendiconti_documenti import genera_pdf_rendiconto
-        
-        # Recupera rendiconto
-        query = text("""
-            SELECT r.pdf_path, r.pdf_firmato_path, r.stato, r.ente_id,
-                   r.periodo_inizio, r.periodo_fine
-            FROM rendiconti r
-            WHERE r.id = :id
-        """)
-        result = db.execute(query, {"id": rendiconto_id}).fetchone()
-        
-        if not result:
-            raise HTTPException(status_code=404, detail="Rendiconto non trovato")
-        
-        pdf_path = result[0]
-        pdf_firmato_path = result[1]
-        stato = result[2]
-        ente_id = result[3]
-        
-        print(f"📄 Download PDF - Stato: {stato}")
-        
-        # APPROVATO: PDF firmato
-        if stato == 'approvato' and pdf_firmato_path:
-            file_path = RENDICONTI_DIR / pdf_firmato_path
-            
-            if file_path.exists():
-                return FileResponse(
-                    path=str(file_path),
-                    media_type="application/pdf",
-                    filename=f"rendiconto_approvato_{rendiconto_id}.pdf"
-                )
-        
-        # IN REVISIONE: PDF base
-        if stato == 'in_revisione' and pdf_path:
-            file_path = RENDICONTI_DIR / pdf_path
-            
-            if file_path.exists():
-                return FileResponse(
-                    path=str(file_path),
-                    media_type="application/pdf",
-                    filename=f"rendiconto_{rendiconto_id}.pdf"
-                )
-        
-        # BOZZA/RESPINTO: genera al volo
-        if stato in ['bozza', 'respinto']:
-            print(f"🔄 Generazione PDF al volo")
-            
-            try:
-                pdf_path_temp = await genera_pdf_rendiconto(rendiconto_id, ente_id)
-                file_path = RENDICONTI_DIR / pdf_path_temp
-                
-                if file_path.exists():
-                    return FileResponse(
-                        path=str(file_path),
-                        media_type="application/pdf",
-                        filename=f"rendiconto_preview_{rendiconto_id}.pdf"
-                    )
-                else:
-                    raise FileNotFoundError("PDF generato ma non trovato")
-                    
-            except Exception as e:
-                print(f"❌ Errore generazione PDF: {e}")
-                raise HTTPException(status_code=500, detail=f"Impossibile generare PDF: {str(e)}")
-        
-        raise HTTPException(status_code=404, detail="PDF non disponibile")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Errore download PDF: {e}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 # ============================================
 # FUNZIONI HELPER
@@ -2136,7 +2018,6 @@ def build_categoria_completa(db, categoria_id, categoria_nome, parent_id):
     
     return ": ".join(gerarchia)
 
-
 def calcola_saldo_progressivo(movimenti):
     """
     Calcola il saldo progressivo per ogni movimento, raggruppato per conto.
@@ -2170,7 +2051,6 @@ def calcola_saldo_progressivo(movimenti):
         mov["saldo_progressivo"] = round(saldi_per_conto[conto_id], 2)
     
     return movimenti_ordinati
-
 
 async def applica_firma_vescovo(pdf_path: str):
     """

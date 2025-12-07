@@ -98,14 +98,19 @@ const ListaRendiconti = () => {
 
   const getBadgeStato = (stato, rendiconto) => {
     const badges = {
-      'bozza': (
+      'parrocchia': (
         <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-          📝 Bozza
+          📝 Parrocchia
         </span>
       ),
-      'in_revisione': (
+      'definitivo': (
+        <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-semibold">
+          📌 Definitivo
+        </span>
+      ),
+      'inviato': (
         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-          🔍 In Revisione
+          📤 Inviato alla Diocesi
         </span>
       ),
       'approvato': (
@@ -119,12 +124,12 @@ const ListaRendiconti = () => {
           className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold hover:bg-red-200 cursor-pointer"
           title="Clicca per vedere il motivo"
         >
-          🔴 Respinto
+          ❌ Respinto
         </button>
       )
     };
 
-    return badges[stato] || null;
+    return badges[stato] || <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">{stato}</span>;
   };
 
   if (loading) {
@@ -164,7 +169,7 @@ const ListaRendiconti = () => {
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Entrate</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Uscite</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Saldo</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data Invio</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DATA CREAZIONE</th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Azioni</th>
             </tr>
           </thead>
@@ -192,7 +197,7 @@ const ListaRendiconti = () => {
                     € {rend.saldo.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {rend.data_invio ? new Date(rend.data_invio).toLocaleDateString('it-IT') : '-'}
+                    {rend.created_at ? new Date(rend.created_at).toLocaleDateString('it-IT') : '-'}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
@@ -206,25 +211,36 @@ const ListaRendiconti = () => {
                         </svg>
                       </button>
 
-                      {/* Elimina solo se BOZZA o RESPINTO */}
-                      {(rend.stato === 'bozza' || rend.stato === 'respinto') && (
+                      {/* Elimina solo se PARROCCHIA o RESPINTO */}
+                      {(rend.stato === 'parrocchia' || rend.stato === 'respinto') && (
                         <button
                           onClick={() => eliminaRendiconto(rend.id)}
                           className="text-red-600 hover:text-red-800 text-xl"
-                          title={`Elimina rendiconto ${rend.stato}`}
+                          title={`Elimina rendiconto (sblocca movimenti)`}
                         >
                           🗑️
                         </button>
                       )}
 
-                      {/* Riprendi se BOZZA */}
-                      {rend.stato === 'bozza' && (
+                      {/* Riprendi/Gestisci se PARROCCHIA */}
+                      {rend.stato === 'parrocchia' && (
                         <button
-                          onClick={() => navigate('/contabilita/rendiconto/nuovo')}
+                          onClick={() => navigate(`/contabilita/rendiconto/${rend.id}`)}
                           className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
-                          title="Riprendi e completa"
+                          title="Gestisci e invia"
                         >
-                          ↗️ Riprendi
+                          ↗️ Gestisci
+                        </button>
+                      )}
+
+                      {/* Invia se DEFINITIVO (non ancora inviato) */}
+                      {rend.stato === 'definitivo' && (
+                        <button
+                          onClick={() => navigate(`/contabilita/rendiconto/${rend.id}`)}
+                          className="text-green-600 hover:text-green-800 text-sm font-semibold"
+                          title="Invia alla Diocesi"
+                        >
+                          📤 Invia
                         </button>
                       )}
                     </div>

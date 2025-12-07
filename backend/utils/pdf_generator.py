@@ -3,7 +3,13 @@ Utility per generazione PDF rendiconti con WeasyPrint
 """
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+# WeasyPrint opzionale (richiede GTK su Windows)
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except (ImportError, OSError):
+    WEASYPRINT_AVAILABLE = False
+    print("?? WeasyPrint non disponibile in pdf_generator")
 from datetime import datetime
 from decimal import Decimal
 

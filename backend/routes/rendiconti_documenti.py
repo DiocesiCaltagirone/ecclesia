@@ -8,7 +8,13 @@ from pathlib import Path
 import sys
 # Aggiungi questi import
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+# WeasyPrint opzionale (richiede GTK su Windows)
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except (ImportError, OSError):
+    WEASYPRINT_AVAILABLE = False
+    print("?? WeasyPrint non disponibile - generazione PDF disabilitata in locale")
 from pathlib import Path
 from datetime import datetime
 
@@ -68,10 +74,10 @@ async def upload_documento_rendiconto(
         if not rendiconto:
             raise HTTPException(status_code=404, detail="Rendiconto non trovato")
         
-        if rendiconto[1] != 'bozza':
+        if rendiconto[1] != 'parrocchia':
             raise HTTPException(
                 status_code=400,
-                detail="Impossibile caricare documenti: il rendiconto non è in stato bozza"
+                detail="Impossibile caricare documenti: il rendiconto non è in stato 'parrocchia'"
             )
         
         # Verifica permessi
@@ -204,6 +210,66 @@ async def get_documenti_rendiconto(
 
 
 # ============================================
+# DOWNLOAD PDF RENDICONTO
+# ============================================
+
+@router.get("/rendiconti/{rendiconto_id}/pdf")
+async def download_pdf_rendiconto(
+    rendiconto_id: UUID,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Download del PDF del rendiconto
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Verifica permessi e recupera path PDF
+        cur.execute("""
+            SELECT r.pdf_path, r.periodo_inizio, r.periodo_fine
+            FROM rendiconti r
+            JOIN utenti_enti ue ON r.ente_id = ue.ente_id
+            WHERE r.id = %s AND ue.utente_id = %s
+        """, (str(rendiconto_id), current_user['user_id']))
+        
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Rendiconto non trovato")
+        
+        pdf_path = row[0]
+        periodo_inizio = row[1]
+        periodo_fine = row[2]
+        
+        if not pdf_path:
+            raise HTTPException(status_code=404, detail="PDF non ancora generato per questo rendiconto")
+        
+        # Costruisci path completo
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        full_path = BASE_DIR / "rendiconti" / pdf_path
+        
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail=f"File PDF non trovato: {pdf_path}")
+        
+        # Nome file per download
+        filename = f"rendiconto_{periodo_inizio}_{periodo_fine}.pdf"
+        
+        return FileResponse(
+            path=str(full_path),
+            filename=filename,
+            media_type="application/pdf"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Errore download PDF: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
 # DOWNLOAD DOCUMENTO
 # ============================================
 
@@ -280,10 +346,10 @@ async def delete_documento(
         if not doc:
             raise HTTPException(status_code=404, detail="Documento non trovato")
         
-        if doc[1] != 'bozza':
+        if doc[1] != 'parrocchia':
             raise HTTPException(
                 status_code=400,
-                detail="Impossibile eliminare: il rendiconto non è in stato bozza"
+                detail="Impossibile eliminare: il rendiconto non è in stato 'parrocchia'"
             )
         
         # Elimina file fisico
@@ -317,14 +383,14 @@ async def invia_rendiconto(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Invia il rendiconto alla Diocesi (da bozza → in_revisione)
-    🆕 SOLO cambio stato (blocco già fatto alla creazione)
+    Invia il rendiconto alla Diocesi (parrocchia → inviato)
+    Documenti obbligatori solo per enti tipo 'parrocchia'
     """
     conn = get_db_connection()
     cur = conn.cursor()
     
     try:
-        # Verifica che il rendiconto sia in bozza
+        # Verifica che il rendiconto esista e sia in stato corretto
         cur.execute("""
             SELECT r.id, r.stato, r.ente_id
             FROM rendiconti r
@@ -337,29 +403,25 @@ async def invia_rendiconto(
         if not rendiconto:
             raise HTTPException(status_code=404, detail="Rendiconto non trovato")
         
-        if rendiconto[1] != 'bozza':
+        # Può inviare solo da 'parrocchia' o 'definitivo'
+        if rendiconto[1] not in ['parrocchia', 'definitivo']:
             raise HTTPException(
                 status_code=400,
-                detail=f"Il rendiconto è già in stato: {rendiconto[1]}"
+                detail=f"Impossibile inviare: il rendiconto è in stato '{rendiconto[1]}'. Solo i rendiconti in stato 'parrocchia' o 'definitivo' possono essere inviati."
             )
         
-        # ✅ Recupera info ente e esonero
+        # Recupera tipo ente
         cur.execute("""
-    SELECT 
-        COALESCE(e.documenti_obbligatori, TRUE) as ente_richiede,
-        COALESCE(r.documenti_esonero, FALSE) as ha_esonero
-    FROM rendiconti r
-    JOIN enti e ON e.id = r.ente_id
-    WHERE r.id = %s
-""", (str(rendiconto_id),))
+            SELECT COALESCE(tipo_ente, 'parrocchia') as tipo_ente
+            FROM enti
+            WHERE id = %s
+        """, (str(rendiconto[2]),))
         
-        info = cur.fetchone()
-        ente_richiede_documenti = info[0] if info else True
-        ha_esonero_economo = info[1] if info else False
+        ente_info = cur.fetchone()
+        tipo_ente = ente_info[0] if ente_info else 'parrocchia'
         
-        # ✅ VERIFICA DOCUMENTI SOLO SE NECESSARIO
-        if ente_richiede_documenti and not ha_esonero_economo:
-            # Verifica documenti obbligatori
+        # VERIFICA DOCUMENTI SOLO PER PARROCCHIE
+        if tipo_ente == 'parrocchia':
             cur.execute("""
                 SELECT tipo_documento 
                 FROM rendiconti_documenti 
@@ -377,14 +439,15 @@ async def invia_rendiconto(
             if documenti_mancanti:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Documenti obbligatori mancanti: {', '.join(documenti_mancanti)}. Contatta l'economo per richiedere un esonero."
+                    detail=f"Documenti obbligatori mancanti: {', '.join(documenti_mancanti)}"
                 )
         
-        # Aggiorna stato rendiconto → in_revisione
+        # Aggiorna stato rendiconto → inviato
         cur.execute("""
             UPDATE rendiconti 
-            SET stato = 'in_revisione', 
-                data_invio = NOW()
+            SET stato = 'inviato', 
+                data_invio = NOW(),
+                updated_at = NOW()
             WHERE id = %s
         """, (str(rendiconto_id),))
         
@@ -393,9 +456,9 @@ async def invia_rendiconto(
         return {
             "message": "Rendiconto inviato con successo alla Diocesi",
             "rendiconto_id": str(rendiconto_id),
-            "stato": "in_revisione",
+            "stato": "inviato",
             "data_invio": datetime.now().isoformat(),
-            "documenti_esoneratio": ha_esonero_economo
+            "tipo_ente": tipo_ente
         }
         
     except HTTPException:
@@ -408,69 +471,6 @@ async def invia_rendiconto(
         cur.close()
         conn.close()
 
- # ============================================
-# ECONOMO: ESONERA DOCUMENTI
-# ============================================
-
-@router.post("/economo/rendiconti/{rendiconto_id}/esonera-documenti")
-async def economo_esonera_documenti(
-    rendiconto_id: UUID,
-    motivo: str = Form(...),
-    current_user: dict = Depends(get_current_user)
-):
-    """
-    L'economo può esonerare un rendiconto dai documenti mancanti
-    """
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    try:
-        # Verifica che il rendiconto esista e sia in bozza
-        cur.execute("""
-            SELECT id, stato, ente_id
-            FROM rendiconti
-            WHERE id = %s
-        """, (str(rendiconto_id),))
-        
-        rendiconto = cur.fetchone()
-        
-        if not rendiconto:
-            raise HTTPException(status_code=404, detail="Rendiconto non trovato")
-        
-        if rendiconto[1] != 'bozza':
-            raise HTTPException(
-                status_code=400,
-                detail=f"Impossibile esonerare: il rendiconto è già in stato '{rendiconto[1]}'"
-            )
-        
-        # Aggiorna rendiconto con esonero
-        cur.execute("""
-            UPDATE rendiconti
-            SET documenti_esonero = TRUE,
-                documenti_esonero_motivo = %s,
-                documenti_esonero_da = %s,
-                documenti_esonero_at = NOW()
-            WHERE id = %s
-        """, (motivo, current_user['user_id'], str(rendiconto_id)))
-        
-        conn.commit()
-        
-        return {
-            "message": "Esonero documenti concesso con successo",
-            "rendiconto_id": str(rendiconto_id),
-            "motivo": motivo,
-            "esonero_at": datetime.now().isoformat()
-        }
-        
-    except HTTPException:
-        conn.rollback()
-        raise
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Errore esonero documenti: {str(e)}")
-    finally:
-        cur.close()
-        conn.close()       
 
 # ============================================
 # GENERA PDF RENDICONTO
@@ -478,12 +478,10 @@ async def economo_esonera_documenti(
 
 async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
     """
-    Genera PDF del rendiconto (senza firma vescovo)
+    Genera PDF del rendiconto con movimenti organizzati per categoria
     """
     try:
-        import sys
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from database import get_db_connection
+        from collections import defaultdict
         
         conn = get_db_connection()
         cur = conn.cursor()
@@ -493,18 +491,35 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         # 1. Recupera dati ente
         cur.execute("""
             SELECT denominazione, indirizzo, cap, comune, provincia, 
-                   codice_fiscale, telefono, email, parroco, diocesi
+                   codice_fiscale, telefono, email, parroco, diocesi,
+                   anno_fondazione, numero_abitanti, vescovo
             FROM enti WHERE id = %s
         """, (ente_id,))
         
-        ente = cur.fetchone()
-        if not ente:
+        ente_row = cur.fetchone()
+        if not ente_row:
             raise Exception("Ente non trovato")
+        
+        ente = {
+            'denominazione': ente_row[0],
+            'indirizzo': ente_row[1],
+            'cap': ente_row[2],
+            'comune': ente_row[3],
+            'provincia': ente_row[4],
+            'codice_fiscale': ente_row[5],
+            'telefono': ente_row[6],
+            'email': ente_row[7],
+            'parroco': ente_row[8],
+            'diocesi': ente_row[9],
+            'anno_fondazione': ente_row[10],
+            'numero_abitanti': ente_row[11],
+            'vescovo': ente_row[12] or 'S.E. Mons. Calogero Peri'
+        }
         
         # 2. Recupera dati rendiconto
         cur.execute("""
             SELECT periodo_inizio, periodo_fine, totale_entrate, 
-                   totale_uscite, saldo
+                   totale_uscite, saldo, stato
             FROM rendiconti WHERE id = %s
         """, (rendiconto_id,))
         
@@ -512,65 +527,156 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         if not rend:
             raise Exception("Rendiconto non trovato")
         
-        # 3. Recupera movimenti
+        periodo_inizio = rend[0]
+        periodo_fine = rend[1]
+        
+        # 3. Recupera saldi conti
         cur.execute("""
-            SELECT m.data_movimento, m.tipo_movimento, m.importo, 
-                   m.causale, m.descrizione,
-                   r.nome as conto_nome,
-                   c.descrizione as categoria_nome
+            SELECT r.nome, 
+                   COALESCE(SUM(CASE 
+                       WHEN m.tipo_movimento = 'entrata' THEN m.importo
+                       WHEN m.tipo_movimento = 'uscita' THEN -m.importo
+                       ELSE 0
+                   END), 0) as saldo
+            FROM registri_contabili r
+            LEFT JOIN movimenti_contabili m ON m.registro_id = r.id
+                AND m.data_movimento <= %s
+            WHERE r.ente_id = %s AND r.attivo = TRUE
+            GROUP BY r.id, r.nome
+            ORDER BY r.nome
+        """, (periodo_fine, ente_id))
+        
+        conti = [{'nome': row[0], 'saldo': float(row[1])} for row in cur.fetchall()]
+        totale_attivo = sum(c['saldo'] for c in conti)
+        
+        # 4. Recupera movimenti con categoria gerarchica
+        cur.execute("""
+            SELECT 
+                m.data_movimento, 
+                m.tipo_movimento, 
+                m.importo, 
+                COALESCE(m.descrizione, m.causale, 'Movimento') as descrizione,
+                r.nome as conto_nome,
+                c.descrizione as categoria_nome,
+                c.id as categoria_id,
+                cp.descrizione as categoria_padre_nome,
+                cp.id as categoria_padre_id,
+                cpp.descrizione as categoria_nonno_nome,
+                cpp.id as categoria_nonno_id
             FROM movimenti_contabili m
             LEFT JOIN registri_contabili r ON m.registro_id = r.id
             LEFT JOIN piano_conti c ON m.categoria_id = c.id
+            LEFT JOIN piano_conti cp ON c.categoria_padre_id = cp.id
+            LEFT JOIN piano_conti cpp ON cp.categoria_padre_id = cpp.id
             WHERE m.ente_id = %s
               AND m.data_movimento BETWEEN %s AND %s
-            ORDER BY m.data_movimento, m.tipo_movimento
-        """, (ente_id, rend[0], rend[1]))
+              AND (m.tipo_speciale IS NULL OR m.tipo_speciale != 'saldo_iniziale')
+            ORDER BY m.tipo_movimento, 
+                     COALESCE(cpp.descrizione, cp.descrizione, c.descrizione, 'ZZZ'),
+                     COALESCE(cp.descrizione, c.descrizione, 'ZZZ'),
+                     c.descrizione,
+                     m.data_movimento
+        """, (ente_id, periodo_inizio, periodo_fine))
         
-        movimenti = cur.fetchall()
+        movimenti_raw = cur.fetchall()
         
-        # 4. Prepara dati per template
-        dati_template = {
-            'ente': {
-                'denominazione': ente[0],
-                'indirizzo': ente[1] or '',
-                'cap': ente[2] or '',
-                'comune': ente[3] or '',
-                'provincia': ente[4] or '',
-                'codice_fiscale': ente[5] or '',
-                'telefono': ente[6] or '',
-                'email': ente[7] or '',
-                'parroco': ente[8] or '',
-                'diocesi': ente[9] or '',
-                'numero_abitanti': None
-            },
-            'periodo_inizio': rend[0].strftime('%d/%m/%Y'),
-            'periodo_fine': rend[1].strftime('%d/%m/%Y'),
-            'data_compilazione': datetime.now().strftime('%d/%m/%Y'),
-            'totale_entrate': float(rend[2]) if rend[2] else 0,
-            'totale_uscite': float(rend[3]) if rend[3] else 0,
-            'saldo': float(rend[4]) if rend[4] else 0,
-            'movimenti': [
-                {
-                    'data': mov[0].strftime('%d/%m/%Y'),
-                    'tipo': mov[1],
-                    'importo': float(mov[2]),
-                    'causale': mov[3] or mov[4] or 'Movimento',
-                    'conto': mov[5] or 'Non specificato',
-                    'categoria': mov[6] or 'Non categorizzato'
+        # 5. Organizza movimenti per categoria
+        def organizza_per_categoria(movimenti, tipo_filtro):
+            categorie = defaultdict(lambda: {
+                'nome': '', 
+                'totale': 0, 
+                'sottocategorie': defaultdict(lambda: {
+                    'nome': '', 
+                    'totale': 0, 
+                    'movimenti': []
+                })
+            })
+            
+            for mov in movimenti:
+                if mov[1] != tipo_filtro:
+                    continue
+                    
+                data_mov = mov[0].strftime('%d/%m/%Y')
+                importo = float(mov[2])
+                descrizione = mov[3] or 'Movimento'
+                conto = mov[4] or ''
+                
+                # Determina categoria principale e sottocategoria
+                cat_livello1 = mov[9] or mov[7] or mov[5] or 'Altre voci'
+                cat_livello2 = mov[7] if mov[9] else (mov[5] if mov[7] else 'Generale')
+                if cat_livello2 == cat_livello1:
+                    cat_livello2 = 'Generale'
+                
+                movimento = {
+                    'data': data_mov,
+                    'descrizione': descrizione[:55] + '...' if len(descrizione) > 55 else descrizione,
+                    'conto': conto,
+                    'importo': importo
                 }
-                for mov in movimenti
-            ],
-            'approvato': False,
-            'parroco_nome': ente[8] or '',
-            'conti': [
-                {'nome': 'Cassa Parrocchia', 'saldo': 0},
-                {'nome': 'Banca Unicredit', 'saldo': 0},
-                {'nome': 'C/C Postale Parroco', 'saldo': 0}
-            ],
-            'totale_attivo': float(rend[4]) if rend[4] else 0
+                
+                categorie[cat_livello1]['nome'] = cat_livello1
+                categorie[cat_livello1]['sottocategorie'][cat_livello2]['nome'] = cat_livello2
+                categorie[cat_livello1]['sottocategorie'][cat_livello2]['movimenti'].append(movimento)
+                categorie[cat_livello1]['sottocategorie'][cat_livello2]['totale'] += importo
+                categorie[cat_livello1]['totale'] += importo
+            
+            # Converti in lista ordinata
+            result = []
+            for cat_name in sorted(categorie.keys()):
+                cat_data = categorie[cat_name]
+                sottocategorie = []
+                for sub_name in sorted(cat_data['sottocategorie'].keys()):
+                    sub_data = cat_data['sottocategorie'][sub_name]
+                    if sub_data['movimenti']:  # Solo se ci sono movimenti
+                        sottocategorie.append({
+                            'nome': sub_data['nome'],
+                            'totale': sub_data['totale'],
+                            'movimenti': sub_data['movimenti']
+                        })
+                if sottocategorie:  # Solo se ci sono sottocategorie
+                    result.append({
+                        'nome': cat_data['nome'],
+                        'totale': cat_data['totale'],
+                        'sottocategorie': sottocategorie
+                    })
+            return result
+        
+        categorie_entrate = organizza_per_categoria(movimenti_raw, 'entrata')
+        categorie_uscite = organizza_per_categoria(movimenti_raw, 'uscita')
+        
+        # Calcola totali
+        totale_entrate = sum(c['totale'] for c in categorie_entrate)
+        totale_uscite = sum(c['totale'] for c in categorie_uscite)
+        saldo = totale_entrate - totale_uscite
+        
+        # 6. Recupera riporto anno precedente
+        cur.execute("""
+            SELECT saldo FROM rendiconti 
+            WHERE ente_id = %s AND periodo_fine < %s
+            ORDER BY periodo_fine DESC LIMIT 1
+        """, (ente_id, periodo_inizio))
+        
+        riporto_row = cur.fetchone()
+        riporto_precedente = float(riporto_row[0]) if riporto_row else 0
+        
+        # 7. Prepara dati per template
+        dati_template = {
+            'ente': ente,
+            'periodo_inizio_fmt': periodo_inizio.strftime('%d/%m/%Y'),
+            'periodo_fine_fmt': periodo_fine.strftime('%d/%m/%Y'),
+            'data_compilazione': datetime.now().strftime('%d/%m/%Y'),
+            'totale_entrate': totale_entrate,
+            'totale_uscite': totale_uscite,
+            'saldo': saldo,
+            'categorie_entrate': categorie_entrate,
+            'categorie_uscite': categorie_uscite,
+            'conti': conti,
+            'totale_attivo': totale_attivo,
+            'riporto_precedente': riporto_precedente,
+            'approvato': rend[5] == 'approvato'
         }
         
-        # 5. Renderizza template
+        # 8. Renderizza template
         BASE_DIR = Path(__file__).resolve().parent.parent
         TEMPLATES_DIR = BASE_DIR / "templates"
         
@@ -578,8 +684,12 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         template = env.get_template('rendiconto.html')
         html_content = template.render(**dati_template)
         
-        # 6. Genera PDF
-        year = rend[0].year
+        # 9. Genera PDF (solo se WeasyPrint disponibile)
+        if not WEASYPRINT_AVAILABLE:
+            print("⚠️ WeasyPrint non disponibile - PDF non generato")
+            raise Exception("WeasyPrint non disponibile in questo ambiente")
+        
+        year = periodo_inizio.year
         RENDICONTI_DIR = BASE_DIR / "rendiconti" / str(year)
         RENDICONTI_DIR.mkdir(parents=True, exist_ok=True)
         
@@ -588,12 +698,20 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         
         HTML(string=html_content, base_url=str(BASE_DIR)).write_pdf(str(pdf_path))
         
+        # 10. Aggiorna totali nel database
+        cur.execute("""
+            UPDATE rendiconti 
+            SET totale_entrate = %s, totale_uscite = %s, saldo = %s, pdf_path = %s
+            WHERE id = %s
+        """, (totale_entrate, totale_uscite, saldo, f"{year}/{filename}", rendiconto_id))
+        
+        conn.commit()
+        
         print(f"✅ PDF generato: {pdf_path}")
         
         cur.close()
         conn.close()
         
-        # Ritorna path relativo
         return f"{year}/{filename}"
         
     except Exception as e:
