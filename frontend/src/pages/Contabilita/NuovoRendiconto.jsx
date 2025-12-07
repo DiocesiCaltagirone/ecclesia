@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const NuovoRendiconto = () => {
   const navigate = useNavigate();
+  const { id: rendicontoIdParam } = useParams();
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState({ inizio: '', fine: '' });
   const [rendicontoId, setRendicontoId] = useState(null);
@@ -60,26 +61,55 @@ const NuovoRendiconto = () => {
     }
   ];
 
-  useEffect(() => {
-    verificaBozzaEsistente();
-  }, []);
+  const [rendicontoPrecedente, setRendicontoPrecedente] = useState(null);
 
-  const verificaBozzaEsistente = async () => {
+  useEffect(() => {
+    // Reset stato quando cambia la modalità
+    setRendicontoId(null);
+    setInfoRendiconto(null);
+    setDocumenti([]);
+    setLoading(true);
+
+    if (rendicontoIdParam) {
+      // Modalità GESTISCI: carica rendiconto esistente
+      caricaRendiconto(rendicontoIdParam);
+    } else {
+      // Modalità NUOVO: verifica se esiste rendiconto precedente
+      verificaRendicontoPrecedente();
+    }
+  }, [rendicontoIdParam]);
+
+  const caricaRendiconto = async (id) => {
     try {
-      const res = await fetch('/api/contabilita/rendiconti?stato=bozza', { headers });
+      const res = await fetch(`/api/contabilita/rendiconti/${id}`, { headers });
       if (res.ok) {
         const data = await res.json();
-        const bozze = data.rendiconti || [];
+        setRendicontoId(data.id);
+        setInfoRendiconto(data);
+        await caricaDocumenti(data.id);
+      } else {
+        alert('Rendiconto non trovato');
+        navigate('/contabilita/rendiconto/lista');
+      }
+    } catch (error) {
+      console.error('Errore caricamento rendiconto:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (bozze.length > 0) {
-          const bozza = bozze[0];
-          setRendicontoId(bozza.id);
-          setInfoRendiconto(bozza);
-          await caricaDocumenti(bozza.id);
+  const verificaRendicontoPrecedente = async () => {
+    try {
+      const res = await fetch('/api/contabilita/rendiconti?stato=parrocchia', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        const attivi = data.rendiconti || [];
+        if (attivi.length > 0) {
+          setRendicontoPrecedente(attivi[0]);
         }
       }
     } catch (error) {
-      console.error('Errore verifica bozza:', error);
+      console.error('Errore verifica rendiconto precedente:', error);
     } finally {
       setLoading(false);
     }
@@ -111,6 +141,21 @@ const NuovoRendiconto = () => {
       return;
     }
 
+    // Se esiste un rendiconto precedente in stato 'parrocchia', avvisa
+    if (rendicontoPrecedente) {
+      const conferma = window.confirm(
+        `⚠️ ATTENZIONE!\n\n` +
+        `Esiste già un rendiconto in stato "Parrocchia":\n` +
+        `Periodo: ${new Date(rendicontoPrecedente.periodo_inizio).toLocaleDateString('it-IT')} - ${new Date(rendicontoPrecedente.periodo_fine).toLocaleDateString('it-IT')}\n\n` +
+        `Creando un nuovo rendiconto, quello precedente diventerà DEFINITIVO e non potrà più essere eliminato.\n\n` +
+        `Vuoi continuare?`
+      );
+
+      if (!conferma) {
+        return;
+      }
+    }
+
     try {
       setCreando(true);
       const res = await fetch('/api/contabilita/rendiconti', {
@@ -126,6 +171,8 @@ const NuovoRendiconto = () => {
         const data = await res.json();
         setRendicontoId(data.id);
         setInfoRendiconto(data);
+        setRendicontoPrecedente(null); // Reset
+        alert('✅ Rendiconto creato con successo!');
       } else {
         const error = await res.json();
         alert('Errore: ' + error.detail);
@@ -169,7 +216,7 @@ const NuovoRendiconto = () => {
   };
 
   const handleEliminaBozza = async () => {
-    if (!window.confirm('Sei sicuro di voler eliminare questa bozza?')) {
+    if (!window.confirm('Sei sicuro di voler eliminare questo rendiconto? I movimenti verranno sbloccati.')) {
       return;
     }
 
@@ -180,7 +227,7 @@ const NuovoRendiconto = () => {
       );
 
       if (res.ok) {
-        alert('Bozza eliminata');
+        alert('Rendiconto eliminato. I movimenti sono stati sbloccati.');
         setRendicontoId(null);
         setInfoRendiconto(null);
         setDocumenti([]);
@@ -238,8 +285,7 @@ const NuovoRendiconto = () => {
   };
 
   const documentiCaricati = documenti.map(d => d.tipo_documento);
-  const haEsonero = infoRendiconto?.documenti_esonero || false;
-  const documentiObbligatoriCaricati = haEsonero || tipiDocumento
+  const documentiObbligatoriCaricati = tipiDocumento
     .filter(t => t.obbligatorio)
     .every(t => documentiCaricati.includes(t.id));
 
@@ -318,7 +364,7 @@ const NuovoRendiconto = () => {
             disabled={creando || !periodo.inizio || !periodo.fine}
             className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
           >
-            {creando ? 'Creazione in corso...' : 'Crea Rendiconto in Bozza'}
+            {creando ? 'Creazione in corso...' : 'Crea Rendiconto'}
           </button>
         </div>
       )}
@@ -345,7 +391,7 @@ const NuovoRendiconto = () => {
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-                    📝 Bozza
+                    📝 Parrocchia
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-green-600 font-semibold">
@@ -358,7 +404,7 @@ const NuovoRendiconto = () => {
                   € {infoRendiconto.saldo?.toFixed(2) || '0.00'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  {infoRendiconto.data_invio ? new Date(infoRendiconto.data_invio).toLocaleDateString('it-IT') : '-'}
+                  {infoRendiconto.data_invio ? new Date(infoRendiconto.data_invio).toLocaleDateString('it-IT') : ''}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <button
@@ -448,20 +494,6 @@ const NuovoRendiconto = () => {
       {/* AZIONI FINALI */}
       {rendicontoId && (
         <div className="space-y-4">
-          {/* BANNER ESONERO */}
-          {infoRendiconto && infoRendiconto.documenti_esonero && (
-            <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-              <div className="flex items-center gap-2 text-green-800">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="font-semibold">Documenti esoneranti dall'Economo</p>
-              </div>
-              <p className="text-sm text-green-700 mt-1">
-                Puoi inviare il rendiconto anche senza tutti i documenti obbligatori.
-              </p>
-            </div>
-          )}
 
           {/* BOTTONI */}
           <div className="flex gap-3">
@@ -469,7 +501,7 @@ const NuovoRendiconto = () => {
               onClick={handleEliminaBozza}
               className="flex-1 px-4 py-3 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 font-semibold"
             >
-              🗑️ Elimina Bozza
+              🗑️ Elimina Rendiconto
             </button>
             <button
               onClick={handleInviaDiocesi}
