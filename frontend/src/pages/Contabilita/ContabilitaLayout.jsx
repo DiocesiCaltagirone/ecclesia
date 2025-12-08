@@ -21,6 +21,11 @@ const ContabilitaLayout = () => {
   const [showModalTransazione, setShowModalTransazione] = useState(false);
   const [categorie, setCategorie] = useState([]);
   const [rendicontoMenuOpen, setRendicontoMenuOpen] = useState(false);
+  const [permessi, setPermessi] = useState({
+    anagrafica: false,
+    contabilita: true,
+    inventario: false
+  });
 
   // Tipi di conto
   const tipiConto = {
@@ -88,6 +93,13 @@ const ContabilitaLayout = () => {
         if (entiResponse.ok) {
           const entiData = await entiResponse.json();
           setEntiList(entiData.enti || []);
+
+          // Carica permessi dell'ente corrente
+          const enteCorrente = (entiData.enti || []).find(e => e.id === enteId);
+          if (enteCorrente && enteCorrente.permessi) {
+            console.log('✅ Permessi contabilità caricati:', enteCorrente.permessi);
+            setPermessi(enteCorrente.permessi);
+          }
         }
 
         // Carica categorie per il form transazione
@@ -358,11 +370,10 @@ const ContabilitaLayout = () => {
             </div>
             <button
               onClick={() => navigate('/contabilita')}
-              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                location.pathname === '/contabilita'
-                  ? 'bg-blue-600 text-white font-semibold'
-                  : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-              }`}
+              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${location.pathname === '/contabilita'
+                ? 'bg-blue-600 text-white font-semibold'
+                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                }`}
             >
               <span>💳</span>
               <span>Conti</span>
@@ -437,20 +448,24 @@ const ContabilitaLayout = () => {
 
           {/* ALTRI MODULI */}
           <div className="p-3 space-y-1 flex-1">
-            <button
-              onClick={() => navigate('/persone')}
-              className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-sm"
-            >
-              <span>👥</span>
-              <span>Anagrafica</span>
-            </button>
-            <button
-              onClick={() => navigate('/inventario')}
-              className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-sm"
-            >
-              <span>📦</span>
-              <span>Inventario</span>
-            </button>
+            {permessi.anagrafica && (
+              <button
+                onClick={() => navigate('/persone')}
+                className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-sm"
+              >
+                <span>👥</span>
+                <span>Anagrafica</span>
+              </button>
+            )}
+            {permessi.inventario && (
+              <button
+                onClick={() => navigate('/inventario')}
+                className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition-colors text-sm"
+              >
+                <span>📦</span>
+                <span>Inventario</span>
+              </button>
+            )}
           </div>
         </div>
 
