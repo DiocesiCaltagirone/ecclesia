@@ -660,8 +660,17 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         riporto_precedente = float(riporto_row[0]) if riporto_row else 0
         
         # 7. Prepara dati per template
+        # 8. Renderizza template
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        TEMPLATES_DIR = BASE_DIR / "templates"
+        
+        # Path logo diocesi
+        logo_path = TEMPLATES_DIR / "assets" / "Logo Diocesi - Economato.png"
+        logo_diocesi = str(logo_path) if logo_path.exists() else None
+        
         dati_template = {
             'ente': ente,
+            'logo_diocesi': logo_diocesi,
             'periodo_inizio_fmt': periodo_inizio.strftime('%d/%m/%Y'),
             'periodo_fine_fmt': periodo_fine.strftime('%d/%m/%Y'),
             'data_compilazione': datetime.now().strftime('%d/%m/%Y'),
@@ -676,10 +685,6 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             'riporto_precedente': riporto_precedente,
             'approvato': rend[5] == 'approvato'
         }
-        
-        # 8. Renderizza template
-        BASE_DIR = Path(__file__).resolve().parent.parent
-        TEMPLATES_DIR = BASE_DIR / "templates"
         
         env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
         template = env.get_template('rendiconto.html')
