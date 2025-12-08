@@ -21,7 +21,7 @@ from auth import (
 # ============================================
 import permissions
 import middleware
-from routes import persone, sacramenti, certificati, amministrazione, auth, contabilita, rendiconti_crud, rendiconti_documenti, stampe, template_categorie
+from routes import persone, sacramenti, certificati, amministrazione, auth, contabilita, rendiconti_crud, rendiconti_documenti, stampe, template_categorie, impostazioni_diocesi
 
 # Inizializza FastAPI
 app = FastAPI(
@@ -64,6 +64,7 @@ app.include_router(rendiconti_crud.router)
 app.include_router(rendiconti_documenti.router)
 app.include_router(stampe.router)
 app.include_router(template_categorie.router)
+app.include_router(impostazioni_diocesi.router)
 
 # ============================================
 # UTILITY FUNCTIONS (MANTENUTE PER COMPATIBILITÀ)

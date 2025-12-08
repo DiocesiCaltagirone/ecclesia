@@ -285,6 +285,23 @@ const Amministrazione = () => {
           <h2 className="text-sm font-semibold text-gray-600 mb-3">🛠️ Altre Gestioni</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {/* Bottone Impostazioni Diocesi */}
+            <button
+              onClick={() => navigate('/amministrazione/impostazioni-diocesi')}
+              className="group"
+            >
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white text-lg">
+                    ⚙️
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-700">Impostazioni Diocesi</div>
+                    <div className="text-xs text-gray-500">Vescovo, Loghi, Firme</div>
+                  </div>
+                </div>
+              </div>
+            </button>
             {/* Bottone Gestione Parrocchie Diocesi */}
             <button
               onClick={() => navigate('/amministrazione/parrocchie-diocesi')}

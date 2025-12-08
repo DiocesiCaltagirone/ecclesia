@@ -659,18 +659,39 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         riporto_row = cur.fetchone()
         riporto_precedente = float(riporto_row[0]) if riporto_row else 0
         
-        # 7. Prepara dati per template
+       # 7. Prepara dati per template
         # 8. Renderizza template
         BASE_DIR = Path(__file__).resolve().parent.parent
         TEMPLATES_DIR = BASE_DIR / "templates"
         
-        # Path logo diocesi
-        logo_path = TEMPLATES_DIR / "assets" / "Logo Diocesi - Economato.png"
-        logo_diocesi = str(logo_path) if logo_path.exists() else None
+        # Carica logo e vescovo da impostazioni diocesi
+        logo_diocesi = None
+        vescovo_nome = None
+        vescovo_titolo = "Vescovo"
+        try:
+            cur.execute("SELECT logo_path, vescovo_nome, vescovo_titolo FROM impostazioni_diocesi LIMIT 1")
+            imp_diocesi = cur.fetchone()
+            if imp_diocesi:
+                if imp_diocesi[0]:  # logo_path
+                    logo_from_db = BASE_DIR / imp_diocesi[0]
+                    if logo_from_db.exists():
+                        logo_diocesi = str(logo_from_db)
+                vescovo_nome = imp_diocesi[1]  # vescovo_nome
+                vescovo_titolo = imp_diocesi[2] or "Vescovo"  # vescovo_titolo
+        except:
+            pass
+        
+        # Fallback logo statico
+        if not logo_diocesi:
+            logo_path = TEMPLATES_DIR / "assets" / "Logo Diocesi - Economato.png"
+            if logo_path.exists():
+                logo_diocesi = str(logo_path)
         
         dati_template = {
             'ente': ente,
             'logo_diocesi': logo_diocesi,
+            'vescovo': vescovo_nome or ente.get('vescovo') or "S.E. Mons. Calogero Peri",
+            'vescovo_titolo': vescovo_titolo,
             'periodo_inizio_fmt': periodo_inizio.strftime('%d/%m/%Y'),
             'periodo_fine_fmt': periodo_fine.strftime('%d/%m/%Y'),
             'data_compilazione': datetime.now().strftime('%d/%m/%Y'),

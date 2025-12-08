@@ -7,6 +7,7 @@ import Persone from './pages/Persone';
 import ImpostazioniDatiGenerali from './pages/ImpostazioniDatiGenerali';
 import Registro from './pages/Registro';
 import Amministrazione from './pages/Amministrazione';
+import ImpostazioniDiocesi from './pages/ImpostazioniDiocesi';
 import ParrocchieDiocesi from './pages/ParrocchieDiocesi';
 import TemplateCategorieAdmin from './pages/TemplateCategorieAdmin';
 import GestioneEnti from './pages/GestioneEnti';
@@ -101,6 +102,12 @@ function App() {
           <Route path="/amministrazione/parrocchie-diocesi" element={
             <PrivateRoute>
               <ParrocchieDiocesi />
+            </PrivateRoute>
+          } />
+
+          <Route path="/amministrazione/impostazioni-diocesi" element={
+            <PrivateRoute>
+              <ImpostazioniDiocesi />
             </PrivateRoute>
           } />
 
