@@ -189,14 +189,16 @@ const MovimentiConto = () => {
     const entrate = risultato
       .filter(m =>
         m.tipo_movimento === 'entrata' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
+        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato) &&
+        !m.riporto_saldo
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     const uscite = risultato
       .filter(m =>
         m.tipo_movimento === 'uscita' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
+        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato) &&
+        !m.riporto_saldo
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
