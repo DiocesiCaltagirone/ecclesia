@@ -799,7 +799,7 @@ def get_movimenti_conto(
     
     # Query movimenti
     query = """
-        SELECT 
+        SELECT
             m.id,
             m.data_movimento,
             m.tipo_movimento,
@@ -812,7 +812,8 @@ def get_movimenti_conto(
             c.id as categoria_id,
             c.descrizione as categoria_nome,
             c.categoria_padre_id,
-            m.created_at
+            m.created_at,
+            m.riporto_saldo
         FROM movimenti_contabili m
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id AND m.registro_id = :registro_id
@@ -848,7 +849,8 @@ def get_movimenti_conto(
             "categoria_id": str(mov[9]) if mov[9] else None,
             "categoria_completa": categoria_completa,
             "saldo_progressivo": round(saldo_progressivo, 2),
-            "created_at": mov[12].isoformat() if mov[12] else None
+            "created_at": mov[12].isoformat() if mov[12] else None,
+            "riporto_saldo": mov[13] if mov[13] else False
         })
     
     return {
