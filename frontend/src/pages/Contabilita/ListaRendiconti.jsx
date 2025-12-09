@@ -188,13 +188,13 @@ const ListaRendiconti = () => {
                   </td>
                   <td className="px-6 py-4">{getBadgeStato(rend.stato, rend)}</td>
                   <td className="px-6 py-4 text-sm text-right text-green-600 font-semibold">
-                    € {rend.totale_entrate.toFixed(2)}
+                    € {rend.totale_entrate.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                   </td>
                   <td className="px-6 py-4 text-sm text-right text-red-600 font-semibold">
-                    € {rend.totale_uscite.toFixed(2)}
+                    € {rend.totale_uscite.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                   </td>
                   <td className={`px-6 py-4 text-sm text-right font-bold ${rend.saldo >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                    € {rend.saldo.toFixed(2)}
+                    € {rend.saldo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {rend.created_at ? new Date(rend.created_at).toLocaleDateString('it-IT') : '-'}

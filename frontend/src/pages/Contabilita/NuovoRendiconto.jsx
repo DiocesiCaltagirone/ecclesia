@@ -395,13 +395,13 @@ const NuovoRendiconto = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-green-600 font-semibold">
-                  € {infoRendiconto.totale_entrate?.toFixed(2) || '0.00'}
+                  € {(infoRendiconto.totale_entrate || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-red-600 font-semibold">
-                  € {infoRendiconto.totale_uscite?.toFixed(2) || '0.00'}
+                  € {(infoRendiconto.totale_uscite || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-blue-600 font-bold">
-                  € {infoRendiconto.saldo?.toFixed(2) || '0.00'}
+                  € {(infoRendiconto.saldo || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   {infoRendiconto.data_invio ? new Date(infoRendiconto.data_invio).toLocaleDateString('it-IT') : ''}
