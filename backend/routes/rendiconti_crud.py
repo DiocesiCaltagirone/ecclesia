@@ -179,7 +179,7 @@ async def crea_rendiconto(
         try:
             # Data saldo iniziale = STESSA data di fine periodo
             # Es: periodo 01/01/2025 - 24/02/2026 → saldo iniziale 24/02/2026
-            data_inizio_nuovo = dati.periodo_fine
+            data_inizio_nuovo = dati.periodo_fine + timedelta(days=1)
             print(f"📅 Data saldi iniziali: {data_inizio_nuovo}")
             
             # Trova categoria "Riporto da bilancio precedente"
@@ -228,7 +228,7 @@ async def crea_rendiconto(
                         WHERE ente_id = %s
                           AND registro_id = %s
                           AND data_movimento BETWEEN %s AND %s
-                          AND tipo_speciale IS NULL
+                          AND (tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale')
                     """, (ente_id, registro_id, dati.periodo_inizio, dati.periodo_fine))
                     
                     saldo = cur.fetchone()[0]
