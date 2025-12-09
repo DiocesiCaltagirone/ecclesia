@@ -1545,6 +1545,7 @@ async def genera_report(
             LEFT JOIN piano_conti cp ON c.categoria_padre_id = cp.id
             LEFT JOIN piano_conti cpp ON cp.categoria_padre_id = cpp.id
             WHERE m.ente_id = :ente_id
+              AND (m.riporto_saldo IS NULL OR m.riporto_saldo = FALSE)
         """
         
         params = {"ente_id": ente_id}
