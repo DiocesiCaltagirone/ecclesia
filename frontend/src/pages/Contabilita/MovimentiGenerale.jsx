@@ -90,6 +90,12 @@ const MovimentiGenerale = () => {
       const movData = await movRes.json();
       setMovimenti(movData.movimenti || []);
       setMovimentiFiltrati(movData.movimenti || []);
+      // Usa i totali dal backend
+      setStats({
+        totaleEntrate: movData.totale_entrate || 0,
+        totaleUscite: movData.totale_uscite || 0,
+        saldo: movData.saldo || 0
+      });
 
     } catch (error) {
       console.error('Errore caricamento dati:', error);
@@ -207,20 +213,6 @@ const MovimentiGenerale = () => {
 
     setMovimentiFiltrati(risultato);
 
-    // Calcola statistiche: saldi iniziali + movimenti NON bloccati
-    const entrate = risultato
-      .filter(m => m.tipo_movimento === 'entrata' && !m.bloccato)
-      .reduce((sum, m) => sum + parseFloat(m.importo), 0);
-
-    const uscite = risultato
-      .filter(m => m.tipo_movimento === 'uscita' && !m.bloccato)
-      .reduce((sum, m) => sum + parseFloat(m.importo), 0);
-
-    setStats({
-      totaleEntrate: entrate,
-      totaleUscite: uscite,
-      saldo: entrate - uscite
-    });
   };
 
   const handleResetFiltri = () => {

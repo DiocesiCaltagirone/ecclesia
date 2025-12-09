@@ -85,6 +85,12 @@ const MovimentiConto = () => {
         setContoNome(data.conto_nome);
         setMovimenti(data.movimenti || []);
         setMovimentiFiltrati(data.movimenti || []);
+        // Usa i totali dal backend
+        setStats({
+          totaleEntrate: data.totale_entrate || 0,
+          totaleUscite: data.totale_uscite || 0,
+          saldo: data.saldo || 0
+        });
       }
     } catch (error) {
       console.error('Errore caricamento movimenti:', error);
@@ -185,20 +191,6 @@ const MovimentiConto = () => {
 
     setMovimentiFiltrati(risultato);
 
-    // Calcola statistiche: saldi iniziali + movimenti NON bloccati
-    const entrate = risultato
-      .filter(m => m.tipo_movimento === 'entrata' && !m.bloccato)
-      .reduce((sum, m) => sum + parseFloat(m.importo), 0);
-
-    const uscite = risultato
-      .filter(m => m.tipo_movimento === 'uscita' && !m.bloccato)
-      .reduce((sum, m) => sum + parseFloat(m.importo), 0);
-
-    setStats({
-      totaleEntrate: entrate,
-      totaleUscite: uscite,
-      saldo: entrate - uscite
-    });
   };
 
   const handleResetFiltri = () => {

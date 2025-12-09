@@ -853,10 +853,17 @@ def get_movimenti_conto(
             "riporto_saldo": mov[13] if mov[13] else False
         })
     
+    # Calcola totali (solo movimenti non bloccati)
+    totale_entrate = sum(m['importo'] for m in movimenti_list if m['tipo_movimento'] == 'entrata' and not m['bloccato'])
+    totale_uscite = sum(m['importo'] for m in movimenti_list if m['tipo_movimento'] == 'uscita' and not m['bloccato'])
+    
     return {
         "conto_nome": conto[0],
         "saldo_attuale": round(saldo_progressivo, 2),
-        "movimenti": movimenti_list
+        "movimenti": movimenti_list,
+        "totale_entrate": totale_entrate,
+        "totale_uscite": totale_uscite,
+        "saldo": totale_entrate - totale_uscite
     }
 
 @router.post("/movimenti")
