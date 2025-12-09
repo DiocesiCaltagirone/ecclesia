@@ -759,7 +759,20 @@ def get_movimenti_generali(
     # Calcola saldo progressivo per ogni conto
     movimenti_con_saldo = calcola_saldo_progressivo(movimenti_list)
     
-    return {"movimenti": movimenti_con_saldo}
+    # Calcola totali (escludi saldi iniziali da entrate/uscite)
+    totale_entrate = sum(m['importo'] for m in movimenti_con_saldo 
+                         if m['tipo_movimento'] == 'entrata' and m.get('tipo_speciale') != 'saldo_iniziale')
+    totale_uscite = sum(m['importo'] for m in movimenti_con_saldo 
+                        if m['tipo_movimento'] == 'uscita' and m.get('tipo_speciale') != 'saldo_iniziale')
+    # Saldo include tutto
+    saldo = sum(m['importo'] if m['tipo_movimento'] == 'entrata' else -m['importo'] for m in movimenti_con_saldo)
+
+    return {
+        "movimenti": movimenti_con_saldo,
+        "totale_entrate": totale_entrate,
+        "totale_uscite": totale_uscite,
+        "saldo": saldo
+    }
 
 @router.get("/movimenti/conto/{registro_id}")
 def get_movimenti_conto(
@@ -802,7 +815,6 @@ def get_movimenti_conto(
         FROM movimenti_contabili m
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id AND m.registro_id = :registro_id
-          AND (m.riporto_saldo IS NULL OR m.riporto_saldo = FALSE)
         ORDER BY m.data_movimento ASC, m.created_at ASC
     """
     
