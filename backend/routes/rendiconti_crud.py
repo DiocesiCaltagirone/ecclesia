@@ -113,7 +113,7 @@ async def crea_rendiconto(
             WHERE ente_id = %s
               AND data_movimento >= %s
               AND data_movimento <= %s
-              AND (tipo_speciale IS NULL OR tipo_speciale NOT IN ('saldo_iniziale', 'giroconto'))
+              AND (tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale')
         """, (ente_id, dati.periodo_inizio, dati.periodo_fine))
         
         totali = cur.fetchone()
@@ -159,7 +159,7 @@ async def crea_rendiconto(
             SET bloccato = TRUE, rendiconto_id = %s
             WHERE ente_id = %s
               AND data_movimento BETWEEN %s AND %s
-              AND tipo_speciale IS NULL
+              AND (tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale')
         """, (
             rendiconto_id,
             ente_id,
