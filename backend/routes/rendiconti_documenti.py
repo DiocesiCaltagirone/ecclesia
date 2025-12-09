@@ -570,7 +570,7 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             LEFT JOIN piano_conti cpp ON cp.categoria_padre_id = cpp.id
             WHERE m.ente_id = %s
               AND m.data_movimento BETWEEN %s AND %s
-              AND (m.tipo_speciale IS NULL OR m.tipo_speciale != 'saldo_iniziale')
+              AND (m.tipo_speciale IS NULL OR m.tipo_speciale = 'saldo_iniziale')
             ORDER BY m.tipo_movimento, 
                      COALESCE(cpp.descrizione, cp.descrizione, c.descrizione, 'ZZZ'),
                      COALESCE(cp.descrizione, c.descrizione, 'ZZZ'),
