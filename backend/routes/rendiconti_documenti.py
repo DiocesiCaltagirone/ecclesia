@@ -708,6 +708,19 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         }
         
         env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+
+        # Filtro per formato numeri italiani (1.234,56)
+        def formato_italiano(valore):
+            try:
+                numero = float(valore)
+                formatted = "{:,.2f}".format(numero)
+                formatted = formatted.replace(",", "X").replace(".", ",").replace("X", ".")
+                return formatted
+            except:
+                return valore
+
+        env.filters['ita'] = formato_italiano
+
         template = env.get_template('rendiconto.html')
         html_content = template.render(**dati_template)
         

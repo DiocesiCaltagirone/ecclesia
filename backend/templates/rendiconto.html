@@ -324,19 +324,19 @@
             <!-- SALDO ESERCIZIO PRECEDENTE - sempre visibile -->
             <tr class="saldo-precedente-row">
                 <td>Saldo esercizio precedente</td>
-                <td class="importo">{{ "%.2f"|format(riporto_precedente if riporto_precedente > 0 else 0) }}</td>
+                <td class="importo">{{ (riporto_precedente if riporto_precedente > 0 else 0)|ita }}</td>
             </tr>
             
             {% for categoria in categorie_entrate %}
             <!-- Categoria con subtotale sulla stessa riga -->
             <tr class="categoria-row">
                 <td>{{ categoria.nome|upper }}</td>
-                <td class="importo">{{ "%.2f"|format(categoria.totale) }}</td>
+                <td class="importo">{{ categoria.totale|ita }}</td>
             </tr>
             {% for sub in categoria.sottocategorie %}
             <tr class="subcategoria-row">
                 <td>{{ sub.nome }}</td>
-                <td class="importo">{{ "%.2f"|format(sub.totale) }}</td>
+                <td class="importo">{{ sub.totale|ita }}</td>
             </tr>
             {% endfor %}
             {% endfor %}
@@ -344,7 +344,7 @@
         <tfoot>
             <tr class="totale-row">
                 <td>TOTALE ENTRATE</td>
-                <td class="importo">€ {{ "%.2f"|format(totale_entrate) }}</td>
+                <td class="importo">€ {{ totale_entrate|ita }}</td>
             </tr>
         </tfoot>
     </table>
@@ -373,19 +373,19 @@
             <!-- SALDO ESERCIZIO PRECEDENTE - sempre visibile (mostra valore assoluto se negativo) -->
             <tr class="saldo-precedente-row">
                 <td>Saldo esercizio precedente</td>
-                <td class="importo">{{ "%.2f"|format((riporto_precedente|abs) if riporto_precedente < 0 else 0) }}</td>
+                <td class="importo">{{ ((riporto_precedente|abs) if riporto_precedente < 0 else 0)|ita }}</td>
             </tr>
             
             {% for categoria in categorie_uscite %}
             <!-- Categoria con subtotale sulla stessa riga -->
             <tr class="categoria-row">
                 <td>{{ categoria.nome|upper }}</td>
-                <td class="importo">{{ "%.2f"|format(categoria.totale) }}</td>
+                <td class="importo">{{ categoria.totale|ita }}</td>
             </tr>
             {% for sub in categoria.sottocategorie %}
             <tr class="subcategoria-row">
                 <td>{{ sub.nome }}</td>
-                <td class="importo">{{ "%.2f"|format(sub.totale) }}</td>
+                <td class="importo">{{ sub.totale|ita }}</td>
             </tr>
             {% endfor %}
             {% endfor %}
@@ -393,7 +393,7 @@
         <tfoot>
             <tr class="totale-row">
                 <td>TOTALE USCITE</td>
-                <td class="importo">€ {{ "%.2f"|format(totale_uscite) }}</td>
+                <td class="importo">€ {{ totale_uscite|ita }}</td>
             </tr>
         </tfoot>
     </table>
@@ -415,15 +415,15 @@
         <div class="riepilogo-box">
             <div class="riepilogo-item">
                 <div class="label">TOTALE ENTRATE</div>
-                <div class="value verde">€ {{ "%.2f"|format(totale_entrate) }}</div>
+                <div class="value verde">€ {{ totale_entrate|ita }}</div>
             </div>
             <div class="riepilogo-item">
                 <div class="label">TOTALE USCITE</div>
-                <div class="value rosso">€ {{ "%.2f"|format(totale_uscite) }}</div>
+                <div class="value rosso">€ {{ totale_uscite|ita }}</div>
             </div>
             <div class="riepilogo-item">
                 <div class="label">{% if saldo >= 0 %}AVANZO{% else %}DISAVANZO{% endif %} DI GESTIONE</div>
-                <div class="value {% if saldo >= 0 %}verde{% else %}rosso{% endif %}">€ {{ "%.2f"|format(saldo|abs) }}</div>
+                <div class="value {% if saldo >= 0 %}verde{% else %}rosso{% endif %}">€ {{ (saldo|abs)|ita }}</div>
             </div>
         </div>
     </div>
@@ -441,12 +441,12 @@
                 {% for conto in conti %}
                 <div style="display: flex; justify-content: space-between; padding: 8px 10px; font-size: 11pt; border-bottom: 1px solid #f0f0f0;">
                     <span>{{ conto.nome }}</span>
-                    <span>€ {{ "%.2f"|format(conto.saldo) }}</span>
+                    <span>€ {{ conto.saldo|ita }}</span>
                 </div>
                 {% endfor %}
                 <div style="display: flex; justify-content: space-between; padding: 12px 10px; font-size: 12pt; font-weight: bold; background: #f7fafc; border-top: 2px solid #1a365d; margin-top: 10px;">
                     <span>TOTALE DISPONIBILITÀ</span>
-                    <span style="color: #276749;">€ {{ "%.2f"|format(totale_disponibilita) }}</span>
+                    <span style="color: #276749;">€ {{ totale_disponibilita|ita }}</span>
                 </div>
             </div>
         </div>
@@ -466,8 +466,8 @@
         <div style="text-align: center; width: 45%;">
             <div style="font-size: 10pt; color: #4a5568; margin-bottom: 50px;">L'ORDINARIO DIOCESANO</div>
             <div style="border-top: 1px solid #1a365d; margin: 0 20px; padding-top: 8px;">
-                {% if approvato and vescovo_nome %}
-                <div style="font-size: 11pt; font-weight: bold;">{{ vescovo_nome }}</div>
+                {% if approvato and vescovo %}
+                <div style="font-size: 11pt; font-weight: bold;">{{ vescovo }}</div>
                 {% else %}
                 <div style="font-size: 11pt;">&nbsp;</div>
                 {% endif %}
