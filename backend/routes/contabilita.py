@@ -802,6 +802,7 @@ def get_movimenti_conto(
         FROM movimenti_contabili m
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id AND m.registro_id = :registro_id
+          AND (m.riporto_saldo IS NULL OR m.riporto_saldo = FALSE)
         ORDER BY m.data_movimento ASC, m.created_at ASC
     """
     
