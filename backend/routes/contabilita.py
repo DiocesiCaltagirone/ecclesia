@@ -761,11 +761,11 @@ def get_movimenti_generali(
     # Calcola saldo progressivo per ogni conto
     movimenti_con_saldo = calcola_saldo_progressivo(movimenti_list)
     
-    # Calcola totali (escludi riporti automatici per evitare doppio conteggio)
-    totale_entrate = sum(m['importo'] for m in movimenti_con_saldo 
-                         if m['tipo_movimento'] == 'entrata' and not m.get('riporto_saldo'))
-    totale_uscite = sum(m['importo'] for m in movimenti_con_saldo 
-                        if m['tipo_movimento'] == 'uscita')
+    # Calcola totali (solo movimenti non bloccati)
+    totale_entrate = sum(m['importo'] for m in movimenti_con_saldo
+                         if m['tipo_movimento'] == 'entrata' and not m.get('bloccato'))
+    totale_uscite = sum(m['importo'] for m in movimenti_con_saldo
+                        if m['tipo_movimento'] == 'uscita' and not m.get('bloccato'))
     saldo = totale_entrate - totale_uscite
 
     return {
