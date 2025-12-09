@@ -657,7 +657,19 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         """, (ente_id, periodo_inizio))
         
         riporto_row = cur.fetchone()
-        riporto_precedente = float(riporto_row[0]) if riporto_row else 0
+        if riporto_row:
+            riporto_precedente = float(riporto_row[0])
+        else:
+            # Se non c'è rendiconto precedente, cerca il saldo iniziale manuale
+            cur.execute("""
+                SELECT importo FROM movimenti_contabili
+                WHERE ente_id = %s 
+                  AND tipo_speciale = 'saldo_iniziale'
+                  AND (riporto_saldo IS NULL OR riporto_saldo = FALSE)
+                ORDER BY data_movimento ASC LIMIT 1
+            """, (ente_id,))
+            saldo_iniziale_row = cur.fetchone()
+            riporto_precedente = float(saldo_iniziale_row[0]) if saldo_iniziale_row else 0
         
        # 7. Prepara dati per template
         # 8. Renderizza template
