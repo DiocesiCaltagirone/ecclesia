@@ -104,7 +104,7 @@ async def crea_rendiconto(
                 detail="Esiste già un rendiconto per un periodo sovrapposto"
             )
         
-        # Calcola totali del periodo
+        # Calcola totali del periodo (escludi saldi iniziali e giroconti)
         cur.execute("""
             SELECT 
                 COALESCE(SUM(CASE WHEN tipo_movimento = 'entrata' THEN importo ELSE 0 END), 0) as totale_entrate,
@@ -113,6 +113,7 @@ async def crea_rendiconto(
             WHERE ente_id = %s
               AND data_movimento >= %s
               AND data_movimento <= %s
+              AND (tipo_speciale IS NULL OR tipo_speciale NOT IN ('saldo_iniziale', 'giroconto'))
         """, (ente_id, dati.periodo_inizio, dati.periodo_fine))
         
         totali = cur.fetchone()
