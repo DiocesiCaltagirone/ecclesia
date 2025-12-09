@@ -703,12 +703,12 @@ def get_movimenti_generali(
         c.id as categoria_id,
         c.descrizione as categoria_nome,
         c.categoria_padre_id,
-        m.created_at
+        m.created_at,
+        m.riporto_saldo
     FROM movimenti_contabili m
         LEFT JOIN registri_contabili r ON m.registro_id = r.id
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id
-          AND (m.riporto_saldo IS NULL OR m.riporto_saldo = FALSE)
     """
     
     params = {"ente_id": ente_id}
@@ -754,15 +754,18 @@ def get_movimenti_generali(
              "registro_id": str(mov[10]) if mov[10] else None,
              "categoria_id": str(mov[11]) if mov[11] else None,
              "categoria_completa": categoria_completa,
-             "created_at": mov[14].isoformat() if mov[14] else None
+             "created_at": mov[14].isoformat() if mov[14] else None,
+             "riporto_saldo": mov[15] if mov[15] else False
         })
     
     # Calcola saldo progressivo per ogni conto
     movimenti_con_saldo = calcola_saldo_progressivo(movimenti_list)
     
-    # Calcola totali (include tutto, i riporti sono già esclusi dalla query)
-    totale_entrate = sum(m['importo'] for m in movimenti_con_saldo if m['tipo_movimento'] == 'entrata')
-    totale_uscite = sum(m['importo'] for m in movimenti_con_saldo if m['tipo_movimento'] == 'uscita')
+    # Calcola totali (escludi riporti automatici per evitare doppio conteggio)
+    totale_entrate = sum(m['importo'] for m in movimenti_con_saldo 
+                         if m['tipo_movimento'] == 'entrata' and not m.get('riporto_saldo'))
+    totale_uscite = sum(m['importo'] for m in movimenti_con_saldo 
+                        if m['tipo_movimento'] == 'uscita')
     saldo = totale_entrate - totale_uscite
 
     return {
