@@ -753,9 +753,9 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         # 10. Aggiorna totali nel database
         cur.execute("""
             UPDATE rendiconti 
-            SET totale_entrate = %s, totale_uscite = %s, saldo = %s, pdf_path = %s
+            SET pdf_path = %s
             WHERE id = %s
-        """, (totale_entrate, totale_uscite, saldo, f"{year}/{filename}", rendiconto_id))
+        """, (f"{year}/{filename}", rendiconto_id))
         
         conn.commit()
         
