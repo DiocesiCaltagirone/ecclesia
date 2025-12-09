@@ -708,6 +708,7 @@ def get_movimenti_generali(
         LEFT JOIN registri_contabili r ON m.registro_id = r.id
         LEFT JOIN piano_conti c ON m.categoria_id = c.id
         WHERE m.ente_id = :ente_id
+          AND (m.riporto_saldo IS NULL OR m.riporto_saldo = FALSE)
     """
     
     params = {"ente_id": ente_id}
