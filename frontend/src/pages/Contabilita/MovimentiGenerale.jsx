@@ -207,34 +207,37 @@ const MovimentiGenerale = () => {
 
     setMovimentiFiltrati(risultato);
 
-    // Calcola saldo da esercizio precedente (saldi iniziali)
-    const saldoPrecedente = risultato
+    // Calcola saldo riporto (saldi iniziali - righe marroni)
+    const saldoRiporto = risultato
       .filter(m => m.tipo_speciale === 'saldo_iniziale')
       .reduce((sum, m) => {
-        return sum + (m.tipo_movimento === 'entrata' ? parseFloat(m.importo) : -parseFloat(m.importo));
+        if (m.tipo_movimento === 'entrata') return sum + parseFloat(m.importo);
+        else return sum - parseFloat(m.importo);
       }, 0);
 
-    // Calcola statistiche: saldi iniziali + movimenti NON bloccati (esclusi giroconti)
+    // Calcola statistiche: SOLO movimenti NON bloccati, ESCLUSO saldi iniziali e giroconti
     const entrate = risultato
       .filter(m =>
         m.tipo_movimento === 'entrata' &&
+        m.tipo_speciale !== 'saldo_iniziale' &&
         m.tipo_speciale !== 'giroconto' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
+        !m.bloccato
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     const uscite = risultato
       .filter(m =>
         m.tipo_movimento === 'uscita' &&
+        m.tipo_speciale !== 'saldo_iniziale' &&
         m.tipo_speciale !== 'giroconto' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato)
+        !m.bloccato
       )
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     setStats({
       totaleEntrate: entrate,
       totaleUscite: uscite,
-      saldo: entrate - uscite
+      saldo: saldoRiporto + entrate - uscite
     });
   };
 
