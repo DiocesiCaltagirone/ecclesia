@@ -187,19 +187,11 @@ const MovimentiConto = () => {
 
     // Calcola statistiche: saldi iniziali + movimenti NON bloccati
     const entrate = risultato
-      .filter(m =>
-        m.tipo_movimento === 'entrata' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato) &&
-        !m.riporto_saldo
-      )
+      .filter(m => m.tipo_movimento === 'entrata' && !m.bloccato)
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     const uscite = risultato
-      .filter(m =>
-        m.tipo_movimento === 'uscita' &&
-        (m.tipo_speciale === 'saldo_iniziale' || !m.bloccato) &&
-        !m.riporto_saldo
-      )
+      .filter(m => m.tipo_movimento === 'uscita' && !m.bloccato)
       .reduce((sum, m) => sum + parseFloat(m.importo), 0);
 
     setStats({
