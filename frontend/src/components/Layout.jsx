@@ -347,7 +347,7 @@ function Layout() {
                   >
                     • Dati Generali
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => navigate('/impostazioni/logo')}
                     className={`w-full text-left block px-4 py-2 text-sm rounded-lg ${location.pathname === '/impostazioni/logo'
                       ? 'text-gray-700 bg-blue-50 font-semibold'
@@ -355,7 +355,7 @@ function Layout() {
                       }`}
                   >
                     • Logo e Immagini
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </>
