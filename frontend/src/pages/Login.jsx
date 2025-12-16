@@ -94,7 +94,7 @@ function Login() {
             ECCLESIA
           </h1>
           <p className="text-gray-600 text-sm">
-            Gestionale Parrocchiale Unificato
+            Gestionale Unificato
           </p>
         </div>
 
