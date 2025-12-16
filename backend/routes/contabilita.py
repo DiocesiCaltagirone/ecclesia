@@ -373,12 +373,13 @@ async def get_registri(
         # Calcola saldo SOLO dai movimenti NON bloccati
         # Include anche il saldo_iniziale dal movimento speciale
         query = text("""
-            SELECT 
-                r.id, 
-                r.nome, 
-                r.tipo, 
-                r.descrizione, 
+            SELECT
+                r.id,
+                r.nome,
+                r.tipo,
+                r.descrizione,
                 r.attivo,
+                r.iban,
                 COALESCE(
                     (SELECT SUM(
                         CASE 
@@ -411,8 +412,8 @@ async def get_registri(
         
         registri = []
         for row in result:
-            saldo_attuale = float(row[5]) if row[5] else 0.0
-            saldo_iniziale = float(row[6]) if row[6] else 0.0
+            saldo_attuale = float(row[6]) if row[6] else 0.0
+            saldo_iniziale = float(row[7]) if row[7] else 0.0
             
             print(f"📊 Conto: {row[1]} - Saldo: {saldo_attuale} - Saldo Iniziale: {saldo_iniziale}")
             
@@ -423,7 +424,8 @@ async def get_registri(
                 "descrizione": row[3],
                 "saldo_attuale": saldo_attuale,
                 "saldo_iniziale": saldo_iniziale,
-                "attivo": row[4]
+                "attivo": row[4],
+                "iban": row[5]
             })
         
         print(f"✅ Trovati {len(registri)} registri")
