@@ -248,20 +248,22 @@ def update_registro(
                     "user_id": current_user.get('user_id')
                 })
     
-    # Aggiorna nome e tipo del registro
+    # Aggiorna nome, tipo e iban del registro
     query = """
-        UPDATE registri_contabili 
+        UPDATE registri_contabili
         SET nome = :nome,
-            tipo = :tipo
+            tipo = :tipo,
+            iban = :iban
         WHERE id = :id AND ente_id = :ente_id
-        RETURNING id, nome, tipo, saldo_attuale
+        RETURNING id, nome, tipo, saldo_attuale, iban
     """
-    
+
     result = db.execute(text(query), {
         "id": registro_id,
         "ente_id": ente_id,
         "nome": data.get("nome"),
-        "tipo": data.get("tipo")
+        "tipo": data.get("tipo"),
+        "iban": data.get("iban")
     })
     
     db.commit()
