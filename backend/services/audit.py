@@ -22,7 +22,7 @@ TABELLE_MONITORATE = [
     'piano_conti'
 ]
 
-async def registra_audit(
+def registra_audit(
     db: Session,
     azione: str,  # INSERT, UPDATE, DELETE
     tabella: str,
