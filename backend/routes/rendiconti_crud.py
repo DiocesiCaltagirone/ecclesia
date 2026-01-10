@@ -11,6 +11,7 @@ import uuid
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import get_db_connection, SessionLocal
 from auth import get_current_user
+from services.audit import registra_audit_psycopg2
 
 router = APIRouter(prefix="/api/contabilita", tags=["Rendiconti"])
 
@@ -151,6 +152,19 @@ async def crea_rendiconto(
         
         new_rendiconto = cur.fetchone()
         rendiconto_id = str(new_rendiconto[0])
+        
+        # Registra audit
+        registra_audit_psycopg2(
+            cur=cur,
+            azione="INSERT",
+            tabella="rendiconti",
+            record_id=rendiconto_id,
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_nuovi={"periodo_inizio": str(dati.periodo_inizio), "periodo_fine": str(dati.periodo_fine)},
+            descrizione=f"Nuovo rendiconto: {dati.periodo_inizio} - {dati.periodo_fine}"
+        )
         
         # 🆕 BLOCCA MOVIMENTI DEL PERIODO
         print(f"🔒 Blocco movimenti periodo {dati.periodo_inizio} - {dati.periodo_fine}")
@@ -542,6 +556,19 @@ async def elimina_rendiconto(
             if os.path.exists(doc[0]):
                 os.remove(doc[0])
         
+        # Registra audit PRIMA di eliminare
+        registra_audit_psycopg2(
+            cur=cur,
+            azione="DELETE",
+            tabella="rendiconti",
+            record_id=str(rendiconto_id),
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_precedenti={"stato": stato},
+            descrizione=f"Eliminazione rendiconto"
+        )
+        
         # Elimina il rendiconto (CASCADE elimina documenti dal DB)
         cur.execute("DELETE FROM rendiconti WHERE id = %s", (str(rendiconto_id),))
         conn.commit()
@@ -689,6 +716,20 @@ async def approva_rendiconto(
                 detail=f"Solo i rendiconti in stato 'inviato' possono essere approvati. Stato attuale: {rendiconto[1]}"
             )
         
+        # Registra audit
+        registra_audit_psycopg2(
+            cur=cur,
+            azione="UPDATE",
+            tabella="rendiconti",
+            record_id=str(rendiconto_id),
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=rendiconto[2],
+            dati_precedenti={"stato": "inviato"},
+            dati_nuovi={"stato": "approvato"},
+            descrizione="Approvazione rendiconto"
+        )
+        
         # Approva il rendiconto
         cur.execute("""
             UPDATE rendiconti 
@@ -756,6 +797,20 @@ async def respingi_rendiconto(
                 status_code=400, 
                 detail=f"Solo i rendiconti in stato 'inviato' possono essere respinti. Stato attuale: {rendiconto[1]}"
             )
+        
+        # Registra audit
+        registra_audit_psycopg2(
+            cur=cur,
+            azione="UPDATE",
+            tabella="rendiconti",
+            record_id=str(rendiconto_id),
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=rendiconto[2],
+            dati_precedenti={"stato": "inviato"},
+            dati_nuovi={"stato": "respinto", "motivo": motivazione},
+            descrizione=f"Respingimento rendiconto: {motivazione}"
+        )
         
         # Respingi il rendiconto (movimenti restano bloccati!)
         cur.execute("""

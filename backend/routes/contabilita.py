@@ -141,6 +141,19 @@ def create_registro(
             
             print(f"✅ Movimento saldo iniziale creato: ID {movimento_id}")
         
+        # Registra audit
+        registra_audit(
+            db=db,
+            azione="INSERT",
+            tabella="registri_contabili",
+            record_id=registro_id,
+            utente_id=current_user.get('id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_nuovi={"nome": nome, "tipo": tipo, "saldo_iniziale": saldo_iniziale},
+            descrizione=f"Nuovo conto: {nome}"
+        )
+        
         db.commit()
         
         saldo_reale = saldo_iniziale
@@ -259,6 +272,9 @@ def update_registro(
         RETURNING id, nome, tipo, saldo_attuale, iban
     """
 
+    # Registra audit PRIMA di modificare
+    dati_precedenti = get_record_data(db, "registri_contabili", registro_id)
+    
     result = db.execute(text(query), {
         "id": registro_id,
         "ente_id": ente_id,
@@ -266,6 +282,19 @@ def update_registro(
         "tipo": data.get("tipo"),
         "iban": data.get("iban")
     })
+    
+    registra_audit(
+        db=db,
+        azione="UPDATE",
+        tabella="registri_contabili",
+        record_id=registro_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_precedenti=dati_precedenti,
+        dati_nuovi=data,
+        descrizione=f"Modifica conto: {data.get('nome')}"
+    )
     
     db.commit()
     row = result.fetchone()
@@ -326,6 +355,9 @@ def delete_registro(
     """
     db.execute(text(remove_assoc_query), {"registro_id": registro_id})
     
+    # Registra audit PRIMA di eliminare
+    dati_precedenti = get_record_data(db, "registri_contabili", registro_id)
+    
     # Hard delete del registro
     query = """
         DELETE FROM registri_contabili
@@ -337,6 +369,18 @@ def delete_registro(
         "id": registro_id,
         "ente_id": ente_id
     })
+    
+    registra_audit(
+        db=db,
+        azione="DELETE",
+        tabella="registri_contabili",
+        record_id=registro_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_precedenti=dati_precedenti,
+        descrizione=f"Eliminazione conto"
+    )
     
     db.commit()
     
@@ -560,6 +604,18 @@ def create_categoria(
         "livello": livello
     })
     
+    registra_audit(
+        db=db,
+        azione="INSERT",
+        tabella="piano_conti",
+        record_id=categoria_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_nuovi=data,
+        descrizione=f"Nuova categoria: {data['nome']}"
+    )
+    
     db.commit()
     return {"id": categoria_id, "message": "Categoria creata"}
 
@@ -582,6 +638,8 @@ def update_categoria(
     if check_sistema and check_sistema[0]:
         raise HTTPException(403, detail="Impossibile modificare categoria di sistema")
     
+    dati_precedenti = get_record_data(db, "piano_conti", categoria_id)
+    
     db.execute(text("""
         UPDATE piano_conti 
         SET descrizione = :nome, categoria_padre_id = :parent_id
@@ -592,6 +650,19 @@ def update_categoria(
         "id": categoria_id,
         "ente_id": ente_id
     })
+    
+    registra_audit(
+        db=db,
+        azione="UPDATE",
+        tabella="piano_conti",
+        record_id=categoria_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_precedenti=dati_precedenti,
+        dati_nuovi=data,
+        descrizione=f"Modifica categoria: {data['nome']}"
+    )
     
     db.commit()
     return {"message": "Categoria aggiornata"}
@@ -627,12 +698,26 @@ def delete_categoria(
     if check[0] > 0:
         raise HTTPException(400, detail=f"Impossibile eliminare: {check[0]} movimenti associati")
     
+    dati_precedenti = get_record_data(db, "piano_conti", categoria_id)
+    
     # Elimina associazioni e categoria
     db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": categoria_id})
     db.execute(text("DELETE FROM piano_conti WHERE id = :id AND ente_id = :ente_id"), {
         "id": categoria_id, 
         "ente_id": ente_id
     })
+    
+    registra_audit(
+        db=db,
+        azione="DELETE",
+        tabella="piano_conti",
+        record_id=categoria_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_precedenti=dati_precedenti,
+        descrizione="Eliminazione categoria"
+    )
     
     db.commit()
     return {"message": "Categoria eliminata"}
