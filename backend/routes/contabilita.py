@@ -31,6 +31,7 @@ import shutil
 
 from database import get_db
 from auth import get_current_user
+from services.audit import registra_audit, get_record_data
 
 router = APIRouter(prefix="/api/contabilita", tags=["contabilita"])
 
@@ -959,7 +960,20 @@ def create_movimento(
         "descrizione": data.get("descrizione", ""),
         "note": data.get("note", ""),
         "created_by": current_user.get("id")
-    })
+     })
+
+    # Registra audit
+    registra_audit(
+        db=db,
+        azione="INSERT",
+        tabella="movimenti_contabili",
+        record_id=movimento_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_nuovi=data,
+        descrizione=f"Nuovo movimento: {data.get('tipo_movimento')} €{data.get('importo')}"
+    )
     
     db.commit()
     return {"id": movimento_id, "message": "Movimento creato"}
@@ -1203,6 +1217,9 @@ def update_movimento(
         WHERE id = :id AND ente_id = :ente_id
     """
     
+    # Registra audit PRIMA di modificare
+    dati_precedenti = get_record_data(db, "movimenti_contabili", movimento_id)
+    
     db.execute(text(query), {
         "id": movimento_id,
         "ente_id": ente_id,
@@ -1214,6 +1231,19 @@ def update_movimento(
         "descrizione": data.get("descrizione", ""),
         "note": data.get("note", "")
     })
+
+    registra_audit(
+        db=db,
+        azione="UPDATE",
+        tabella="movimenti_contabili",
+        record_id=movimento_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_precedenti=dati_precedenti,
+        dati_nuovi=data,
+        descrizione=f"Modifica movimento: €{data.get('importo')}"
+    )
     
     db.commit()
     return {"message": "Movimento aggiornato"}
@@ -1250,8 +1280,24 @@ def delete_movimento(
             detail="Impossibile eliminare: movimento incluso in un rendiconto in revisione"
         )
     
+    # Registra audit PRIMA di eliminare
+    dati_precedenti = get_record_data(db, "movimenti_contabili", movimento_id)
+    
     query = "DELETE FROM movimenti_contabili WHERE id = :id AND ente_id = :ente_id"
     db.execute(text(query), {"id": movimento_id, "ente_id": ente_id})
+
+    registra_audit(
+        db=db,
+        azione="DELETE",
+        tabella="movimenti_contabili",
+        record_id=movimento_id,
+        utente_id=current_user.get('id'),
+        utente_email=current_user.get('email'),
+        ente_id=ente_id,
+        dati_precedenti=dati_precedenti,
+        descrizione="Eliminazione movimento"
+    )
+
     db.commit()
     
     return {"message": "Movimento eliminato"}
