@@ -497,11 +497,11 @@ const Rapporti = () => {
           <div className="grid grid-cols-4 gap-2 mb-3">
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Entrate</p>
-              <p className="text-sm font-bold text-green-700">+{datiReport.totale_entrate?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</p>
+              <p className="text-sm font-bold text-green-700">+{Number(datiReport.totale_entrate || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</p>
             </div>
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Uscite</p>
-              <p className="text-sm font-bold text-red-700">-{datiReport.totale_uscite?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</p>
+              <p className="text-sm font-bold text-red-700">-{Number(datiReport.totale_uscite || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</p>
             </div>
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Movimenti</p>
@@ -509,9 +509,9 @@ const Rapporti = () => {
             </div>
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Saldo</p>
-              <p className={`text-sm font-bold ${(datiReport.totale_entrate - datiReport.totale_uscite) >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                {(datiReport.totale_entrate - datiReport.totale_uscite) >= 0 ? '+' : ''}
-                {(datiReport.totale_entrate - datiReport.totale_uscite).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
+              <p className={`text-sm font-bold ${(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? '+' : ''}
+                {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
               </p>
             </div>
           </div>
@@ -553,18 +553,18 @@ const Rapporti = () => {
               <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
                 <td colSpan="3" className="px-3 py-2 text-right uppercase text-gray-700 text-xs">TOTALI</td>
                 <td className="px-3 py-2 text-right text-green-700 text-sm">
-                  +{datiReport.totale_entrate?.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                  +{Number(datiReport.totale_entrate || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
                 </td>
                 <td className="px-3 py-2 text-right text-red-700 text-sm">
-                  -{datiReport.totale_uscite?.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                  -{Number(datiReport.totale_uscite || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
                 </td>
                 <td className="px-3 py-2"></td>
               </tr>
               <tr className="bg-gray-200 font-bold">
                 <td colSpan="3" className="px-3 py-2 text-right uppercase text-gray-800 text-xs">SALDO</td>
-                <td colSpan="3" className={`px-3 py-2 text-right text-sm ${(datiReport.totale_entrate - datiReport.totale_uscite) >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
-                  {(datiReport.totale_entrate - datiReport.totale_uscite) >= 0 ? '+' : ''}
-                  {(datiReport.totale_entrate - datiReport.totale_uscite).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
+                <td colSpan="3" className={`px-3 py-2 text-right text-sm ${(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                  {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? '+' : ''}
+                  {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
                 </td>
               </tr>
             </tfoot>
