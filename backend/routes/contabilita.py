@@ -1777,7 +1777,7 @@ async def genera_report(
             for i, tipo in enumerate(tipi):
                 params[f'tipo_{i}'] = tipo
         
-        query += " ORDER BY m.data_movimento DESC"
+        query += " ORDER BY m.data_movimento DESC, m.created_at DESC"
         
         movimenti = db.execute(text(query), params).fetchall()
         
