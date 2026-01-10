@@ -1233,6 +1233,31 @@ def create_giroconto(
         
         print(f"✅ Collegamenti aggiornati")
         
+        # Registra audit per entrambi i movimenti
+        registra_audit(
+            db=db,
+            azione="INSERT",
+            tabella="movimenti_contabili",
+            record_id=movimento_uscita_id,
+            utente_id=current_user.get('id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_nuovi={"tipo": "giroconto_uscita", "importo": importo, "da": nome_origine, "a": nome_destinazione},
+            descrizione=f"Giroconto uscita: €{importo} da {nome_origine} a {nome_destinazione}"
+        )
+        
+        registra_audit(
+            db=db,
+            azione="INSERT",
+            tabella="movimenti_contabili",
+            record_id=movimento_entrata_id,
+            utente_id=current_user.get('id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_nuovi={"tipo": "giroconto_entrata", "importo": importo, "da": nome_origine, "a": nome_destinazione},
+            descrizione=f"Giroconto entrata: €{importo} da {nome_origine} a {nome_destinazione}"
+        )
+        
         db.commit()
         
         print(f"✅ Giroconto completato: €{importo} da {nome_origine} a {nome_destinazione}")
