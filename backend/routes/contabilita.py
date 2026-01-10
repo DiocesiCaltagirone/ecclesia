@@ -2216,8 +2216,8 @@ def calcola_saldo_progressivo(movimenti):
     """
     saldi_per_conto = {}
     
-    # Ordina per data
-    movimenti_ordinati = sorted(movimenti, key=lambda x: x["data_movimento"])
+    # Ordina per data E per timestamp inserimento (fondamentale per saldo corretto!)
+    movimenti_ordinati = sorted(movimenti, key=lambda x: (x["data_movimento"], x.get("created_at", "")))
     
     for mov in movimenti_ordinati:
         conto_id = mov["registro_id"]
