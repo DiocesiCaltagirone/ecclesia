@@ -28,6 +28,18 @@ class ParrocchiaCreate(BaseModel):
     telefono: Optional[str] = None
     email: Optional[str] = None
     parroco: Optional[str] = None
+    # Nuovi campi dati parrocchia
+    data_erezione_canonica: Optional[str] = None
+    data_riconoscimento_civile: Optional[str] = None
+    registro_pg: Optional[str] = None
+    # Nuovi campi dati parroco
+    parroco_nato_a: Optional[str] = None
+    parroco_nato_il: Optional[str] = None
+    parroco_nominato_il: Optional[str] = None
+    parroco_possesso_canonico_il: Optional[str] = None
+    # Nuovi campi vicario
+    vicario: Optional[str] = None
+    vicario_nominato_il: Optional[str] = None
 
 class ParrocchiaDiocesiCreate(BaseModel):
     comune: str
@@ -97,12 +109,15 @@ def get_parrocchie(
     """
     Ottiene la lista delle parrocchie
     """
-    
+
     if comune:
         query = """
-            SELECT id, denominazione, comune, provincia, cap, 
-                   indirizzo, telefono, email, parroco, attivo
-            FROM enti 
+            SELECT id, denominazione, comune, provincia, cap,
+                   indirizzo, telefono, email, parroco, attivo,
+                   data_erezione_canonica, data_riconoscimento_civile, registro_pg,
+                   parroco_nato_a, parroco_nato_il, parroco_nominato_il, 
+                   parroco_possesso_canonico_il, vicario, vicario_nominato_il
+            FROM enti
             WHERE comune = :comune
             ORDER BY denominazione
         """
@@ -110,8 +125,11 @@ def get_parrocchie(
     else:
         query = """
             SELECT id, denominazione, comune, provincia, cap,
-                   indirizzo, telefono, email, parroco, attivo
-            FROM enti 
+                   indirizzo, telefono, email, parroco, attivo,
+                   data_erezione_canonica, data_riconoscimento_civile, registro_pg,
+                   parroco_nato_a, parroco_nato_il, parroco_nominato_il, 
+                   parroco_possesso_canonico_il, vicario, vicario_nominato_il
+            FROM enti
             ORDER BY comune, denominazione
         """
         result = db.execute(text(query))
@@ -128,7 +146,16 @@ def get_parrocchie(
             "telefono": row[6],
             "email": row[7],
             "parroco": row[8],
-            "attivo": row[9]
+            "attivo": row[9],
+            "data_erezione_canonica": str(row[10]) if row[10] else None,
+            "data_riconoscimento_civile": str(row[11]) if row[11] else None,
+            "registro_pg": row[12],
+            "parroco_nato_a": row[13],
+            "parroco_nato_il": str(row[14]) if row[14] else None,
+            "parroco_nominato_il": str(row[15]) if row[15] else None,
+            "parroco_possesso_canonico_il": str(row[16]) if row[16] else None,
+            "vicario": row[17],
+            "vicario_nominato_il": str(row[18]) if row[18] else None
         }
         for row in rows
     ]
@@ -147,11 +174,19 @@ def create_parrocchia(
     query = """
         INSERT INTO enti (
             id, denominazione, comune, provincia, cap,
-            indirizzo, telefono, email, parroco, attivo
-        ) VALUES (:id, :denominazione, :comune, :provincia, :cap, :indirizzo, :telefono, :email, :parroco, TRUE)
+            indirizzo, telefono, email, parroco, attivo,
+            data_erezione_canonica, data_riconoscimento_civile, registro_pg,
+            parroco_nato_a, parroco_nato_il, parroco_nominato_il,
+            parroco_possesso_canonico_il, vicario, vicario_nominato_il
+        ) VALUES (
+            :id, :denominazione, :comune, :provincia, :cap, :indirizzo, :telefono, :email, :parroco, TRUE,
+            :data_erezione_canonica, :data_riconoscimento_civile, :registro_pg,
+            :parroco_nato_a, :parroco_nato_il, :parroco_nominato_il,
+            :parroco_possesso_canonico_il, :vicario, :vicario_nominato_il
+        )
         RETURNING *
     """
-    
+
     result = db.execute(text(query), {
         "id": parrocchia_id,
         "denominazione": parrocchia.denominazione,
@@ -161,7 +196,16 @@ def create_parrocchia(
         "indirizzo": parrocchia.indirizzo,
         "telefono": parrocchia.telefono,
         "email": parrocchia.email,
-        "parroco": parrocchia.parroco
+        "parroco": parrocchia.parroco,
+        "data_erezione_canonica": parrocchia.data_erezione_canonica,
+        "data_riconoscimento_civile": parrocchia.data_riconoscimento_civile,
+        "registro_pg": parrocchia.registro_pg,
+        "parroco_nato_a": parrocchia.parroco_nato_a,
+        "parroco_nato_il": parrocchia.parroco_nato_il,
+        "parroco_nominato_il": parrocchia.parroco_nominato_il,
+        "parroco_possesso_canonico_il": parrocchia.parroco_possesso_canonico_il,
+        "vicario": parrocchia.vicario,
+        "vicario_nominato_il": parrocchia.vicario_nominato_il
     })
     
     db.commit()
@@ -179,7 +223,7 @@ def update_parrocchia(
     Modifica una parrocchia esistente
     """
     query = """
-        UPDATE enti 
+        UPDATE enti
         SET denominazione = :denominazione,
             comune = :comune,
             provincia = :provincia,
@@ -187,11 +231,20 @@ def update_parrocchia(
             indirizzo = :indirizzo,
             telefono = :telefono,
             email = :email,
-            parroco = :parroco
+            parroco = :parroco,
+            data_erezione_canonica = :data_erezione_canonica,
+            data_riconoscimento_civile = :data_riconoscimento_civile,
+            registro_pg = :registro_pg,
+            parroco_nato_a = :parroco_nato_a,
+            parroco_nato_il = :parroco_nato_il,
+            parroco_nominato_il = :parroco_nominato_il,
+            parroco_possesso_canonico_il = :parroco_possesso_canonico_il,
+            vicario = :vicario,
+            vicario_nominato_il = :vicario_nominato_il
         WHERE id = :id
         RETURNING *
     """
-    
+
     result = db.execute(text(query), {
         "id": parrocchia_id,
         "denominazione": parrocchia.denominazione,
@@ -201,7 +254,16 @@ def update_parrocchia(
         "indirizzo": parrocchia.indirizzo,
         "telefono": parrocchia.telefono,
         "email": parrocchia.email,
-        "parroco": parrocchia.parroco
+        "parroco": parrocchia.parroco,
+        "data_erezione_canonica": parrocchia.data_erezione_canonica,
+        "data_riconoscimento_civile": parrocchia.data_riconoscimento_civile,
+        "registro_pg": parrocchia.registro_pg,
+        "parroco_nato_a": parrocchia.parroco_nato_a,
+        "parroco_nato_il": parrocchia.parroco_nato_il,
+        "parroco_nominato_il": parrocchia.parroco_nominato_il,
+        "parroco_possesso_canonico_il": parrocchia.parroco_possesso_canonico_il,
+        "vicario": parrocchia.vicario,
+        "vicario_nominato_il": parrocchia.vicario_nominato_il,
     })
     
     db.commit()

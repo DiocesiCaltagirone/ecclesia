@@ -392,9 +392,12 @@ async def get_ente(
 ):
     """Ottiene dettagli ente"""
     query = text("""
-        SELECT id, denominazione, codice_fiscale, partita_iva, indirizzo, cap, 
+        SELECT id, denominazione, codice_fiscale, partita_iva, indirizzo, cap,
                comune, provincia, regione, telefono, fax, email, sito_web,
-               parroco, vicario, diocesi, anno_fondazione, santo_patrono, numero_abitanti
+               parroco, vicario, diocesi, anno_fondazione, santo_patrono, numero_abitanti,
+               data_erezione_canonica, data_riconoscimento_civile, registro_pg,
+               parroco_nato_a, parroco_nato_il, parroco_nominato_il,
+               parroco_possesso_canonico_il, vicario_nominato_il
         FROM enti
         WHERE id = :ente_id
     """)
@@ -426,7 +429,15 @@ async def get_ente(
         "diocesi": result[15],
         "anno_fondazione": result[16],
         "santo_patrono": result[17],
-        "numero_abitanti": result[18]
+        "numero_abitanti": result[18],
+        "data_erezione_canonica": str(result[19]) if result[19] else None,
+        "data_riconoscimento_civile": str(result[20]) if result[20] else None,
+        "registro_pg": result[21],
+        "parroco_nato_a": result[22],
+        "parroco_nato_il": str(result[23]) if result[23] else None,
+        "parroco_nominato_il": str(result[24]) if result[24] else None,
+        "parroco_possesso_canonico_il": str(result[25]) if result[25] else None,
+        "vicario_nominato_il": str(result[26]) if result[26] else None
     }
 
 @app.put("/api/enti/{ente_id}")
@@ -464,7 +475,15 @@ async def update_ente(
             diocesi = :diocesi,
             anno_fondazione = :anno_fondazione,
             santo_patrono = :santo_patrono,
-            numero_abitanti = :numero_abitanti
+            numero_abitanti = :numero_abitanti,
+            data_erezione_canonica = :data_erezione_canonica,
+            data_riconoscimento_civile = :data_riconoscimento_civile,
+            registro_pg = :registro_pg,
+            parroco_nato_a = :parroco_nato_a,
+            parroco_nato_il = :parroco_nato_il,
+            parroco_nominato_il = :parroco_nominato_il,
+            parroco_possesso_canonico_il = :parroco_possesso_canonico_il,
+            vicario_nominato_il = :vicario_nominato_il
         WHERE id = :ente_id
     """)
     
@@ -487,7 +506,15 @@ async def update_ente(
         "diocesi": data.get("diocesi") or None,
         "anno_fondazione": int(data.get("anno_fondazione")) if data.get("anno_fondazione") else None,
         "santo_patrono": data.get("santo_patrono") or None,
-        "numero_abitanti": int(data.get("numero_abitanti")) if data.get("numero_abitanti") else None
+        "numero_abitanti": int(data.get("numero_abitanti")) if data.get("numero_abitanti") else None,
+        "data_erezione_canonica": data.get("data_erezione_canonica") or None,
+        "data_riconoscimento_civile": data.get("data_riconoscimento_civile") or None,
+        "registro_pg": data.get("registro_pg") or None,
+        "parroco_nato_a": data.get("parroco_nato_a") or None,
+        "parroco_nato_il": data.get("parroco_nato_il") or None,
+        "parroco_nominato_il": data.get("parroco_nominato_il") or None,
+        "parroco_possesso_canonico_il": data.get("parroco_possesso_canonico_il") or None,
+        "vicario_nominato_il": data.get("vicario_nominato_il") or None
     })
     db.commit()
     

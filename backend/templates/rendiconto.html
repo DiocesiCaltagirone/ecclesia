@@ -256,7 +256,7 @@
             <div class="sezione-content">
                 <div class="campo-row">
                     <span class="campo-label">Eretta canonicamente:</span>
-                    <span class="campo-value">{{ ente.anno_fondazione or '' }}</span>
+                    <span class="campo-value">{{ ente.data_erezione_canonica or '' }}</span>
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Codice Fiscale:</span>
@@ -264,7 +264,7 @@
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Riconosciuta civilmente il:</span>
-                    <span class="campo-value">{{ ente.data_riconoscimento or '' }}</span>
+                    <span class="campo-value">{{ ente.data_riconoscimento_civile or '' }}</span>
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Registro P.G. N.:</span>
@@ -287,15 +287,16 @@
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Nato a / il:</span>
-                    <span class="campo-value">{{ ente.parroco_nascita or '' }}</span>
+                    <span class="campo-value">{{ ente.parroco_nato_a or '' }}{% if ente.parroco_nato_il %} / {{
+                        ente.parroco_nato_il }}{% endif %}</span>
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Nominato il:</span>
-                    <span class="campo-value">{{ ente.parroco_nomina or '' }}</span>
+                    <span class="campo-value">{{ ente.parroco_nominato_il or '' }}</span>
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Possesso canonico il:</span>
-                    <span class="campo-value">{{ ente.parroco_possesso or '' }}</span>
+                    <span class="campo-value">{{ ente.parroco_possesso_canonico_il or '' }}</span>
                 </div>
             </div>
         </div>
@@ -310,7 +311,7 @@
                 </div>
                 <div class="campo-row">
                     <span class="campo-label">Nominato il:</span>
-                    <span class="campo-value">{{ ente.vicario_nomina or '' }}</span>
+                    <span class="campo-value">{{ ente.vicario_nominato_il or '' }}</span>
                 </div>
             </div>
         </div>

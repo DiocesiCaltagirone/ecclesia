@@ -490,16 +490,19 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         
         # 1. Recupera dati ente
         cur.execute("""
-            SELECT denominazione, indirizzo, cap, comune, provincia, 
+            SELECT denominazione, indirizzo, cap, comune, provincia,
                    codice_fiscale, telefono, email, parroco, diocesi,
-                   anno_fondazione, numero_abitanti, vescovo
+                   anno_fondazione, numero_abitanti, vescovo,
+                   data_erezione_canonica, data_riconoscimento_civile, registro_pg,
+                   parroco_nato_a, parroco_nato_il, parroco_nominato_il,
+                   parroco_possesso_canonico_il, vicario, vicario_nominato_il
             FROM enti WHERE id = %s
         """, (ente_id,))
-        
+
         ente_row = cur.fetchone()
         if not ente_row:
             raise Exception("Ente non trovato")
-        
+
         ente = {
             'denominazione': ente_row[0],
             'indirizzo': ente_row[1],
@@ -513,7 +516,16 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             'diocesi': ente_row[9],
             'anno_fondazione': ente_row[10],
             'numero_abitanti': ente_row[11],
-            'vescovo': ente_row[12] or 'S.E. Mons. Calogero Peri'
+            'vescovo': ente_row[12] or 'S.E. Mons. Calogero Peri',
+            'data_erezione_canonica': ente_row[13].strftime('%d/%m/%Y') if ente_row[13] else '',
+            'data_riconoscimento_civile': ente_row[14].strftime('%d/%m/%Y') if ente_row[14] else '',
+            'registro_pg': ente_row[15] or '',
+            'parroco_nato_a': ente_row[16] or '',
+            'parroco_nato_il': ente_row[17].strftime('%d/%m/%Y') if ente_row[17] else '',
+            'parroco_nominato_il': ente_row[18].strftime('%d/%m/%Y') if ente_row[18] else '',
+            'parroco_possesso_canonico_il': ente_row[19].strftime('%d/%m/%Y') if ente_row[19] else '',
+            'vicario': ente_row[20] or '',
+            'vicario_nominato_il': ente_row[21].strftime('%d/%m/%Y') if ente_row[21] else ''
         }
         
         # 2. Recupera dati rendiconto

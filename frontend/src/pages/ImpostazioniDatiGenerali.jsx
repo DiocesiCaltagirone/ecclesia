@@ -22,7 +22,18 @@ function ImpostazioniDatiGenerali() {
     diocesi: '',
     anno_fondazione: '',
     santo_patrono: '',
-    numero_abitanti: ''
+    numero_abitanti: '',
+    // Nuovi campi dati parrocchia
+    data_erezione_canonica: '',
+    data_riconoscimento_civile: '',
+    registro_pg: '',
+    // Nuovi campi dati parroco
+    parroco_nato_a: '',
+    parroco_nato_il: '',
+    parroco_nominato_il: '',
+    parroco_possesso_canonico_il: '',
+    // Nuovi campi vicario
+    vicario_nominato_il: ''
   });
 
   useEffect(() => {
@@ -57,7 +68,15 @@ function ImpostazioniDatiGenerali() {
         diocesi: ente.diocesi || '',
         anno_fondazione: ente.anno_fondazione || '',
         santo_patrono: ente.santo_patrono || '',
-        numero_abitanti: ente.numero_abitanti || ''
+        numero_abitanti: ente.numero_abitanti || '',
+        data_erezione_canonica: ente.data_erezione_canonica || '',
+        data_riconoscimento_civile: ente.data_riconoscimento_civile || '',
+        registro_pg: ente.registro_pg || '',
+        parroco_nato_a: ente.parroco_nato_a || '',
+        parroco_nato_il: ente.parroco_nato_il || '',
+        parroco_nominato_il: ente.parroco_nominato_il || '',
+        parroco_possesso_canonico_il: ente.parroco_possesso_canonico_il || '',
+        vicario_nominato_il: ente.vicario_nominato_il || ''
       });
     } catch (error) {
       console.error('Errore caricamento dati:', error);
@@ -90,13 +109,13 @@ function ImpostazioniDatiGenerali() {
       });
 
       alert('Dati salvati con successo!');
-      
+
       // Aggiorna i dati in localStorage
       const updatedEnte = await api.get(`/api/enti/${enteId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       localStorage.setItem('current_ente', JSON.stringify(updatedEnte.data));
-      
+
       // Ricarica la pagina per aggiornare l'header
       window.location.reload();
     } catch (error) {
@@ -128,237 +147,371 @@ function ImpostazioniDatiGenerali() {
 
         {/* FORM */}
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Denominazione */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Denominazione ufficiale completa <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="denominazione"
-                value={formData.denominazione}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
+
+          {/* ========================================= */}
+          {/* SEZIONE 1: DATI PARROCCHIA */}
+          {/* ========================================= */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6 pb-2 border-b-2 border-blue-500">
+              <span className="text-2xl">⛪</span>
+              <h3 className="text-xl font-bold text-gray-800">Dati Parrocchia</h3>
             </div>
 
-            {/* Codice Fiscale */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Codice Fiscale <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="codice_fiscale"
-                value={formData.codice_fiscale}
-                onChange={handleInputChange}
-                required
-                maxLength="16"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Denominazione */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Denominazione ufficiale completa <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="denominazione"
+                  value={formData.denominazione}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Codice Fiscale */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Codice Fiscale <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="codice_fiscale"
+                  value={formData.codice_fiscale}
+                  onChange={handleInputChange}
+                  required
+                  maxLength="16"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Partita IVA */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Partita IVA</label>
+                <input
+                  type="text"
+                  name="partita_iva"
+                  value={formData.partita_iva}
+                  onChange={handleInputChange}
+                  maxLength="11"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Indirizzo */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Indirizzo (via, numero civico)
+                </label>
+                <input
+                  type="text"
+                  name="indirizzo"
+                  value={formData.indirizzo}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* CAP */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">CAP</label>
+                <input
+                  type="text"
+                  name="cap"
+                  value={formData.cap}
+                  onChange={handleInputChange}
+                  maxLength="5"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Comune */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Comune</label>
+                <input
+                  type="text"
+                  name="comune"
+                  value={formData.comune}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Provincia */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Provincia</label>
+                <input
+                  type="text"
+                  name="provincia"
+                  value={formData.provincia}
+                  onChange={handleInputChange}
+                  maxLength="2"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Regione */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Regione</label>
+                <input
+                  type="text"
+                  name="regione"
+                  value={formData.regione}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Telefono */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Telefono</label>
+                <input
+                  type="tel"
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Fax */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Fax</label>
+                <input
+                  type="tel"
+                  name="fax"
+                  value={formData.fax}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email ufficiale</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Sito Web */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Sito web</label>
+                <input
+                  type="url"
+                  name="sito_web"
+                  value={formData.sito_web}
+                  onChange={handleInputChange}
+                  placeholder="https://..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Diocesi */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Diocesi di appartenenza</label>
+                <input
+                  type="text"
+                  name="diocesi"
+                  value={formData.diocesi}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Anno Fondazione */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Anno di fondazione</label>
+                <input
+                  type="number"
+                  name="anno_fondazione"
+                  value={formData.anno_fondazione}
+                  onChange={handleInputChange}
+                  min="1000"
+                  max="2100"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Santo Patrono */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Santo patrono</label>
+                <input
+                  type="text"
+                  name="santo_patrono"
+                  value={formData.santo_patrono}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Numero Abitanti */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Numero abitanti parrocchia</label>
+                <input
+                  type="number"
+                  name="numero_abitanti"
+                  value={formData.numero_abitanti}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Data Erezione Canonica */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Eretta canonicamente il</label>
+                <input
+                  type="date"
+                  name="data_erezione_canonica"
+                  value={formData.data_erezione_canonica}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Data Riconoscimento Civile */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Riconosciuta civilmente il</label>
+                <input
+                  type="date"
+                  name="data_riconoscimento_civile"
+                  value={formData.data_riconoscimento_civile}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Registro P.G. */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Registro P.G. N.</label>
+                <input
+                  type="text"
+                  name="registro_pg"
+                  value={formData.registro_pg}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================= */}
+          {/* SEZIONE 2: DATI PARROCO */}
+          {/* ========================================= */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6 pb-2 border-b-2 border-green-500">
+              <span className="text-2xl">👤</span>
+              <h3 className="text-xl font-bold text-gray-800">Dati Parroco</h3>
             </div>
 
-            {/* Partita IVA */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Partita IVA</label>
-              <input
-                type="text"
-                name="partita_iva"
-                value={formData.partita_iva}
-                onChange={handleInputChange}
-                maxLength="11"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Parroco Nome */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Cognome e Nome</label>
+                <input
+                  type="text"
+                  name="parroco"
+                  value={formData.parroco}
+                  onChange={handleInputChange}
+                  placeholder="es. Don Mario Rossi"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Parroco Nato a */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nato a</label>
+                <input
+                  type="text"
+                  name="parroco_nato_a"
+                  value={formData.parroco_nato_a}
+                  onChange={handleInputChange}
+                  placeholder="Città di nascita"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Parroco Nato il */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nato il</label>
+                <input
+                  type="date"
+                  name="parroco_nato_il"
+                  value={formData.parroco_nato_il}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Parroco Nominato il */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nominato il</label>
+                <input
+                  type="date"
+                  name="parroco_nominato_il"
+                  value={formData.parroco_nominato_il}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Parroco Possesso Canonico */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Possesso canonico il</label>
+                <input
+                  type="date"
+                  name="parroco_possesso_canonico_il"
+                  value={formData.parroco_possesso_canonico_il}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================= */}
+          {/* SEZIONE 3: DATI VICARIO */}
+          {/* ========================================= */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6 pb-2 border-b-2 border-purple-500">
+              <span className="text-2xl">👤</span>
+              <h3 className="text-xl font-bold text-gray-800">Dati Vicario Parrocchiale</h3>
             </div>
 
-            {/* Indirizzo */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Indirizzo (via, numero civico)
-              </label>
-              <input
-                type="text"
-                name="indirizzo"
-                value={formData.indirizzo}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Vicario Nome */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Cognome e Nome</label>
+                <input
+                  type="text"
+                  name="vicario"
+                  value={formData.vicario}
+                  onChange={handleInputChange}
+                  placeholder="es. Don Giuseppe Verdi"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
 
-            {/* CAP */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">CAP</label>
-              <input
-                type="text"
-                name="cap"
-                value={formData.cap}
-                onChange={handleInputChange}
-                maxLength="5"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Comune */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Comune</label>
-              <input
-                type="text"
-                name="comune"
-                value={formData.comune}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Provincia */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Provincia</label>
-              <input
-                type="text"
-                name="provincia"
-                value={formData.provincia}
-                onChange={handleInputChange}
-                maxLength="2"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Regione */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Regione</label>
-              <input
-                type="text"
-                name="regione"
-                value={formData.regione}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Telefono */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Telefono</label>
-              <input
-                type="tel"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Fax */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Fax</label>
-              <input
-                type="tel"
-                name="fax"
-                value={formData.fax}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email ufficiale</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Sito Web */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Sito web</label>
-              <input
-                type="url"
-                name="sito_web"
-                value={formData.sito_web}
-                onChange={handleInputChange}
-                placeholder="https://..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Parroco */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Parroco (nome completo)</label>
-              <input
-                type="text"
-                name="parroco"
-                value={formData.parroco}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Vicario */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Vicario (nome completo)</label>
-              <input
-                type="text"
-                name="vicario"
-                value={formData.vicario}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Diocesi */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Diocesi di appartenenza</label>
-              <input
-                type="text"
-                name="diocesi"
-                value={formData.diocesi}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Anno Fondazione */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Anno di fondazione</label>
-              <input
-                type="number"
-                name="anno_fondazione"
-                value={formData.anno_fondazione}
-                onChange={handleInputChange}
-                min="1000"
-                max="2100"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Santo Patrono */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Santo patrono</label>
-              <input
-                type="text"
-                name="santo_patrono"
-                value={formData.santo_patrono}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Numero Abitanti */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Numero abitanti parrocchia</label>
-              <input
-                type="number"
-                name="numero_abitanti"
-                value={formData.numero_abitanti}
-                onChange={handleInputChange}
-                min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
+              {/* Vicario Nominato il */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Nominato il</label>
+                <input
+                  type="date"
+                  name="vicario_nominato_il"
+                  value={formData.vicario_nominato_il}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
             </div>
           </div>
 
