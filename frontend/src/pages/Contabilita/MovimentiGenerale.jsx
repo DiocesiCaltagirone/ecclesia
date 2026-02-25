@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import FormMovimentoGlobale from './FormMovimentoGlobale';
 import ModalAllegati from "../../components/ModalAllegati.jsx";
+import { formatCurrency } from '../../utils/formatters';
 
 const MovimentiGenerale = () => {
   const [movimenti, setMovimenti] = useState([]);
@@ -324,13 +325,6 @@ const MovimentiGenerale = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('it-IT', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
   };
 
   const getNomeConto = (registroId) => {

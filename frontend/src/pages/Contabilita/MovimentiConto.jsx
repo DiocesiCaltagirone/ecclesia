@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams } from 'react-router-dom';
 import FormMovimentoGlobale from './FormMovimentoGlobale';
 import ModalAllegati from "../../components/ModalAllegati.jsx";
+import { formatCurrency } from '../../utils/formatters';
 
 const MovimentiConto = () => {
   const { registroId } = useParams();
@@ -315,13 +316,6 @@ const MovimentiConto = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('it-IT', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
   };
 
   if (loading) {

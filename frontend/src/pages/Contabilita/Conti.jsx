@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../../utils/formatters';
 
 const Conti = () => {
   const navigate = useNavigate();
@@ -137,13 +138,6 @@ const Conti = () => {
     setShowModal(false);
     setEditingConto(null);
     setFormData({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
-  };
-
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('it-IT', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
   };
 
   // Raggruppa conti per tipo

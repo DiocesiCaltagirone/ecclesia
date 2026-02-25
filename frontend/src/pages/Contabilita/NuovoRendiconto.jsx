@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { formatCurrency } from '../../utils/formatters';
 
 const NuovoRendiconto = () => {
   const navigate = useNavigate();
@@ -395,13 +396,13 @@ const NuovoRendiconto = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-green-600 font-semibold">
-                  € {(infoRendiconto.totale_entrate || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  € {formatCurrency(infoRendiconto.totale_entrate)}
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-red-600 font-semibold">
-                  € {(infoRendiconto.totale_uscite || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  € {formatCurrency(infoRendiconto.totale_uscite)}
                 </td>
                 <td className="px-6 py-4 text-sm text-right text-blue-600 font-bold">
-                  € {(infoRendiconto.saldo || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  € {formatCurrency(infoRendiconto.saldo)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   {infoRendiconto.data_invio ? new Date(infoRendiconto.data_invio).toLocaleDateString('it-IT') : ''}

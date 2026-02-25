@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { formatCurrency } from '../../utils/formatters';
 
 // ⭐ AGGIUNGI QUESTO CSS PER LA STAMPA
 const printStyles = `
@@ -497,11 +498,11 @@ const Rapporti = () => {
           <div className="grid grid-cols-4 gap-2 mb-3">
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Entrate</p>
-              <p className="text-sm font-bold text-green-700">+{Number(datiReport.totale_entrate || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</p>
+              <p className="text-sm font-bold text-green-700">+{formatCurrency(datiReport.totale_entrate)} €</p>
             </div>
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Uscite</p>
-              <p className="text-sm font-bold text-red-700">-{Number(datiReport.totale_uscite || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</p>
+              <p className="text-sm font-bold text-red-700">-{formatCurrency(datiReport.totale_uscite)} €</p>
             </div>
             <div className="border border-gray-300 rounded px-3 py-1 text-center">
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Movimenti</p>
@@ -511,7 +512,7 @@ const Rapporti = () => {
               <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide">Saldo</p>
               <p className={`text-sm font-bold ${(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
                 {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? '+' : ''}
-                {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
+                {formatCurrency(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0))} €
               </p>
             </div>
           </div>
@@ -540,10 +541,10 @@ const Rapporti = () => {
                   <td className="px-3 py-1.5 text-gray-700 text-[11px]">{mov.conto || '-'}</td>
                   <td className="px-3 py-1.5 text-gray-600 text-[11px]">{mov.gerarchia || mov.categoria}</td>
                   <td className="px-3 py-1.5 text-right font-semibold text-green-700">
-                    {mov.tipo_movimento === 'entrata' ? `+${parseFloat(mov.importo).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '-'}
+                    {mov.tipo_movimento === 'entrata' ? `+${formatCurrency(mov.importo)}` : '-'}
                   </td>
                   <td className="px-3 py-1.5 text-right font-semibold text-red-700">
-                    {mov.tipo_movimento === 'uscita' ? `-${parseFloat(mov.importo).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '-'}
+                    {mov.tipo_movimento === 'uscita' ? `-${formatCurrency(mov.importo)}` : '-'}
                   </td>
                   <td className="px-3 py-1.5 text-gray-600 text-[11px] truncate max-w-xs">{mov.causale || '-'}</td>
                 </tr>
@@ -553,10 +554,10 @@ const Rapporti = () => {
               <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
                 <td colSpan="3" className="px-3 py-2 text-right uppercase text-gray-700 text-xs">TOTALI</td>
                 <td className="px-3 py-2 text-right text-green-700 text-sm">
-                  +{Number(datiReport.totale_entrate || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                  +{formatCurrency(datiReport.totale_entrate)}
                 </td>
                 <td className="px-3 py-2 text-right text-red-700 text-sm">
-                  -{Number(datiReport.totale_uscite || 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                  -{formatCurrency(datiReport.totale_uscite)}
                 </td>
                 <td className="px-3 py-2"></td>
               </tr>
@@ -564,7 +565,7 @@ const Rapporti = () => {
                 <td colSpan="3" className="px-3 py-2 text-right uppercase text-gray-800 text-xs">SALDO</td>
                 <td colSpan="3" className={`px-3 py-2 text-right text-sm ${(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
                   {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)) >= 0 ? '+' : ''}
-                  {(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0)).toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
+                  {formatCurrency(Number(datiReport.totale_entrate || 0) - Number(datiReport.totale_uscite || 0))} €
                 </td>
               </tr>
             </tfoot>

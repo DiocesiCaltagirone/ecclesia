@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../../utils/formatters';
 
 const Rendiconto = () => {
   const navigate = useNavigate();
@@ -225,13 +226,13 @@ const Rendiconto = () => {
                   </td>
                   <td className="px-6 py-4">{getBadgeStato(rend.stato, rend)}</td>
                   <td className="px-6 py-4 text-sm text-right text-green-600 font-semibold">
-                    € {rend.totale_entrate.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    € {formatCurrency(rend.totale_entrate)}
                   </td>
                   <td className="px-6 py-4 text-sm text-right text-red-600 font-semibold">
-                    € {rend.totale_uscite.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    € {formatCurrency(rend.totale_uscite)}
                   </td>
                   <td className={`px-6 py-4 text-sm text-right font-bold ${rend.saldo >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                    € {rend.saldo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    € {formatCurrency(rend.saldo)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(rend.data_invio).toLocaleDateString('it-IT')}

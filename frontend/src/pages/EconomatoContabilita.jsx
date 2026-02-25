@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
+import { formatCurrency } from '../utils/formatters';
 
 const EconomatoContabilita = () => {
   const [rendiconti, setRendiconti] = useState([]);
@@ -359,7 +360,7 @@ const EconomatoContabilita = () => {
                       </span>
                     </td>
                     <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${rend.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      € {rend.saldo.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      € {formatCurrency(rend.saldo)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-center items-center gap-2">

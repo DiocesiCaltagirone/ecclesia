@@ -373,10 +373,10 @@
                     <td>{{ mov.categoria }}</td>
                     <td>{{ mov.conto }}</td>
                     <td class="td-importo entrata">
-                        {% if mov.tipo == 'entrata' %}€ {{ "%.2f"|format(mov.importo) }}{% endif %}
+                        {% if mov.tipo == 'entrata' %}€ {{ mov.importo|ita }}{% endif %}
                     </td>
                     <td class="td-importo uscita">
-                        {% if mov.tipo == 'uscita' %}€ {{ "%.2f"|format(mov.importo) }}{% endif %}
+                        {% if mov.tipo == 'uscita' %}€ {{ mov.importo|ita }}{% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -387,15 +387,15 @@
             <table>
                 <tr>
                     <td class="label">Totale Entrate:</td>
-                    <td class="value entrata">€ {{ "%.2f"|format(totale_entrate) }}</td>
+                    <td class="value entrata">€ {{ totale_entrate|ita }}</td>
                 </tr>
                 <tr>
                     <td class="label">Totale Uscite:</td>
-                    <td class="value uscita">€ {{ "%.2f"|format(totale_uscite) }}</td>
+                    <td class="value uscita">€ {{ totale_uscite|ita }}</td>
                 </tr>
                 <tr class="saldo-finale">
                     <td class="label">SALDO FINALE:</td>
-                    <td class="value">€ {{ "%.2f"|format(saldo) }}</td>
+                    <td class="value">€ {{ saldo|ita }}</td>
                 </tr>
             </table>
         </div>
