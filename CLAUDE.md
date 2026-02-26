@@ -135,7 +135,8 @@ C:\Users\Lux\parrocchia-app\
 │   │   │   ├── Amministrazione\        # Sezione economo diocesano
 │   │   │   │   └── GestioneParrocchie.jsx
 │   │   │   ├── Contabilita\
-│   │   │   │   ├── Conti.jsx           # Lista conti (cassa/banca)
+│   │   │   │   ├── ContabilitaLayout.jsx # Layout con barra superiore + modal "Aggiungi Conto"
+│   │   │   │   ├── Conti.jsx           # Lista conti (cassa/banca) + modal modifica conto
 │   │   │   │   ├── MovimentiConto.jsx  # Movimenti per singolo conto
 │   │   │   │   ├── MovimentiGenerale.jsx # Tutti i movimenti
 │   │   │   │   ├── Categorie.jsx       # Piano dei conti gerarchico
@@ -605,6 +606,7 @@ docker restart parrocchia-backend
 8. WeasyPrint non funzionava su Windows (import condizionale)
 9. Menu contestuale Modifica non apriva form
 10. Frontespizio PDF su 2 pagine (font 6.5pt)
+11. Saldo iniziale negativo bloccato: ContabilitaLayout.jsx aveva input type="number" min="0" (form duplicato rispetto a Conti.jsx)
 
 ---
 
@@ -617,3 +619,4 @@ docker restart parrocchia-backend
 - api.js: gestisce automaticamente locale vs produzione
 - Password DB locale: parrocchia2025 (NON parrocchia)
 - .env backend: postgres:5432 in Docker, localhost:5432 fuori Docker
+- FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx (modal nella barra superiore) e Conti.jsx (modal nella pagina conti). Modifiche al form vanno fatte in ENTRAMBI i file!
