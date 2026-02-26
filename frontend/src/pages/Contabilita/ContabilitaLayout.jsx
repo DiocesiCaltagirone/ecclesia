@@ -156,10 +156,11 @@ const ContabilitaLayout = () => {
     const token = localStorage.getItem('token');
     const enteId = localStorage.getItem('ente_id');
 
+    const saldoStr = String(formConto.saldo_iniziale).replace(',', '.');
     const payload = {
       tipo: formConto.tipo,
       nome: formConto.nome,
-      saldo_iniziale: formConto.saldo_iniziale || 0,
+      saldo_iniziale: parseFloat(saldoStr) || 0,
       data_inizio: formConto.data_inizio
     };
 
@@ -596,19 +597,20 @@ const ContabilitaLayout = () => {
                   Saldo iniziale <span className="text-gray-400">(opzionale)</span>
                 </label>
                 <p className="text-[10px] text-gray-500 mb-1.5 leading-tight">
-                  💡 Se questo conto esisteva già prima di usare il sistema, inserisci il saldo al 31/12/{new Date().getFullYear() - 1}
+                  💡 Saldo iniziale del conto (anche negativo per scoperti)
                 </p>
                 <div className="relative">
                   <span className="absolute left-3 top-1.5 text-gray-500 text-sm">€</span>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={formConto.saldo_iniziale}
-                    onChange={(e) => setFormConto({
-                      ...formConto,
-                      saldo_iniziale: parseFloat(e.target.value) || 0
-                    })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || val === '-' || /^-?\d*[.,]?\d{0,2}$/.test(val)) {
+                        setFormConto({ ...formConto, saldo_iniziale: val });
+                      }
+                    }}
                     className="w-full pl-7 pr-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
                     placeholder="0.00"
                   />
