@@ -1,519 +1,628 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Rendiconto {{ periodo_inizio_fmt }} - {{ periodo_fine_fmt }}</title>
-    <style>
-        page {
-            size: A4;
-            margin: 10mm 10mm 15mm 10mm;
+<meta charset="UTF-8">
+<title>Rendiconto {{ ente.denominazione }} — {{ periodo_inizio_fmt }} - {{ periodo_fine_fmt }}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 15mm 20mm 20mm 20mm;
+    @bottom-center {
+      content: "Rendiconto Economico {{ anno }} — {{ ente.denominazione }} — Pag. " counter(page);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 7.5pt;
+      color: #999;
+      border-top: 0.5pt solid #ddd;
+      padding-top: 4pt;
+    }
+  }
 
-            @bottom-center {
-                content: "Pag. " counter(page) "/4";
-                font-size: 8pt;
-                color: #666;
-            }
-        }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11pt;
+    color: #1a1a1a;
+    line-height: 1.4;
+  }
 
-        body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 9pt;
-            color: #2d3748;
-            line-height: 1.3;
-        }
+  .page {
+    page-break-after: always;
+    position: relative;
+  }
+  .page:last-child {
+    page-break-after: avoid;
+  }
 
-        .page {
-            page-break-after: always;
-            min-height: 277mm;
-            position: relative;
-        }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5pt solid #1a365d;
+    padding-bottom: 5pt;
+    margin-bottom: 14pt;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    color: #555;
+  }
+  .page-header-left { font-weight: 600; color: #1a365d; }
+  .page-header-right { color: #777; }
 
-        .page:last-child {
-            page-break-after: avoid;
-        }
+  /* ============ FRONTESPIZIO ============ */
+  .frontespizio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250mm;
+    text-align: center;
+  }
 
-        .page-number {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            font-size: 7pt;
-            color: #666;
-        }
+  .front-diocesi {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 18pt;
+    font-weight: 700;
+    color: #1a365d;
+    letter-spacing: 2pt;
+    margin-bottom: 24pt;
+  }
 
-        /* ============ STILI PAGINE INTERNE (SUPER COMPATTE) ============ */
-        .page-compatta .header-compatto {
-            text-align: center;
-            margin-bottom: 3px;
-            padding-bottom: 2px;
-            border-bottom: 1px solid #1a365d;
-            font-size: 7pt;
-            color: #4a5568;
-        }
+  .front-linea-sottile {
+    width: 100mm;
+    height: 0.8pt;
+    background: linear-gradient(90deg, transparent, #1a365d, transparent);
+    margin: 0 auto 24pt auto;
+  }
 
-        .page-compatta h2 {
-            text-align: center;
-            margin-bottom: 3px;
-            font-size: 9pt;
-        }
+  .front-titolo {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 4pt;
+    letter-spacing: 1.5pt;
+  }
+  .front-sottotitolo {
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    color: #666;
+    margin-bottom: 24pt;
+  }
+  .front-parrocchia {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 15pt;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4pt;
+  }
+  .front-comune {
+    font-size: 12pt;
+    color: #555;
+    margin-bottom: 20pt;
+  }
+  .front-periodo {
+    font-family: Arial, sans-serif;
+    font-size: 13pt;
+    font-weight: 600;
+    color: #1a365d;
+    border: 1.5pt solid #1a365d;
+    padding: 7pt 28pt;
+    margin-bottom: 30pt;
+  }
 
-        /* Tabella movimenti SUPER COMPATTA */
-        .tabella-compatta {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 6.5pt;
-            line-height: 1.1;
-        }
+  .front-dati-colonna {
+    text-align: left;
+    width: 120mm;
+    margin: 0 auto;
+  }
+  .front-dato {
+    display: flex;
+    justify-content: space-between;
+    padding: 5pt 0;
+    font-size: 11pt;
+    border-bottom: 0.5pt dotted #ccc;
+  }
+  .front-dato-label {
+    color: #666;
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+  }
+  .front-dato-value {
+    font-weight: 600;
+    color: #333;
+    font-size: 11pt;
+  }
+  .front-data-compilazione {
+    margin-top: 24pt;
+    font-size: 9pt;
+    color: #999;
+  }
 
-        .tabella-compatta th {
-            background: #1a365d;
-            color: white;
-            padding: 2px 3px;
-            text-align: left;
-            font-weight: bold;
-            font-size: 6.5pt;
-        }
+  /* ============ MOVIMENTI ============ */
+  .riporto-box {
+    background: #f5efe6;
+    border: 1pt solid #c9a96e;
+    border-radius: 3pt;
+    padding: 10pt 16pt;
+    margin-bottom: 16pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .riporto-label {
+    font-weight: 700;
+    color: #7c4d1e;
+    font-size: 11.5pt;
+  }
+  .riporto-importo {
+    font-weight: 700;
+    font-size: 14pt;
+    color: #7c4d1e;
+    font-variant-numeric: tabular-nums;
+  }
+  .riporto-importo.negativo {
+    color: #b91c1c;
+  }
 
-        .tabella-compatta th.col-importo {
-            text-align: right;
-            width: 55px;
-        }
+  .section-title {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 15pt;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 3pt;
+  }
+  .section-subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 8.5pt;
+    color: #888;
+    margin-bottom: 14pt;
+  }
 
-        .tabella-compatta td {
-            padding: 1px 3px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: top;
-        }
+  /* ============ TABELLA MOVIMENTI ============ */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+  }
 
-        .tabella-compatta td.importo {
-            text-align: right;
-            font-family: 'Courier New', monospace;
-            font-size: 6pt;
-        }
+  thead th {
+    background: #1a365d;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    padding: 7pt 10pt;
+    text-align: left;
+  }
+  thead th.col-importo { text-align: right; width: 100pt; }
+  thead th.col-codice { width: 40pt; text-align: center; }
 
-        .tabella-compatta .saldo-precedente-row {
-            background: #e6fffa;
-            font-weight: bold;
-        }
+  tbody tr { border-bottom: 0.5pt solid #e8e8e8; }
 
-        .tabella-compatta .saldo-precedente-row td {
-            padding: 2px 3px;
-            color: #234e52;
-        }
+  tbody tr.cat-padre td {
+    font-weight: 700;
+    background: #eef2f7;
+    border-bottom: 0.8pt solid #bbb;
+    border-top: 0.5pt solid #ccc;
+    padding-top: 9pt;
+    padding-bottom: 6pt;
+    font-size: 11pt;
+    color: #1a365d;
+  }
 
-        .tabella-compatta .categoria-row {
-            background: #edf2f7;
-            font-weight: bold;
-        }
+  tbody tr.cat-figlio td {
+    padding-left: 22pt;
+    font-weight: 400;
+    color: #333;
+  }
+  tbody tr.cat-figlio:nth-child(even) {
+    background: #fafbfc;
+  }
 
-        .tabella-compatta .categoria-row td {
-            padding: 1.5px 3px;
-            color: #1a365d;
-            font-size: 6.5pt;
-        }
+  td { padding: 5pt 10pt; vertical-align: middle; }
+  td.col-importo {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  td.col-codice {
+    text-align: center;
+    color: #999;
+    font-size: 8.5pt;
+    font-family: Arial, sans-serif;
+  }
 
-        .tabella-compatta .subcategoria-row td {
-            padding-left: 8px;
-            color: #4a5568;
-            font-size: 6pt;
-        }
+  td.col-importo.negativo { color: #b91c1c; }
+  tr.cat-padre td.col-importo.negativo { color: #922; }
 
-        .tabella-compatta .totale-row {
-            background: #1a365d;
-            color: white;
-            font-weight: bold;
-        }
+  tr.separatore-sezione td {
+    border-bottom: none;
+    padding: 3pt 0;
+    background: transparent;
+  }
 
-        .tabella-compatta .totale-row td {
-            padding: 2px 3px;
-            border: none;
-            font-size: 7pt;
-        }
+  tr.riga-subtotale td {
+    font-weight: 600;
+    font-size: 10.5pt;
+    color: #333;
+    background: #f0f0f0;
+    border-top: 1pt solid #ccc;
+    border-bottom: 1pt solid #ccc;
+    padding-top: 7pt;
+    padding-bottom: 7pt;
+  }
+  tr.riga-subtotale td.col-importo.positivo { color: #166534; }
+  tr.riga-subtotale td.col-importo.negativo { color: #b91c1c; }
 
-        /* ============ STILI FRONTESPIZIO ============ */
-        .sezione {
-            margin: 3px 0;
-            border: 1px solid #cbd5e0;
-        }
+  tr.riga-totale-finale td {
+    font-weight: 700;
+    font-size: 13pt;
+    color: #1a365d;
+    border-top: 2.5pt double #1a365d;
+    border-bottom: none;
+    padding-top: 10pt;
+    padding-bottom: 10pt;
+    background: transparent;
+  }
+  tr.riga-totale-finale td.col-importo.positivo { color: #166534; }
+  tr.riga-totale-finale td.col-importo.negativo { color: #b91c1c; }
 
-        .sezione-header {
-            background: #edf2f7;
-            padding: 4px 10px;
-            font-weight: bold;
-            font-size: 10pt;
-            color: #1a365d;
-            border-bottom: 1px solid #cbd5e0;
-        }
+  /* ============ RIEPILOGO ============ */
+  .riepilogo-box {
+    background: #f8f9fb;
+    border: 0.8pt solid #ddd;
+    border-radius: 3pt;
+    padding: 16pt;
+    margin-bottom: 16pt;
+  }
+  .riepilogo-title {
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+  .riepilogo-riga {
+    display: flex;
+    justify-content: space-between;
+    padding: 5pt 0;
+    border-bottom: 0.5pt dotted #ccc;
+    font-size: 10.5pt;
+  }
+  .riepilogo-riga:last-child { border-bottom: none; }
+  .riepilogo-riga.totale {
+    font-weight: 700;
+    font-size: 12pt;
+    color: #1a365d;
+    border-top: 1.5pt solid #1a365d;
+    border-bottom: none;
+    padding-top: 8pt;
+    margin-top: 4pt;
+  }
+  .riepilogo-label { color: #444; }
+  .riepilogo-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .riepilogo-value.positivo { color: #166534; }
+  .riepilogo-value.negativo { color: #b91c1c; }
 
-        .sezione-content {
-            padding: 5px 10px;
-        }
+  .conti-table { width: 100%; margin-top: 6pt; }
+  .conti-table th {
+    background: #eef2f7;
+    color: #1a365d;
+    font-family: Arial, sans-serif;
+    font-size: 8.5pt;
+    padding: 5pt 10pt;
+    border-bottom: 0.8pt solid #ccc;
+    text-transform: uppercase;
+  }
+  .conti-table td {
+    padding: 5pt 10pt;
+    border-bottom: 0.5pt solid #e8e8e8;
+    font-size: 10pt;
+  }
 
-        .campo-row {
-            display: flex;
-            font-size: 9pt;
-            margin: 3px 0;
-        }
-
-        .campo-label {
-            width: 170px;
-            color: #4a5568;
-        }
-
-        .campo-value {
-            flex: 1;
-            border-bottom: 1px dotted #a0aec0;
-            padding-left: 8px;
-        }
-
-        /* ============ STILI RIEPILOGO ============ */
-        .riepilogo-title {
-            background: #1a365d;
-            color: white;
-            padding: 8px 12px;
-            font-size: 10pt;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .riepilogo-box {
-            display: flex;
-            border: 1px solid #1a365d;
-        }
-
-        .riepilogo-item {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            border-right: 1px solid #cbd5e0;
-        }
-
-        .riepilogo-item:last-child {
-            border-right: none;
-        }
-
-        .riepilogo-item .label {
-            font-size: 8pt;
-            color: #4a5568;
-            margin-bottom: 4px;
-        }
-
-        .riepilogo-item .value {
-            font-size: 12pt;
-            font-weight: bold;
-        }
-
-        .riepilogo-item .value.verde {
-            color: #276749;
-        }
-
-        .riepilogo-item .value.rosso {
-            color: #c53030;
-        }
-    </style>
+  /* ============ FIRME E DICHIARAZIONE ============ */
+  .dichiarazione-parroco {
+    font-size: 10.5pt;
+    text-align: justify;
+    color: #333;
+    margin-top: 20pt;
+    line-height: 1.6;
+  }
+  .parroco-firma {
+    margin-top: 14pt;
+    text-align: right;
+    font-size: 11pt;
+  }
+  .parroco-ruolo {
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    color: #555;
+  }
+  .parroco-nome {
+    font-weight: 700;
+    font-size: 12pt;
+    color: #1a365d;
+  }
+  .data-invio {
+    margin-top: 10pt;
+    font-size: 9.5pt;
+    color: #555;
+  }
+  .separatore {
+    border-top: 1pt dashed #aaa;
+    margin: 16pt 0;
+  }
+  .approvazione-box {
+    border: 1pt solid #1a365d;
+    background: #f5f7fa;
+    padding: 8pt 12pt;
+    text-align: center;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+  .approvazione-stato {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #166534;
+    letter-spacing: 1.5pt;
+    margin: 4pt 0;
+  }
+  .approvazione-stato.non-approvato { color: #b91c1c; }
+  .approvazione-data {
+    font-size: 8pt;
+    color: #555;
+  }
+</style>
 </head>
-
 <body>
 
-    <!-- ==================== PAGINA 1 - FRONTESPIZIO ==================== -->
-    <div class="page">
-        <!-- HEADER CENTRATO CON LOGO -->
-        <div style="text-align: center; border-bottom: 2px solid #1a365d; padding-bottom: 10px; margin-bottom: 10px;">
-            {% if logo_diocesi %}
-            <img src="{{ logo_diocesi }}" alt="Logo Diocesi" style="width: 120px; height: auto; margin-bottom: 8px;">
-            {% else %}
-            <div
-                style="width: 70px; height: 70px; background: #edf2f7; border: 1px solid #cbd5e0; display: inline-flex; align-items: center; justify-content: center; font-size: 7pt; color: #666; margin-bottom: 8px;">
-                LOGO<br>DIOCESI
-            </div>
-            {% endif %}
-            <h1 style="font-size: 16pt; margin: 0; color: #1a365d; letter-spacing: 1px;">DIOCESI DI CALTAGIRONE</h1>
-            <h2 style="font-size: 11pt; margin: 4px 0 0 0; font-weight: normal; color: #2c5282;">Economato e Ufficio
-                Amministrativo</h2>
-        </div>
+<!-- ==================== PAGINA 1 — FRONTESPIZIO ==================== -->
+<div class="page">
+  <div class="frontespizio">
+    {% if logo_diocesi %}
+    <img src="{{ logo_diocesi }}" style="width: 60mm; margin-bottom: 10pt;" alt="Logo Diocesi">
+    {% else %}
+    <div style="width: 60mm; height: 60mm; display: flex; align-items: center; justify-content: center; background: #f5f7fa; margin-bottom: 10pt;">
+      <span style="font-family: Arial, sans-serif; font-size: 8pt; color: #1a365d;">LOGO DIOCESI</span>
+    </div>
+    {% endif %}
 
-        <div style="text-align: center; margin: 8px 0; padding: 8px; background: #f7fafc; border: 1px solid #e2e8f0;">
-            <h3 style="font-size: 14pt; color: #1a365d; margin: 0 0 8px 0;">RENDICONTO DELLA PARROCCHIA</h3>
-            <div style="font-size: 12pt; font-weight: bold; color: #2d3748;">{{ ente.denominazione }}</div>
-            <div style="font-size: 10pt; color: #4a5568; margin-top: 4px;">{{ ente.indirizzo }} - {{ ente.cap }} {{
-                ente.comune }} ({{ ente.provincia }})</div>
-        </div>
+    <div class="front-diocesi">{{ ente.diocesi or 'Diocesi di Caltagirone' }}</div>
+    <div class="front-linea-sottile"></div>
+    <div class="front-titolo">RENDICONTO ECONOMICO</div>
+    <div class="front-sottotitolo">Bilancio Consuntivo Parrocchiale</div>
+    <div class="front-parrocchia">{{ ente.denominazione }}</div>
+    <div class="front-comune">{{ ente.comune }} ({{ ente.provincia }})</div>
+    <div class="front-periodo">{{ periodo_inizio_fmt }} — {{ periodo_fine_fmt }}</div>
 
-        <div
-            style="text-align: center; margin: 5px 0; padding: 6px 12px; background: #1a365d; color: white; font-size: 11pt;">
-            Periodo dal <strong>{{ periodo_inizio_fmt }}</strong> al <strong>{{ periodo_fine_fmt }}</strong>
-        </div>
-
-        <!-- DATI PARROCCHIA -->
-        <div class="sezione">
-            <div class="sezione-header">DATI PARROCCHIA</div>
-            <div class="sezione-content">
-                <div class="campo-row">
-                    <span class="campo-label">Eretta canonicamente:</span>
-                    <span class="campo-value">{{ ente.data_erezione_canonica or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Codice Fiscale:</span>
-                    <span class="campo-value">{{ ente.codice_fiscale or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Riconosciuta civilmente il:</span>
-                    <span class="campo-value">{{ ente.data_riconoscimento_civile or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Registro P.G. N.:</span>
-                    <span class="campo-value">{{ ente.registro_pg or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Abitanti N.:</span>
-                    <span class="campo-value">{{ ente.numero_abitanti or '' }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- DATI PARROCO -->
-        <div class="sezione">
-            <div class="sezione-header">DATI PARROCO</div>
-            <div class="sezione-content">
-                <div class="campo-row">
-                    <span class="campo-label">Cognome e Nome:</span>
-                    <span class="campo-value">{{ ente.parroco or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Nato a / il:</span>
-                    <span class="campo-value">{{ ente.parroco_nato_a or '' }}{% if ente.parroco_nato_il %} / {{
-                        ente.parroco_nato_il }}{% endif %}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Nominato il:</span>
-                    <span class="campo-value">{{ ente.parroco_nominato_il or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Possesso canonico il:</span>
-                    <span class="campo-value">{{ ente.parroco_possesso_canonico_il or '' }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- VICARIO PARROCCHIALE -->
-        <div class="sezione">
-            <div class="sezione-header">VICARIO PARROCCHIALE</div>
-            <div class="sezione-content">
-                <div class="campo-row">
-                    <span class="campo-label">Cognome e Nome:</span>
-                    <span class="campo-value">{{ ente.vicario or '' }}</span>
-                </div>
-                <div class="campo-row">
-                    <span class="campo-label">Nominato il:</span>
-                    <span class="campo-value">{{ ente.vicario_nominato_il or '' }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- NOTA ATTESTAZIONE -->
-        <div
-            style="margin-top: 10px; padding: 8px; background: #f7fafc; border: 1px solid #e2e8f0; font-size: 8pt; color: #2d3748; line-height: 1.4; text-align: justify;">
-            <strong>N.B.</strong> L'invio digitale del bilancio da parte del Parroco costituisce attestazione che lo
-            stesso è stato preventivamente visionato, discusso e approvato dal Consiglio per gli Affari Economici
-            Parrocchiale. L'approvazione è documentata mediante l'apposito modulo di accompagnamento, debitamente
-            compilato e firmato da tutti i membri o, in alternativa, dalla maggioranza degli stessi, e allegato al
-            bilancio trasmesso.
-        </div>
-
+    <div class="front-dati-colonna">
+      <div class="front-dato">
+        <span class="front-dato-label">Parroco</span>
+        <span class="front-dato-value">{{ ente.parroco or '' }}</span>
+      </div>
+      {% if ente.parroco_nominato_il %}
+      <div class="front-dato">
+        <span class="front-dato-label">Nominato il</span>
+        <span class="front-dato-value">{{ ente.parroco_nominato_il }}</span>
+      </div>
+      {% endif %}
+      {% if ente.parroco_possesso_canonico_il %}
+      <div class="front-dato">
+        <span class="front-dato-label">Possesso canonico</span>
+        <span class="front-dato-value">{{ ente.parroco_possesso_canonico_il }}</span>
+      </div>
+      {% endif %}
+      {% if ente.vicario %}
+      <div class="front-dato">
+        <span class="front-dato-label">Vicario</span>
+        <span class="front-dato-value">{{ ente.vicario }}</span>
+      </div>
+      {% endif %}
+      {% if ente.codice_fiscale %}
+      <div class="front-dato">
+        <span class="front-dato-label">C.F. Parrocchia</span>
+        <span class="front-dato-value">{{ ente.codice_fiscale }}</span>
+      </div>
+      {% endif %}
+      {% if ente.numero_abitanti %}
+      <div class="front-dato">
+        <span class="front-dato-label">Abitanti</span>
+        <span class="front-dato-value">{{ ente.numero_abitanti|ita_int }}</span>
+      </div>
+      {% endif %}
+      {% if ente.data_erezione_canonica %}
+      <div class="front-dato">
+        <span class="front-dato-label">Erezione canonica</span>
+        <span class="front-dato-value">{{ ente.data_erezione_canonica }}</span>
+      </div>
+      {% endif %}
+      {% if ente.data_riconoscimento_civile %}
+      <div class="front-dato">
+        <span class="front-dato-label">Riconoscimento civile</span>
+        <span class="front-dato-value">{{ ente.data_riconoscimento_civile }}</span>
+      </div>
+      {% endif %}
+      <div class="front-dato">
+        <span class="front-dato-label">Indirizzo</span>
+        <span class="front-dato-value">{{ ente.indirizzo or '' }}{% if ente.cap %} — {{ ente.cap }}{% endif %}</span>
+      </div>
     </div>
 
-    <!-- ==================== PAGINA 2 - ENTRATE (SUPER COMPATTA) ==================== -->
-    <div class="page page-compatta">
-        <div class="header-compatto">
-            Periodo dal {{ periodo_inizio_fmt }} al {{ periodo_fine_fmt }} — {{ ente.denominazione }}
-        </div>
+    <div class="front-data-compilazione">Compilato il {{ data_compilazione }}</div>
+  </div>
+</div>
 
-        <h2 style="color: #276749;">ENTRATE</h2>
+<!-- ==================== PAGINA 2 — MOVIMENTI ==================== -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-header-left">{{ ente.denominazione }} — Rendiconto {{ anno }}</span>
+    <span class="page-header-right">MOVIMENTI</span>
+  </div>
 
-        <table class="tabella-compatta">
-            <thead>
-                <tr>
-                    <th>Descrizione</th>
-                    <th class="col-importo">Importo €</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="saldo-precedente-row">
-                    <td>Saldo esercizio precedente</td>
-                    <td class="importo">{{ (riporto_precedente if riporto_precedente > 0 else 0)|ita }}</td>
-                </tr>
+  <div class="section-title">Movimenti dell'Esercizio</div>
+  <div class="section-subtitle">Periodo: {{ periodo_inizio_fmt }} — {{ periodo_fine_fmt }}</div>
 
-                {% for categoria in categorie_entrate %}
-                <tr class="categoria-row">
-                    <td>{{ categoria.nome|upper }}</td>
-                    <td class="importo">{{ categoria.totale|ita }}</td>
-                </tr>
-                {% for sub in categoria.sottocategorie %}
-                <tr class="subcategoria-row">
-                    <td>{{ sub.nome }}</td>
-                    <td class="importo">{{ sub.totale|ita }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr class="totale-row">
-                    <td>TOTALE ENTRATE</td>
-                    <td class="importo">€ {{ (totale_entrate + (riporto_precedente if riporto_precedente > 0 else
-                        0))|ita }}</td>
-                </tr>
-            </tfoot>
-        </table>
+  <div class="riporto-box">
+    <span class="riporto-label">Riporto da esercizio precedente</span>
+    <span class="riporto-importo{% if riporto_precedente < 0 %} negativo{% endif %}">{% if riporto_precedente < 0 %}- {% endif %}&euro; {{ riporto_precedente|abs|ita }}</span>
+  </div>
 
+  <table>
+    <thead>
+      <tr>
+        <th class="col-codice">Cod.</th>
+        <th>Descrizione</th>
+        <th class="col-importo">Importo &euro;</th>
+      </tr>
+    </thead>
+    <tbody>
+      {# === ENTRATE === #}
+      {% for cat in categorie_entrate %}
+      <tr class="cat-padre">
+        <td class="col-codice">{{ cat.codice }}</td>
+        <td>{{ cat.nome }}</td>
+        <td class="col-importo">{{ cat.totale|ita }}</td>
+      </tr>
+      {% for sub in cat.sottocategorie %}
+      <tr class="cat-figlio">
+        <td class="col-codice">{{ sub.codice }}</td>
+        <td>{{ sub.nome }}</td>
+        <td class="col-importo">{{ sub.totale|ita }}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+
+      {# === USCITE === #}
+      {% for cat in categorie_uscite %}
+      <tr class="cat-padre">
+        <td class="col-codice">{{ cat.codice }}</td>
+        <td>{{ cat.nome }}</td>
+        <td class="col-importo negativo">- {{ cat.totale|ita }}</td>
+      </tr>
+      {% for sub in cat.sottocategorie %}
+      <tr class="cat-figlio">
+        <td class="col-codice">{{ sub.codice }}</td>
+        <td>{{ sub.nome }}</td>
+        <td class="col-importo negativo">- {{ sub.totale|ita }}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+
+      <tr class="separatore-sezione"><td colspan="3"></td></tr>
+
+      <tr class="riga-subtotale">
+        <td class="col-codice"></td>
+        <td>Totale Entrate</td>
+        <td class="col-importo positivo">{{ totale_entrate|ita }}</td>
+      </tr>
+      <tr class="riga-subtotale">
+        <td class="col-codice"></td>
+        <td>Totale Uscite</td>
+        <td class="col-importo negativo">- {{ totale_uscite|ita }}</td>
+      </tr>
+      <tr class="riga-subtotale">
+        <td class="col-codice"></td>
+        <td>Risultato di Gestione</td>
+        <td class="col-importo {% if saldo >= 0 %}positivo{% else %}negativo{% endif %}">{% if saldo < 0 %}- {% endif %}{{ saldo|abs|ita }}</td>
+      </tr>
+      {% set saldo_finale = riporto_precedente + saldo %}
+      <tr class="riga-totale-finale">
+        <td class="col-codice"></td>
+        <td>SALDO FINALE (riporto + gestione)</td>
+        <td class="col-importo {% if saldo_finale >= 0 %}positivo{% else %}negativo{% endif %}">{% if saldo_finale < 0 %}- {% endif %}{{ saldo_finale|abs|ita }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== PAGINA 3 — RIEPILOGO ==================== -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-header-left">{{ ente.denominazione }} — Rendiconto {{ anno }}</span>
+    <span class="page-header-right">RIEPILOGO</span>
+  </div>
+
+  <div class="section-title">Riepilogo Economico</div>
+  <div class="section-subtitle">Esercizio {{ periodo_inizio_fmt }} — {{ periodo_fine_fmt }}</div>
+
+  <div class="riepilogo-box">
+    <div class="riepilogo-title">Risultato di Gestione</div>
+    <div class="riepilogo-riga">
+      <span class="riepilogo-label">Riporto da esercizio precedente</span>
+      <span class="riepilogo-value{% if riporto_precedente < 0 %} negativo{% endif %}">{% if riporto_precedente < 0 %}- {% endif %}{{ riporto_precedente|abs|ita }}</span>
     </div>
-
-    <!-- ==================== PAGINA 3 - USCITE (SUPER COMPATTA) ==================== -->
-    <div class="page page-compatta">
-        <div class="header-compatto">
-            Periodo dal {{ periodo_inizio_fmt }} al {{ periodo_fine_fmt }} — {{ ente.denominazione }}
-        </div>
-
-        <h2 style="color: #c53030;">USCITE</h2>
-
-        <table class="tabella-compatta">
-            <thead>
-                <tr>
-                    <th>Descrizione</th>
-                    <th class="col-importo">Importo €</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="saldo-precedente-row">
-                    <td>Saldo esercizio precedente</td>
-                    <td class="importo">{{ ((riporto_precedente|abs) if riporto_precedente < 0 else 0)|ita }}</td>
-                </tr>
-
-                {% for categoria in categorie_uscite %}
-                <tr class="categoria-row">
-                    <td>{{ categoria.nome|upper }}</td>
-                    <td class="importo">{{ categoria.totale|ita }}</td>
-                </tr>
-                {% for sub in categoria.sottocategorie %}
-                <tr class="subcategoria-row">
-                    <td>{{ sub.nome }}</td>
-                    <td class="importo">{{ sub.totale|ita }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr class="totale-row">
-                    <td>TOTALE USCITE</td>
-                    <td class="importo">€ {{ (totale_uscite + ((riporto_precedente|abs) if riporto_precedente < 0 else
-                            0))|ita }}</td>
-                </tr>
-            </tfoot>
-        </table>
-
+    <div class="riepilogo-riga">
+      <span class="riepilogo-label">Totale Entrate dell'esercizio</span>
+      <span class="riepilogo-value positivo">{{ totale_entrate|ita }}</span>
     </div>
+    <div class="riepilogo-riga">
+      <span class="riepilogo-label">Totale Uscite dell'esercizio</span>
+      <span class="riepilogo-value negativo">- {{ totale_uscite|ita }}</span>
+    </div>
+    {% set saldo_finale = riporto_precedente + saldo %}
+    <div class="riepilogo-riga totale">
+      <span class="riepilogo-label">SALDO FINALE</span>
+      <span class="riepilogo-value {% if saldo_finale >= 0 %}positivo{% else %}negativo{% endif %}">{% if saldo_finale < 0 %}- {% endif %}{{ saldo_finale|abs|ita }}</span>
+    </div>
+  </div>
 
-    <!-- ==================== PAGINA 4 - RIEPILOGO ==================== -->
-    <div class="page">
-        <div
-            style="text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #1a365d; font-size: 10pt; color: #1a365d; font-weight: bold;">
-            Periodo dal {{ periodo_inizio_fmt }} al {{ periodo_fine_fmt }} — {{ ente.denominazione }}
-        </div>
+  <div class="riepilogo-box">
+    <div class="riepilogo-title">Situazione Patrimoniale — Disponibilit&agrave; Liquide</div>
+    <table class="conti-table">
+      <thead>
+        <tr>
+          <th style="text-align: left;">Conto</th>
+          <th style="text-align: left;">Tipo</th>
+          <th style="text-align: right;">Saldo al {{ periodo_fine_fmt }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for conto in conti %}
+        <tr>
+          <td>{{ conto.nome }}</td>
+          <td>{{ conto.tipo }}</td>
+          <td class="col-importo" style="font-weight: 600;">{{ conto.saldo|ita }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="riepilogo-riga totale" style="margin-top: 6pt;">
+      <span class="riepilogo-label">TOTALE DISPONIBILIT&Agrave;</span>
+      <span class="riepilogo-value {% if totale_disponibilita >= 0 %}positivo{% else %}negativo{% endif %}">{{ totale_disponibilita|ita }}</span>
+    </div>
+  </div>
 
-        <!-- RIEPILOGO -->
-        <div style="margin: 15px 0;">
-            <div class="riepilogo-title">
-                RIEPILOGO DEL PERIODO DAL {{ periodo_inizio_fmt }} AL {{ periodo_fine_fmt }}
-            </div>
-            <div class="riepilogo-box">
-                <div class="riepilogo-item">
-                    <div class="label">TOTALE ENTRATE</div>
-                    <div class="value verde">€ {{ (totale_entrate + (riporto_precedente if riporto_precedente > 0 else
-                        0))|ita }}</div>
-                </div>
-                <div class="riepilogo-item">
-                    <div class="label">TOTALE USCITE</div>
-                    <div class="value rosso">€ {{ (totale_uscite + ((riporto_precedente|abs) if riporto_precedente < 0
-                            else 0))|ita }}</div>
-                    </div>
-                    <div class="riepilogo-item">
-                        <div class="label">{% if saldo >= 0 %}AVANZO{% else %}DISAVANZO{% endif %} DI GESTIONE</div>
-                        <div class="value {% if saldo >= 0 %}verde{% else %}rosso{% endif %}">€ {{ (saldo|abs)|ita }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="dichiarazione-parroco">
+    Il sottoscritto, in qualit&agrave; di legale rappresentante della Parrocchia, dichiara che il presente
+    rendiconto economico &egrave; stato redatto in conformit&agrave; alle disposizioni diocesane, che i dati in esso
+    contenuti corrispondono alle risultanze delle scritture contabili e che il medesimo &egrave; stato esaminato
+    e approvato dal Consiglio Parrocchiale per gli Affari Economici (C.A.E.P.).
+  </div>
 
-            <!-- SITUAZIONE PATRIMONIALE -->
-            <div style="margin: 20px 0;">
-                <div class="riepilogo-title">
-                    SITUAZIONE PATRIMONIALE AL {{ periodo_fine_fmt }}
-                </div>
-                <div style="border: 1px solid #1a365d; border-top: none;">
-                    <div
-                        style="background: #edf2f7; padding: 8px 12px; font-weight: bold; font-size: 10pt; color: #1a365d; border-bottom: 1px solid #cbd5e0;">
-                        DISPONIBILITÀ
-                    </div>
-                    <div style="padding: 10px;">
-                        {% for conto in conti %}
-                        <div
-                            style="display: flex; justify-content: space-between; padding: 5px 10px; font-size: 10pt; border-bottom: 1px solid #f0f0f0;">
-                            <span>{{ conto.nome }}</span>
-                            <span>€ {{ conto.saldo|ita }}</span>
-                        </div>
-                        {% endfor %}
-                        <div
-                            style="display: flex; justify-content: space-between; padding: 10px; font-size: 11pt; font-weight: bold; background: #f7fafc; border-top: 1px solid #1a365d; margin-top: 8px;">
-                            <span>TOTALE DISPONIBILITÀ</span>
-                            <span style="color: #276749;">€ {{ totale_disponibilita|ita }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="parroco-firma">
+    <div class="parroco-ruolo">Il Parroco</div>
+    <div class="parroco-nome">{{ ente.parroco or '' }}</div>
+  </div>
 
-            <!-- FIRME -->
-            <div style="margin-top: 30px; display: flex; justify-content: space-between;">
-                <div style="text-align: center; width: 45%;">
-                    <div style="font-size: 9pt; color: #4a5568; margin-bottom: 40px;">IL PARROCO</div>
-                    <div style="border-top: 1px solid #1a365d; margin: 0 15px; padding-top: 6px;">
-                        <div style="font-size: 10pt; font-weight: bold;">{{ ente.parroco or '' }}</div>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 8pt; color: #666;">
-                        {{ ente.comune }}, {{ data_compilazione }}
-                    </div>
-                </div>
-                <div style="text-align: center; width: 45%;">
-                    <div style="font-size: 9pt; color: #4a5568; margin-bottom: 40px;">L'ORDINARIO DIOCESANO</div>
-                    <div style="border-top: 1px solid #1a365d; margin: 0 15px; padding-top: 6px;">
-                        {% if approvato and vescovo %}
-                        <div style="font-size: 10pt; font-weight: bold;">{{ vescovo }}</div>
-                        {% else %}
-                        <div style="font-size: 10pt;">&nbsp;</div>
-                        {% endif %}
-                    </div>
-                    <div style="margin-top: 10px; font-size: 8pt; color: #666;">
-                        {% if approvato %}
-                        Caltagirone, {{ data_approvazione }}
-                        {% else %}
-                        Caltagirone, ___/___/____
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+  {% if data_invio %}
+  <div class="data-invio">Data invio: <strong>{{ data_invio }}</strong></div>
+  {% endif %}
 
-            <div
-                style="margin-top: 25px; padding: 8px; background: #f7fafc; border: 1px solid #e2e8f0; font-size: 7pt; color: #666; text-align: justify;">
-                <strong>N.B.</strong> Tutte le operazioni di amministrazione straordinaria devono riportare
-                la data del decreto di autorizzazione dell'Ordinario.
-            </div>
+  {% if approvato %}
+  <div class="separatore"></div>
+  <div class="approvazione-box">
+    Il bilancio, debitamente verificato dal Revisore Contabile della Diocesi, &egrave; stato:
+    <div class="approvazione-stato">APPROVATO</div>
+    <div class="approvazione-data">
+      {% if data_approvazione %}In data <strong>{{ data_approvazione }}</strong> — {% endif %}{{ vescovo }}, {{ vescovo_titolo }} della {{ ente.diocesi or 'Diocesi di Caltagirone' }}
+    </div>
+  </div>
+  {% endif %}
 
-        </div>
+</div>
 
 </body>
-
 </html>

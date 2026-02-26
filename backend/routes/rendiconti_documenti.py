@@ -530,8 +530,8 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         
         # 2. Recupera dati rendiconto
         cur.execute("""
-            SELECT periodo_inizio, periodo_fine, totale_entrate, 
-                   totale_uscite, saldo, stato
+            SELECT periodo_inizio, periodo_fine, totale_entrate,
+                   totale_uscite, saldo, stato, data_invio, data_revisione
             FROM rendiconti WHERE id = %s
         """, (rendiconto_id,))
         
@@ -544,8 +544,8 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         
         # 3. Recupera saldi conti
         cur.execute("""
-            SELECT r.nome, 
-                   COALESCE(SUM(CASE 
+            SELECT r.nome, r.tipo,
+                   COALESCE(SUM(CASE
                        WHEN m.tipo_movimento = 'entrata' THEN m.importo
                        WHEN m.tipo_movimento = 'uscita' THEN -m.importo
                        ELSE 0
@@ -554,11 +554,11 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             LEFT JOIN movimenti_contabili m ON m.registro_id = r.id
                 AND m.data_movimento <= %s
             WHERE r.ente_id = %s AND r.attivo = TRUE
-            GROUP BY r.id, r.nome
+            GROUP BY r.id, r.nome, r.tipo
             ORDER BY r.nome
         """, (periodo_fine, ente_id))
-        
-        conti = [{'nome': row[0], 'saldo': float(row[1])} for row in cur.fetchall()]
+
+        conti = [{'nome': row[0], 'tipo': (row[1] or '').capitalize(), 'saldo': float(row[2])} for row in cur.fetchall()]
         totale_attivo = sum(c['saldo'] for c in conti)
         
         # 4. Recupera movimenti con categoria gerarchica
@@ -574,7 +574,10 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
                 cp.descrizione as categoria_padre_nome,
                 cp.id as categoria_padre_id,
                 cpp.descrizione as categoria_nonno_nome,
-                cpp.id as categoria_nonno_id
+                cpp.id as categoria_nonno_id,
+                c.codice as categoria_codice,
+                cp.codice as categoria_padre_codice,
+                cpp.codice as categoria_nonno_codice
             FROM movimenti_contabili m
             LEFT JOIN registri_contabili r ON m.registro_id = r.id
             LEFT JOIN piano_conti c ON m.categoria_id = c.id
@@ -595,59 +598,71 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         # 5. Organizza movimenti per categoria
         def organizza_per_categoria(movimenti, tipo_filtro):
             categorie = defaultdict(lambda: {
-                'nome': '', 
-                'totale': 0, 
+                'nome': '',
+                'codice': '',
+                'totale': 0,
                 'sottocategorie': defaultdict(lambda: {
-                    'nome': '', 
-                    'totale': 0, 
+                    'nome': '',
+                    'codice': '',
+                    'totale': 0,
                     'movimenti': []
                 })
             })
-            
+
             for mov in movimenti:
                 if mov[1] != tipo_filtro:
                     continue
-                    
+
                 data_mov = mov[0].strftime('%d/%m/%Y')
                 importo = float(mov[2])
                 descrizione = mov[3] or 'Movimento'
                 conto = mov[4] or ''
-                
+
                 # Determina categoria principale e sottocategoria
                 cat_livello1 = mov[9] or mov[7] or mov[5] or 'Altre voci'
                 cat_livello2 = mov[7] if mov[9] else (mov[5] if mov[7] else 'Generale')
+
+                # Codice categoria (indici 11=c.codice, 12=cp.codice, 13=cpp.codice)
+                codice_livello1 = mov[13] or mov[12] or mov[11] or ''
+                codice_livello2 = mov[12] if mov[13] else (mov[11] if mov[12] else '')
+
                 if cat_livello2 == cat_livello1:
                     cat_livello2 = 'Generale'
-                
+                    codice_livello2 = ''
+
                 movimento = {
                     'data': data_mov,
                     'descrizione': descrizione[:55] + '...' if len(descrizione) > 55 else descrizione,
                     'conto': conto,
                     'importo': importo
                 }
-                
+
                 categorie[cat_livello1]['nome'] = cat_livello1
+                categorie[cat_livello1]['codice'] = codice_livello1
                 categorie[cat_livello1]['sottocategorie'][cat_livello2]['nome'] = cat_livello2
+                categorie[cat_livello1]['sottocategorie'][cat_livello2]['codice'] = codice_livello2
                 categorie[cat_livello1]['sottocategorie'][cat_livello2]['movimenti'].append(movimento)
                 categorie[cat_livello1]['sottocategorie'][cat_livello2]['totale'] += importo
                 categorie[cat_livello1]['totale'] += importo
-            
-            # Converti in lista ordinata
+
+            # Converti in lista ordinata per codice
             result = []
-            for cat_name in sorted(categorie.keys()):
+            for cat_name in sorted(categorie.keys(), key=lambda k: categorie[k].get('codice', '') or k):
                 cat_data = categorie[cat_name]
                 sottocategorie = []
-                for sub_name in sorted(cat_data['sottocategorie'].keys()):
+                for sub_name in sorted(cat_data['sottocategorie'].keys(), key=lambda k: cat_data['sottocategorie'][k].get('codice', '') or k):
                     sub_data = cat_data['sottocategorie'][sub_name]
-                    if sub_data['movimenti']:  # Solo se ci sono movimenti
+                    if sub_data['movimenti']:
                         sottocategorie.append({
                             'nome': sub_data['nome'],
+                            'codice': sub_data['codice'],
                             'totale': sub_data['totale'],
                             'movimenti': sub_data['movimenti']
                         })
-                if sottocategorie:  # Solo se ci sono sottocategorie
+                if sottocategorie:
                     result.append({
                         'nome': cat_data['nome'],
+                        'codice': cat_data['codice'],
                         'totale': cat_data['totale'],
                         'sottocategorie': sottocategorie
                     })
@@ -728,7 +743,10 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             'totale_attivo': totale_attivo,
             'totale_disponibilita': totale_attivo,
             'riporto_precedente': riporto_precedente,
-            'approvato': rend[5] == 'approvato'
+            'approvato': rend[5] == 'approvato',
+            'anno': periodo_fine.year,
+            'data_invio': rend[6].strftime('%d/%m/%Y') if rend[6] else '',
+            'data_approvazione': rend[7].strftime('%d/%m/%Y') if rend[7] else '',
         }
         
         env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
@@ -744,6 +762,15 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
                 return valore
 
         env.filters['ita'] = formato_italiano
+
+        def formato_italiano_intero(valore):
+            try:
+                numero = int(float(valore))
+                return f"{numero:,}".replace(",", ".")
+            except:
+                return valore
+
+        env.filters['ita_int'] = formato_italiano_intero
 
         template = env.get_template('rendiconto.html')
         html_content = template.render(**dati_template)
