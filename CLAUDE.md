@@ -607,6 +607,8 @@ docker restart parrocchia-backend
 9. Menu contestuale Modifica non apriva form
 10. Frontespizio PDF su 2 pagine (font 6.5pt)
 11. Saldo iniziale negativo bloccato: ContabilitaLayout.jsx aveva input type="number" min="0" (form duplicato rispetto a Conti.jsx)
+12. Totali rendiconto includevano saldi iniziali: rendiconti_crud.py usava `tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale'` nella query calcolo totali (fix: solo `tipo_speciale IS NULL`)
+13. Saldo anno precedente in stampe.py non filtrava tipo_speciale: includeva saldi iniziali e giroconti nel calcolo (fix: aggiunto `AND tipo_speciale IS NULL`)
 
 ---
 

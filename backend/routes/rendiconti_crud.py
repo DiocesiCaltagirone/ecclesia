@@ -107,14 +107,14 @@ async def crea_rendiconto(
         
         # Calcola totali del periodo (escludi saldi iniziali e giroconti)
         cur.execute("""
-            SELECT 
+            SELECT
                 COALESCE(SUM(CASE WHEN tipo_movimento = 'entrata' THEN importo ELSE 0 END), 0) as totale_entrate,
                 COALESCE(SUM(CASE WHEN tipo_movimento = 'uscita' THEN importo ELSE 0 END), 0) as totale_uscite
             FROM movimenti_contabili
             WHERE ente_id = %s
               AND data_movimento >= %s
               AND data_movimento <= %s
-              AND (tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale')
+              AND tipo_speciale IS NULL
         """, (ente_id, dati.periodo_inizio, dati.periodo_fine))
         
         totali = cur.fetchone()

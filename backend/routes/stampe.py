@@ -57,7 +57,7 @@ async def calcola_dati_rendiconto(rendiconto_id: str, db):
     # 2. Calcola saldo anno precedente (per saldo iniziale)
     query_saldo_precedente = text("""
         SELECT COALESCE(SUM(
-            CASE 
+            CASE
                 WHEN tipo_movimento = 'entrata' THEN importo
                 WHEN tipo_movimento = 'uscita' THEN -importo
             END
@@ -65,6 +65,7 @@ async def calcola_dati_rendiconto(rendiconto_id: str, db):
         FROM movimenti_contabili
         WHERE ente_id = :ente_id
           AND data_movimento < :periodo_inizio
+          AND tipo_speciale IS NULL
     """)
     result = await db.execute(query_saldo_precedente, {
         "ente_id": rendiconto.ente_id,
