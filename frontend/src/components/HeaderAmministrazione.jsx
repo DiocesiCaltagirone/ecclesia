@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CambioPasswordModal from './CambioPasswordModal';
 
 const HeaderAmministrazione = () => {
   const navigate = useNavigate();
@@ -78,6 +79,10 @@ const HeaderAmministrazione = () => {
           </div>
         </div>
       </div>
+      {/* MODAL CAMBIA PASSWORD */}
+      {showPasswordModal && (
+        <CambioPasswordModal onClose={() => setShowPasswordModal(false)} />
+      )}
     </div>
   );
 };

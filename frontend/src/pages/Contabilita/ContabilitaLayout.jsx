@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import FormMovimentoGlobale from './FormMovimentoGlobale';
+import CambioPasswordModal from '../../components/CambioPasswordModal';
 
 const ContabilitaLayout = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const ContabilitaLayout = () => {
   const [showModalTransazione, setShowModalTransazione] = useState(false);
   const [categorie, setCategorie] = useState([]);
   const [rendicontoMenuOpen, setRendicontoMenuOpen] = useState(false);
+  const [showCambioPassword, setShowCambioPassword] = useState(false);
   const [permessi, setPermessi] = useState({
     anagrafica: false,
     contabilita: true,
@@ -313,7 +315,7 @@ const ContabilitaLayout = () => {
                   <button
                     onClick={() => {
                       setUserMenuOpen(false);
-                      alert('Cambia Password - Da implementare');
+                      setShowCambioPassword(true);
                     }}
                     className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
@@ -648,6 +650,11 @@ const ContabilitaLayout = () => {
           onSave={handleSaveTransazione}
           categorie={categorie}
         />
+      )}
+
+      {/* MODAL CAMBIA PASSWORD */}
+      {showCambioPassword && (
+        <CambioPasswordModal onClose={() => setShowCambioPassword(false)} />
       )}
 
     </div>
