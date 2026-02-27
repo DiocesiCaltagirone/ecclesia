@@ -687,13 +687,18 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         if riporto_row:
             riporto_precedente = float(riporto_row[0])
         else:
-            # Se non c'è rendiconto precedente, cerca il saldo iniziale manuale
+            # Se non c'è rendiconto precedente, somma i saldi iniziali di TUTTI i conti
             cur.execute("""
-                SELECT importo FROM movimenti_contabili
-                WHERE ente_id = %s 
+                SELECT COALESCE(SUM(
+                    CASE
+                        WHEN tipo_movimento = 'entrata' THEN importo
+                        WHEN tipo_movimento = 'uscita' THEN -importo
+                        ELSE importo
+                    END
+                ), 0) FROM movimenti_contabili
+                WHERE ente_id = %s
                   AND tipo_speciale = 'saldo_iniziale'
                   AND (riporto_saldo IS NULL OR riporto_saldo = FALSE)
-                ORDER BY data_movimento ASC LIMIT 1
             """, (ente_id,))
             saldo_iniziale_row = cur.fetchone()
             riporto_precedente = float(saldo_iniziale_row[0]) if saldo_iniziale_row else 0
