@@ -151,7 +151,8 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── components\
 │   │   │   ├── Layout.jsx              # Layout con sidebar
 │   │   │   ├── Sidebar.jsx             # Menu laterale dinamico per ruolo
-│   │   │   └── ModalAllegati.jsx       # Modal per upload/visualizza allegati movimenti
+│   │   │   ├── ModalAllegati.jsx       # Modal per upload/visualizza allegati movimenti
+│   │   │   └── CambioPasswordModal.jsx # Modal cambio password condiviso (usato in Layout, ContabilitaLayout, HeaderAmministrazione)
 │   │   ├── utils\
 │   │   │   └── formatters.js           # Funzione condivisa formatCurrency (formato italiano)
 │   │   └── services\
@@ -622,6 +623,7 @@ docker restart parrocchia-backend
 16. Ordinamento categorie PDF alfabetico: codice "12" prima di "8" (fix: ordinamento numerico con split('.'))
 17. formatCurrency non metteva punto migliaia: Intl.NumberFormat('it-IT') non affidabile su tutti i browser (fix: implementazione manuale con regex)
 18. PUT /registri check saldo bloccato usava colonna inesistente rendiconto_id (fix: controllo campo bloccato del movimento saldo_iniziale)
+19. Cambio password funzionava solo dalla Home (Layout.jsx): ContabilitaLayout.jsx aveva solo `alert('Da implementare')`, HeaderAmministrazione.jsx non aveva il modal. Fix: estratto CambioPasswordModal.jsx come componente condiviso, importato in tutti e 3 i layout.
 
 ---
 
@@ -643,3 +645,8 @@ docker restart parrocchia-backend
 - .env backend: postgres:5432 in Docker, localhost:5432 fuori Docker
 - FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx (modal nella barra superiore) e Conti.jsx (modal nella pagina conti). Modifiche al form vanno fatte in ENTRAMBI i file!
 - SALDO INIZIALE NEGATIVO: contabilita.py gestisce saldi negativi come movimento tipo 'uscita' con valore assoluto (sia creazione che modifica conto)
+- 3 LAYOUT SEPARATI: l'app NON ha un header condiviso. Esistono 3 layout indipendenti:
+  - Layout.jsx → Home, Persone, Impostazioni, Registro
+  - ContabilitaLayout.jsx → tutta la sezione /contabilita/*
+  - HeaderAmministrazione.jsx → pagina Amministrazione
+  Funzionalita comuni (es. CambioPasswordModal) vanno importate in TUTTI e 3.
