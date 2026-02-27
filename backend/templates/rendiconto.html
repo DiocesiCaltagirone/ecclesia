@@ -60,9 +60,9 @@
 
   .front-linea-sottile {
     width: 100mm;
-    height: 0.8pt;
-    background: linear-gradient(90deg, transparent, #1a365d, transparent);
-    margin: 0 auto 24pt auto;
+    height: 0;
+    border-top: 0.5pt solid #8a9ab5;
+    margin: 0 auto 28pt auto;
   }
 
   .front-titolo {
@@ -70,26 +70,26 @@
     font-size: 20pt;
     font-weight: 700;
     color: #1a365d;
-    margin-bottom: 4pt;
+    margin-bottom: 6pt;
     letter-spacing: 1.5pt;
   }
   .front-sottotitolo {
     font-family: Arial, sans-serif;
     font-size: 11pt;
     color: #666;
-    margin-bottom: 24pt;
+    margin-bottom: 28pt;
   }
   .front-parrocchia {
     font-family: 'Georgia', 'Palatino Linotype', serif;
     font-size: 15pt;
     font-weight: 700;
     color: #333;
-    margin-bottom: 4pt;
+    margin-bottom: 6pt;
   }
   .front-comune {
     font-size: 12pt;
     color: #555;
-    margin-bottom: 20pt;
+    margin-bottom: 24pt;
   }
   .front-periodo {
     font-family: Arial, sans-serif;
@@ -98,7 +98,7 @@
     color: #1a365d;
     border: 1.5pt solid #1a365d;
     padding: 7pt 28pt;
-    margin-bottom: 30pt;
+    margin-bottom: 34pt;
   }
 
   .front-dati-colonna {
@@ -374,9 +374,9 @@
 <div class="page">
   <div class="frontespizio">
     {% if logo_diocesi %}
-    <img src="{{ logo_diocesi }}" style="max-width: 60mm; margin-bottom: 10pt;" alt="Logo Diocesi">
+    <img src="{{ logo_diocesi }}" style="max-width: 60mm; margin-bottom: 16pt;" alt="Logo Diocesi">
     {% else %}
-    <div style="margin-bottom: 10pt; font-family: Arial, sans-serif; font-size: 10pt; color: #1a365d;">LOGO DIOCESI</div>
+    <div style="margin-bottom: 16pt; font-family: Arial, sans-serif; font-size: 10pt; color: #1a365d;">LOGO DIOCESI</div>
     {% endif %}
 
     <div class="front-linea-sottile"></div>

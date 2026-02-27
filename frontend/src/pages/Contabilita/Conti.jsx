@@ -69,11 +69,12 @@ const Conti = () => {
 
       const method = editingConto ? 'PUT' : 'POST';
 
+      const saldoStr = String(formData.saldo_iniziale).replace(',', '.');
       const payload = {
         tipo: formData.tipo,
         nome: formData.nome,
         iban: formData.numero,
-        saldo_iniziale: formData.saldo_iniziale,
+        saldo_iniziale: parseFloat(saldoStr) || 0,
         data_inizio: formData.data_inizio
       };
 
@@ -215,7 +216,7 @@ const Conti = () => {
                           )}
                         </td>
                         <td className="px-3 py-1.5 text-right">
-                          <div className="text-sm font-bold text-gray-900 font-mono">
+                          <div className={`text-sm font-bold font-mono ${conto.saldo_attuale < 0 ? 'text-red-600' : 'text-gray-900'}`}>
                             €{formatCurrency(conto.saldo_attuale)}
                           </div>
                         </td>
@@ -260,7 +261,7 @@ const Conti = () => {
                       <td className="px-3 py-1.5 text-xs font-bold text-blue-900">
                         Subtotale {tipiConto[tipo]?.label || tipo}
                       </td>
-                      <td className="px-3 py-1.5 text-right text-xs font-bold text-blue-900 font-mono">
+                      <td className={`px-3 py-1.5 text-right text-xs font-bold font-mono ${totaleTipo < 0 ? 'text-red-600' : 'text-blue-900'}`}>
                         €{formatCurrency(totaleTipo)}
                       </td>
                       <td></td>
@@ -282,7 +283,7 @@ const Conti = () => {
                 <td className="px-3 py-2 text-sm font-bold text-blue-900 uppercase">
                   Totale Generale
                 </td>
-                <td className="px-3 py-2 text-right text-sm font-bold text-blue-900 font-mono">
+                <td className={`px-3 py-2 text-right text-sm font-bold font-mono ${totaleGenerale < 0 ? 'text-red-600' : 'text-blue-900'}`}>
                   €{formatCurrency(totaleGenerale)}
                 </td>
                 <td></td>
@@ -372,19 +373,20 @@ const Conti = () => {
                   Saldo iniziale <span className="text-gray-400">(opzionale)</span>
                 </label>
                 <p className="text-[10px] text-gray-500 mb-1.5 leading-tight">
-                  💡 Saldo iniziale del conto (non modificare se già in uso)
+                  💡 Saldo iniziale del conto (anche negativo per scoperti)
                 </p>
                 <div className="relative">
                   <span className="absolute left-3 top-1.5 text-gray-500 text-sm">€</span>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.saldo_iniziale}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      saldo_iniziale: parseFloat(e.target.value) || 0
-                    })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || val === '-' || /^-?\d*[.,]?\d{0,2}$/.test(val)) {
+                        setFormData({ ...formData, saldo_iniziale: val });
+                      }
+                    }}
                     className="w-full pl-7 pr-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
                     placeholder="0.00"
                   />

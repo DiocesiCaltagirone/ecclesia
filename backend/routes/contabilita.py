@@ -73,8 +73,10 @@ def create_registro(
     """
     Crea nuovo registro contabile (conto bancario/postale)
     
-    Se viene fornito un saldo_iniziale > 0, crea automaticamente
+    Se viene fornito un saldo_iniziale, crea automaticamente
     un movimento speciale di tipo 'saldo_iniziale' alla data odierna.
+    Se il saldo è negativo (es. scoperto bancario), il movimento sarà
+    di tipo 'uscita' con il valore assoluto dell'importo.
     """
     try:
         ente_id = current_user.get('ente_id') or x_ente_id
@@ -109,37 +111,41 @@ def create_registro(
         
         row = result.fetchone()
         
-        # Se saldo iniziale > 0, crea movimento automatico
-        if saldo_iniziale >= 0:  # Crea sempre il movimento, anche se importo è 0
-            print(f"✅ Creo movimento saldo iniziale: €{saldo_iniziale}")
-            
-            movimento_id = str(uuid.uuid4())
-            categoria_riporto_id = None
-            
-            query_movimento = text("""
-                INSERT INTO movimenti_contabili (
-                    id, ente_id, registro_id, categoria_id,
-                    data_movimento, tipo_movimento, importo,
-                    causale, bloccato, tipo_speciale, created_by
-                ) VALUES (
-                    :id, :ente_id, :registro_id, :categoria_id,
-                    :data_inizio, 'entrata', :importo,
-                    'Saldo iniziale alla creazione del conto',
-                    FALSE, 'saldo_iniziale', :user_id
-                )
-            """)
-            
-            db.execute(query_movimento, {
-                "id": movimento_id,
-                "ente_id": ente_id,
-                "registro_id": registro_id,
-                "categoria_id": categoria_riporto_id,
-                "importo": saldo_iniziale,
-                "data_inizio": data_inizio,
-                "user_id": current_user.get('id')
-            })
-            
-            print(f"✅ Movimento saldo iniziale creato: ID {movimento_id}")
+        # Crea sempre il movimento saldo iniziale
+        # Se negativo (scoperto), tipo_movimento = 'uscita' con valore assoluto
+        tipo_mov_saldo = 'entrata' if saldo_iniziale >= 0 else 'uscita'
+        importo_saldo = abs(saldo_iniziale)
+
+        print(f"✅ Creo movimento saldo iniziale: €{saldo_iniziale} (tipo: {tipo_mov_saldo}, importo: {importo_saldo})")
+
+        movimento_id = str(uuid.uuid4())
+        categoria_riporto_id = None
+
+        query_movimento = text("""
+            INSERT INTO movimenti_contabili (
+                id, ente_id, registro_id, categoria_id,
+                data_movimento, tipo_movimento, importo,
+                causale, bloccato, tipo_speciale, created_by
+            ) VALUES (
+                :id, :ente_id, :registro_id, :categoria_id,
+                :data_inizio, :tipo_movimento, :importo,
+                'Saldo iniziale alla creazione del conto',
+                FALSE, 'saldo_iniziale', :user_id
+            )
+        """)
+
+        db.execute(query_movimento, {
+            "id": movimento_id,
+            "ente_id": ente_id,
+            "registro_id": registro_id,
+            "categoria_id": categoria_riporto_id,
+            "importo": importo_saldo,
+            "tipo_movimento": tipo_mov_saldo,
+            "data_inizio": data_inizio,
+            "user_id": current_user.get('id')
+        })
+
+        print(f"✅ Movimento saldo iniziale creato: ID {movimento_id}")
         
         # Registra audit
         registra_audit(
@@ -226,41 +232,46 @@ def update_registro(
         """
         mov_result = db.execute(text(check_movimento), {"registro_id": registro_id}).fetchone()
         
-        if nuovo_saldo >= 0:
-            if mov_result:
-                # Aggiorna movimento esistente
-                update_mov = """
-                    UPDATE movimenti_contabili
-                    SET importo = :importo
-                    WHERE id = :id
-                """
-                db.execute(text(update_mov), {
-                    "id": mov_result[0],
-                    "importo": nuovo_saldo
-                })
-            else:
-                # Crea nuovo movimento saldo iniziale
-                import uuid
-                movimento_id = str(uuid.uuid4())
-                insert_mov = """
-                    INSERT INTO movimenti_contabili (
-                        id, ente_id, registro_id, categoria_id,
-                        data_movimento, tipo_movimento, importo,
-                        causale, bloccato, tipo_speciale, created_by
-                    ) VALUES (
-                        :id, :ente_id, :registro_id, NULL,
-                        CURRENT_DATE, 'entrata', :importo,
-                        'Saldo iniziale alla creazione del conto',
-                        FALSE, 'saldo_iniziale', :user_id
-                    )
-                """
-                db.execute(text(insert_mov), {
-                    "id": movimento_id,
-                    "ente_id": ente_id,
-                    "registro_id": registro_id,
-                    "importo": nuovo_saldo,
-                    "user_id": current_user.get('user_id')
-                })
+        # Se negativo (scoperto), tipo_movimento = 'uscita' con valore assoluto
+        tipo_mov_saldo = 'entrata' if nuovo_saldo >= 0 else 'uscita'
+        importo_saldo = abs(nuovo_saldo)
+
+        if mov_result:
+            # Aggiorna movimento esistente
+            update_mov = """
+                UPDATE movimenti_contabili
+                SET importo = :importo, tipo_movimento = :tipo_movimento
+                WHERE id = :id
+            """
+            db.execute(text(update_mov), {
+                "id": mov_result[0],
+                "importo": importo_saldo,
+                "tipo_movimento": tipo_mov_saldo
+            })
+        else:
+            # Crea nuovo movimento saldo iniziale
+            import uuid
+            movimento_id = str(uuid.uuid4())
+            insert_mov = """
+                INSERT INTO movimenti_contabili (
+                    id, ente_id, registro_id, categoria_id,
+                    data_movimento, tipo_movimento, importo,
+                    causale, bloccato, tipo_speciale, created_by
+                ) VALUES (
+                    :id, :ente_id, :registro_id, NULL,
+                    CURRENT_DATE, :tipo_movimento, :importo,
+                    'Saldo iniziale alla creazione del conto',
+                    FALSE, 'saldo_iniziale', :user_id
+                )
+            """
+            db.execute(text(insert_mov), {
+                "id": movimento_id,
+                "ente_id": ente_id,
+                "registro_id": registro_id,
+                "importo": importo_saldo,
+                "tipo_movimento": tipo_mov_saldo,
+                "user_id": current_user.get('user_id')
+            })
     
     # Aggiorna nome, tipo e iban del registro
     query = """
@@ -440,7 +451,11 @@ async def get_registri(
                     0
                 ) as saldo_attuale,
                 COALESCE(
-                    (SELECT m.importo
+                    (SELECT CASE
+                        WHEN m.tipo_movimento = 'entrata' THEN m.importo
+                        WHEN m.tipo_movimento = 'uscita' THEN -m.importo
+                        ELSE m.importo
+                    END
                     FROM movimenti_contabili m
                     WHERE m.registro_id = r.id
                       AND m.tipo_speciale = 'saldo_iniziale'
