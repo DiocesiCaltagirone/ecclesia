@@ -58,15 +58,6 @@
     text-align: center;
   }
 
-  .front-diocesi {
-    font-family: 'Georgia', 'Palatino Linotype', serif;
-    font-size: 18pt;
-    font-weight: 700;
-    color: #1a365d;
-    letter-spacing: 2pt;
-    margin-bottom: 24pt;
-  }
-
   .front-linea-sottile {
     width: 100mm;
     height: 0.8pt;
@@ -283,7 +274,7 @@
     color: #1a365d;
     margin-bottom: 10pt;
     text-transform: uppercase;
-    letter-spacing: 1pt;
+    letter-spacing: 0;
   }
   .riepilogo-riga {
     display: flex;
@@ -383,14 +374,11 @@
 <div class="page">
   <div class="frontespizio">
     {% if logo_diocesi %}
-    <img src="{{ logo_diocesi }}" style="width: 60mm; margin-bottom: 10pt;" alt="Logo Diocesi">
+    <img src="{{ logo_diocesi }}" style="max-width: 60mm; margin-bottom: 10pt;" alt="Logo Diocesi">
     {% else %}
-    <div style="width: 60mm; height: 60mm; display: flex; align-items: center; justify-content: center; background: #f5f7fa; margin-bottom: 10pt;">
-      <span style="font-family: Arial, sans-serif; font-size: 8pt; color: #1a365d;">LOGO DIOCESI</span>
-    </div>
+    <div style="margin-bottom: 10pt; font-family: Arial, sans-serif; font-size: 10pt; color: #1a365d;">LOGO DIOCESI</div>
     {% endif %}
 
-    <div class="front-diocesi">{{ ente.diocesi or 'Diocesi di Caltagirone' }}</div>
     <div class="front-linea-sottile"></div>
     <div class="front-titolo">RENDICONTO ECONOMICO</div>
     <div class="front-sottotitolo">Bilancio Consuntivo Parrocchiale</div>
