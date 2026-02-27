@@ -260,6 +260,18 @@
   tr.riga-subtotale td.col-importo.positivo { color: #166534; }
   tr.riga-subtotale td.col-importo.negativo { color: #b91c1c; }
 
+  .sezione-titolo {
+    font-family: Arial, sans-serif;
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1a365d;
+    padding: 8pt 0 4pt 0;
+    border-bottom: 2pt solid #1a365d;
+    margin-top: 18pt;
+    margin-bottom: 8pt;
+  }
+  .sezione-titolo:first-child { margin-top: 0; }
+
   tr.riga-totale-finale td {
     font-weight: 700;
     font-size: 13pt;
@@ -475,6 +487,8 @@
     <span class="riporto-importo{% if riporto_precedente < 0 %} negativo{% endif %}">€ {{ riporto_precedente|ita }}</span>
   </div>
 
+  <!-- SEZIONE ENTRATE -->
+  <div class="sezione-titolo">ENTRATE</div>
   <table>
     <thead>
       <tr>
@@ -498,43 +512,59 @@
       </tr>
       {% endfor %}
       {% endfor %}
+      <tr class="riga-subtotale" style="page-break-inside: avoid;">
+        <td class="col-codice"></td>
+        <td>Totale Entrate</td>
+        <td class="col-importo positivo">{{ totale_entrate|ita }}</td>
+      </tr>
+    </tbody>
+  </table>
 
+  <!-- SEZIONE USCITE -->
+  <div class="sezione-titolo">USCITE</div>
+  <table>
+    <thead>
+      <tr>
+        <th class="col-codice">Cod.</th>
+        <th>Descrizione</th>
+        <th class="col-importo">Importo €</th>
+      </tr>
+    </thead>
+    <tbody>
       {% for cat in categorie_uscite %}
       <tr class="cat-padre">
         <td class="col-codice">{{ cat.codice }}</td>
         <td>{{ cat.nome }}</td>
-        <td class="col-importo negativo">- {{ cat.totale|ita }}</td>
+        <td class="col-importo">{{ cat.totale|ita }}</td>
       </tr>
       {% for sotto in cat.sottocategorie %}
       <tr class="cat-figlio">
         <td class="col-codice">{{ sotto.codice }}</td>
         <td>{{ sotto.nome }}</td>
-        <td class="col-importo negativo">- {{ sotto.totale|ita }}</td>
+        <td class="col-importo">{{ sotto.totale|ita }}</td>
       </tr>
       {% endfor %}
       {% endfor %}
-
-      <tr class="separatore-sezione"><td colspan="3"></td></tr>
-
-      <tr class="riga-subtotale">
-        <td class="col-codice"></td>
-        <td>Totale Entrate</td>
-        <td class="col-importo positivo">{{ totale_entrate|ita }}</td>
-      </tr>
-      <tr class="riga-subtotale">
+      <tr class="riga-subtotale" style="page-break-inside: avoid;">
         <td class="col-codice"></td>
         <td>Totale Uscite</td>
         <td class="col-importo negativo">- {{ totale_uscite|ita }}</td>
       </tr>
+    </tbody>
+  </table>
+
+  <!-- RIEPILOGO FINALE -->
+  <table style="margin-top: 10pt;">
+    <tbody>
       <tr class="riga-subtotale">
-        <td class="col-codice"></td>
+        <td class="col-codice" style="width:40pt;"></td>
         <td>Risultato di Gestione</td>
-        <td class="col-importo {% if (totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}">{% if (totale_entrate - totale_uscite) < 0 %}- {% endif %}{{ (totale_entrate - totale_uscite)|abs|ita }}</td>
+        <td class="col-importo {% if (totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}" style="width:100pt;">{% if (totale_entrate - totale_uscite) < 0 %}- {% endif %}{{ (totale_entrate - totale_uscite)|abs|ita }}</td>
       </tr>
       <tr class="riga-totale-finale">
-        <td class="col-codice"></td>
+        <td class="col-codice" style="width:40pt;"></td>
         <td>SALDO FINALE (riporto + gestione)</td>
-        <td class="col-importo {% if (riporto_precedente + totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}">{{ (riporto_precedente + totale_entrate - totale_uscite)|ita }}</td>
+        <td class="col-importo {% if (riporto_precedente + totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}" style="width:100pt;">{{ (riporto_precedente + totale_entrate - totale_uscite)|ita }}</td>
       </tr>
     </tbody>
   </table>

@@ -245,13 +245,13 @@ async def crea_rendiconto(
                           AND (tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale')
                     """, (ente_id, registro_id, dati.periodo_inizio, dati.periodo_fine))
                     
-                    saldo = cur.fetchone()[0]
-                    
-                    print(f"   💰 Conto {nome_conto}: saldo {saldo}")
-                    
+                    saldo_conto = cur.fetchone()[0]
+
+                    print(f"   💰 Conto {nome_conto}: saldo {saldo_conto}")
+
                     # 🆕 Crea movimento ANCHE se saldo = 0!
                     movimento_id = str(uuid.uuid4())
-                    
+
                     cur.execute("""
                         INSERT INTO movimenti_contabili (
                             id, ente_id, registro_id, categoria_id,
@@ -271,8 +271,8 @@ async def crea_rendiconto(
                         registro_id,
                         categoria_id,
                         data_inizio_nuovo,
-                        "entrata" if saldo >= 0 else "uscita",
-                        abs(saldo) if saldo != 0 else 0,
+                        "entrata" if saldo_conto >= 0 else "uscita",
+                        abs(saldo_conto) if saldo_conto != 0 else 0,
                         "Saldo iniziale",
                         f"Riporto automatico da rendiconto {rendiconto_id}"
                     ))

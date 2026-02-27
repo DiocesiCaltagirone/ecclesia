@@ -647,10 +647,10 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
 
             # Converti in lista ordinata per codice
             result = []
-            for cat_name in sorted(categorie.keys(), key=lambda k: categorie[k].get('codice', '') or k):
+            for cat_name in sorted(categorie.keys(), key=lambda k: [int(x) for x in (categorie[k].get('codice', '0') or '0').split('.')]):
                 cat_data = categorie[cat_name]
                 sottocategorie = []
-                for sub_name in sorted(cat_data['sottocategorie'].keys(), key=lambda k: cat_data['sottocategorie'][k].get('codice', '') or k):
+                for sub_name in sorted(cat_data['sottocategorie'].keys(), key=lambda k: [int(x) for x in (cat_data['sottocategorie'][k].get('codice', '0') or '0').split('.')]):
                     sub_data = cat_data['sottocategorie'][sub_name]
                     if sub_data['movimenti']:
                         sottocategorie.append({
