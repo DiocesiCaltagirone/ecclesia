@@ -439,6 +439,9 @@ Dopo chiusura rendiconto 2023:
    - CRUD registri (cassa, banca, postale, carte, ecc.)
    - Movimenti con categorie gerarchiche
    - Saldo iniziale automatico alla creazione conto (anche negativo per scoperti)
+   - Blocco creazione conti in periodi con rendiconto chiuso (endpoint GET /contabilita/ultimo-rendiconto)
+   - Campo data_inizio_contabilita nel form creazione conto, con data minima da ultimo rendiconto
+   - Saldo iniziale bloccato (disabled) se incluso in un rendiconto
    - Menu contestuale (tasto destro) su movimenti con Modifica/Elimina/Allegati
    - Report per periodo/categoria
    - Saldi negativi visualizzati in rosso nella lista conti
@@ -446,7 +449,9 @@ Dopo chiusura rendiconto 2023:
 9. Rendiconti economici:
    - Workflow: bozza - inviato - approvato
    - Generazione PDF V4 con WeasyPrint (template Jinja2, 3 pagine)
-   - Template V4: frontespizio elegante, movimenti entrate+uscite in tabella unica, riepilogo+firme
+   - Template V4: frontespizio elegante, movimenti entrate e uscite in sezioni separate, riepilogo+firme
+   - Categorie ordinate per codice numerico crescente (non alfabetico)
+   - Riporto da esercizio precedente: SUM di tutti i conti (non LIMIT 1)
    - File di riferimento approvato: anteprima_rendiconto_v4.html (nella root)
    - Upload documenti allegati
    - Chiusura esercizio con blocco movimenti e creazione riporti
@@ -456,10 +461,9 @@ Dopo chiusura rendiconto 2023:
 13. Sistema Audit (tabella audit_log)
 14. Allegati ai movimenti contabili
 15. Formattazione importi coerente formato italiano (15.000,00) ovunque:
-   - Funzione condivisa formatCurrency in frontend/src/utils/formatters.js
+   - Funzione condivisa formatCurrency in frontend/src/utils/formatters.js (implementazione manuale, NO Intl.NumberFormat che non e' affidabile su tutti i browser)
    - Usata in tutti i file frontend (Conti, MovimentiConto, MovimentiGenerale, Rapporti, ListaRendiconti, NuovoRendiconto, Rendiconto, EconomatoContabilita)
    - Template backend rendiconto.html usa filtro Jinja2 |ita (formato_italiano) e |ita_int (intero con separatore migliaia)
-   - Template backend 1.html corretto (prima usava %.2f senza separatore migliaia)
 
 ### Da implementare (priorita)
 ALTA:
@@ -535,7 +539,7 @@ Tutte le route protette usano Depends(get_current_user) da auth.py.
 Token JWT nel header Authorization: Bearer <token>.
 
 ### Formattazione Importi
-- Frontend: usare SEMPRE `import { formatCurrency } from '../utils/formatters'` (o `../../utils/formatters` da sottocartelle). NON creare funzioni locali duplicate.
+- Frontend: usare SEMPRE `import { formatCurrency } from '../utils/formatters'` (o `../../utils/formatters` da sottocartelle). NON creare funzioni locali duplicate. La funzione usa implementazione manuale (regex), NON Intl.NumberFormat (non affidabile su tutti i browser/OS).
 - Backend template Jinja2: usare il filtro `|ita` (registrato in rendiconti_documenti.py come `formato_italiano`) per importi e `|ita_int` per numeri interi. NON usare `"%.2f"|format()`.
 
 ---
@@ -613,6 +617,11 @@ docker restart parrocchia-backend
 11. Saldo iniziale negativo bloccato: ContabilitaLayout.jsx aveva input type="number" min="0" (form duplicato rispetto a Conti.jsx)
 12. Totali rendiconto includevano saldi iniziali: rendiconti_crud.py usava `tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale'` nella query calcolo totali (fix: solo `tipo_speciale IS NULL`)
 13. Saldo anno precedente in stampe.py non filtrava tipo_speciale: includeva saldi iniziali e giroconti nel calcolo (fix: aggiunto `AND tipo_speciale IS NULL`)
+14. Riporto PDF prendeva solo un conto (LIMIT 1): fix con SUM di tutti i saldi iniziali di tutti i conti
+15. Saldo rendiconto sovrascitto: variabile `saldo` in rendiconti_crud.py sovrascritta nel loop creazione saldi iniziali (fix: rinominata in `saldo_conto`)
+16. Ordinamento categorie PDF alfabetico: codice "12" prima di "8" (fix: ordinamento numerico con split('.'))
+17. formatCurrency non metteva punto migliaia: Intl.NumberFormat('it-IT') non affidabile su tutti i browser (fix: implementazione manuale con regex)
+18. PUT /registri check saldo bloccato usava colonna inesistente rendiconto_id (fix: controllo campo bloccato del movimento saldo_iniziale)
 
 ---
 
@@ -622,7 +631,7 @@ docker restart parrocchia-backend
 - Token JWT: scadono, se errore 401 fare logout/login
 - Template PDF V4: backend/templates/rendiconto.html (Jinja2 + WeasyPrint, 3 pagine)
   - Pagina 1: Frontespizio (logo, dati parrocchia, periodo)
-  - Pagina 2: Movimenti (entrate e uscite in tabella unica con codici categoria)
+  - Pagina 2: Movimenti (entrate e uscite in sezioni separate con codici categoria, ordinamento numerico)
   - Pagina 3: Riepilogo economico, disponibilita liquide, dichiarazione parroco, approvazione
   - NO flexbox (WeasyPrint non lo supporta bene) — usa float per layout orizzontali
   - Footer via @page @bottom-center di WeasyPrint (non div manuali)
