@@ -15,6 +15,7 @@ const Conti = () => {
     numero: '',
     saldo_iniziale: 0
   });
+  const [dataMinima, setDataMinima] = useState(null);
 
   // Tipi di conto con icone
   const tipiConto = {
@@ -32,6 +33,7 @@ const Conti = () => {
 
   useEffect(() => {
     fetchConti();
+    fetchUltimoRendiconto();
   }, []);
 
   const fetchConti = async () => {
@@ -55,6 +57,29 @@ const Conti = () => {
       console.error('Errore caricamento conti:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUltimoRendiconto = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const enteId = localStorage.getItem('ente_id');
+      const response = await fetch('/api/contabilita/ultimo-rendiconto', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Ente-Id': enteId
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.periodo_fine) {
+          const chiusura = new Date(data.periodo_fine);
+          chiusura.setDate(chiusura.getDate() + 1);
+          setDataMinima(chiusura.toISOString().split('T')[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Errore fetch ultimo rendiconto:', error);
     }
   };
 
@@ -91,6 +116,9 @@ const Conti = () => {
       if (response.ok) {
         fetchConti();
         closeModal();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.detail || 'Errore nel salvataggio del conto');
       }
     } catch (error) {
       console.error('Errore salvataggio conto:', error);
@@ -126,7 +154,8 @@ const Conti = () => {
         tipo: conto.tipo,
         nome: conto.nome,
         numero: conto.iban || '',
-        saldo_iniziale: conto.saldo_iniziale || 0
+        saldo_iniziale: conto.saldo_iniziale || 0,
+        data_inizio: conto.data_inizio_contabilita || ''
       });
     } else {
       setEditingConto(null);
@@ -362,7 +391,8 @@ const Conti = () => {
                     ...formData,
                     data_inizio: e.target.value
                   })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 ${editingConto ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  min={dataMinima || ''}
                   disabled={editingConto !== null}
                 />
               </div>
@@ -387,11 +417,16 @@ const Conti = () => {
                         setFormData({ ...formData, saldo_iniziale: val });
                       }
                     }}
-                    className="w-full pl-7 pr-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                    className={`w-full pl-7 pr-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 ${editingConto?.saldo_bloccato ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     placeholder="0.00"
+                    disabled={editingConto?.saldo_bloccato === true}
                   />
                 </div>
-                {editingConto && (
+                {editingConto?.saldo_bloccato ? (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Saldo bloccato da rendiconto
+                  </p>
+                ) : editingConto && (
                   <p className="text-[10px] text-amber-600 mt-1">
                     ⚠️ Modificare il saldo iniziale dopo aver già usato il conto può causare discrepanze
                   </p>

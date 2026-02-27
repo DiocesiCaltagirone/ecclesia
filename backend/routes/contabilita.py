@@ -90,6 +90,25 @@ def create_registro(
         saldo_iniziale = float(data.get('saldo_iniziale', 0))
         data_inizio = data.get('data_inizio') or datetime.now().strftime('%Y-%m-%d')
         
+        # Controllo periodo chiuso da rendiconto
+        check_rendiconto = text("""
+            SELECT MAX(periodo_fine) as ultima_chiusura
+            FROM rendiconti
+            WHERE ente_id = :ente_id AND stato != 'respinto'
+        """)
+        result_check = db.execute(check_rendiconto, {"ente_id": str(ente_id)}).fetchone()
+
+        if result_check and result_check[0] is not None:
+            ultima_chiusura = result_check[0]
+            if isinstance(ultima_chiusura, str):
+                ultima_chiusura = datetime.strptime(ultima_chiusura, "%Y-%m-%d").date()
+            data_inizio_date = datetime.strptime(data_inizio, "%Y-%m-%d").date() if isinstance(data_inizio, str) else data_inizio
+            if data_inizio_date <= ultima_chiusura:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Non è possibile creare un conto con data anteriore o uguale alla chiusura dell'esercizio del {ultima_chiusura.strftime('%d/%m/%Y')}."
+                )
+
         print(f"📊 Creazione conto: {nome} - Saldo iniziale: {saldo_iniziale}")
         
         # Crea il registro (saldo_attuale calcolato dai movimenti)
@@ -197,28 +216,19 @@ def update_registro(
     ente_id = current_user.get('ente_id') or x_ente_id
     nuovo_saldo_iniziale = data.get("saldo_iniziale")
     
-    # Se si vuole modificare il saldo iniziale, verifica rendiconti approvati
+    # Se l'utente sta provando a cambiare il saldo iniziale, verifica che non sia bloccato
     if nuovo_saldo_iniziale is not None:
-        check_rendiconti = """
-            SELECT COUNT(*) FROM rendiconti r
-            WHERE r.ente_id = :ente_id
-            AND r.stato = 'approvato'
-            AND EXISTS (
-                SELECT 1 FROM movimenti_contabili m
-                WHERE m.rendiconto_id = r.id
-                AND m.registro_id = :registro_id
-            )
-        """
-        result = db.execute(text(check_rendiconti), {
-            "ente_id": ente_id,
-            "registro_id": registro_id
-        })
-        count = result.fetchone()[0]
-        
-        if count > 0:
+        check_bloccato = text("""
+            SELECT bloccato FROM movimenti_contabili
+            WHERE registro_id = :registro_id AND tipo_speciale = 'saldo_iniziale'
+            AND (riporto_saldo IS NOT TRUE)
+            LIMIT 1
+        """)
+        result_bloccato = db.execute(check_bloccato, {"registro_id": str(registro_id)}).fetchone()
+        if result_bloccato and result_bloccato[0] == True:
             raise HTTPException(
                 status_code=400,
-                detail="Impossibile modificare il saldo iniziale: esistono rendiconti approvati per questo conto"
+                detail="Il saldo iniziale non può essere modificato perché è incluso in un rendiconto"
             )
         
         # Aggiorna o crea il movimento di saldo iniziale
@@ -461,7 +471,15 @@ async def get_registri(
                       AND m.tipo_speciale = 'saldo_iniziale'
                     LIMIT 1),
                     0
-                ) as saldo_iniziale
+                ) as saldo_iniziale,
+                (SELECT data_movimento FROM movimenti_contabili
+                 WHERE registro_id = r.id AND tipo_speciale = 'saldo_iniziale'
+                 AND (riporto_saldo IS NOT TRUE)
+                 ORDER BY data_movimento ASC LIMIT 1) as data_inizio_contabilita,
+                (SELECT COALESCE(bloccato, FALSE) FROM movimenti_contabili
+                 WHERE registro_id = r.id AND tipo_speciale = 'saldo_iniziale'
+                 AND (riporto_saldo IS NOT TRUE)
+                 ORDER BY data_movimento ASC LIMIT 1) as saldo_bloccato
             FROM registri_contabili r
             WHERE r.ente_id = :ente_id
               AND r.attivo = TRUE
@@ -485,7 +503,9 @@ async def get_registri(
                 "saldo_attuale": saldo_attuale,
                 "saldo_iniziale": saldo_iniziale,
                 "attivo": row[4],
-                "iban": row[5]
+                "iban": row[5],
+                "data_inizio_contabilita": str(row[8]) if row[8] else None,
+                "saldo_bloccato": bool(row[9]) if row[9] is not None else False
             })
         
         print(f"✅ Trovati {len(registri)} registri")
@@ -498,6 +518,42 @@ async def get_registri(
         print(f"❌ ERRORE: {e}")
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/ultimo-rendiconto")
+def get_ultimo_rendiconto(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    """
+    Restituisce la data di fine periodo dell'ultimo rendiconto non respinto.
+    Usato dal frontend per sapere la data minima per creare nuovi conti.
+    """
+    try:
+        ente_id = current_user.get('ente_id') or x_ente_id
+
+        if not ente_id:
+            raise HTTPException(status_code=400, detail="Ente ID mancante")
+
+        query = text("""
+            SELECT MAX(periodo_fine) as ultima_chiusura
+            FROM rendiconti
+            WHERE ente_id = :ente_id AND stato != 'respinto'
+        """)
+
+        result = db.execute(query, {"ente_id": ente_id}).fetchone()
+
+        periodo_fine = None
+        if result and result[0] is not None:
+            periodo_fine = str(result[0])
+
+        return {"periodo_fine": periodo_fine}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ ERRORE ultimo-rendiconto: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================

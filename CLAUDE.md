@@ -124,7 +124,7 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── 008_add_dati_canonici_enti.sql
 │   │   └── run_migrations.py
 │   └── templates\
-│       └── rendiconto.html             # Template Jinja2 per PDF rendiconto (WeasyPrint)
+│       └── rendiconto.html             # Template Jinja2 V4 per PDF rendiconto (WeasyPrint, 3 pagine)
 ├── frontend\
 │   ├── src\
 │   │   ├── App.jsx                     # Router principale
@@ -157,6 +157,7 @@ C:\Users\Lux\parrocchia-app\
 │   │   └── services\
 │   │       └── api.js                  # Configurazione Axios + base URL
 │   └── vite.config.js                  # Config Vite + proxy API
+├── anteprima_rendiconto_v4.html         # Riferimento visuale approvato per il PDF rendiconto
 ├── docker-compose.yml
 ├── deploy.sh                           # Script deploy su server
 └── init-database.sql                   # Script inizializzazione DB
@@ -381,7 +382,7 @@ Quando si chiude un rendiconto (es. anno 2023):
 Nel rendiconto, i totali entrate/uscite ESCLUDONO:
 - Movimenti con tipo_speciale = 'saldo_iniziale'
 - Movimenti con tipo_speciale = 'giroconto'
-Filtro SQL: AND (tipo_speciale IS NULL OR tipo_speciale NOT IN ('saldo_iniziale', 'giroconto'))
+Filtro SQL: AND tipo_speciale IS NULL
 
 ### Nelle Pagine Movimenti (frontend)
 Le statistiche in MovimentiConto.jsx e MovimentiGenerale.jsx INCLUDONO i saldi iniziali nei totali.
@@ -425,7 +426,7 @@ Dopo chiusura rendiconto 2023:
 
 ---
 
-## FUNZIONALITA IMPLEMENTATE (stato al 26/02/2026)
+## FUNZIONALITA IMPLEMENTATE (stato al 27/02/2026)
 
 ### Completate
 1. Autenticazione JWT con login/logout
@@ -437,13 +438,16 @@ Dopo chiusura rendiconto 2023:
 7. Contabilita completa:
    - CRUD registri (cassa, banca, postale, carte, ecc.)
    - Movimenti con categorie gerarchiche
-   - Saldo iniziale automatico alla creazione conto
+   - Saldo iniziale automatico alla creazione conto (anche negativo per scoperti)
    - Menu contestuale (tasto destro) su movimenti con Modifica/Elimina/Allegati
    - Report per periodo/categoria
+   - Saldi negativi visualizzati in rosso nella lista conti
 8. Piano dei conti gerarchico (padre/figlio, codici numerici crescenti)
 9. Rendiconti economici:
    - Workflow: bozza - inviato - approvato
-   - Generazione PDF con WeasyPrint (template Jinja2)
+   - Generazione PDF V4 con WeasyPrint (template Jinja2, 3 pagine)
+   - Template V4: frontespizio elegante, movimenti entrate+uscite in tabella unica, riepilogo+firme
+   - File di riferimento approvato: anteprima_rendiconto_v4.html (nella root)
    - Upload documenti allegati
    - Chiusura esercizio con blocco movimenti e creazione riporti
 10. Anagrafica persone base
@@ -454,7 +458,7 @@ Dopo chiusura rendiconto 2023:
 15. Formattazione importi coerente formato italiano (15.000,00) ovunque:
    - Funzione condivisa formatCurrency in frontend/src/utils/formatters.js
    - Usata in tutti i file frontend (Conti, MovimentiConto, MovimentiGenerale, Rapporti, ListaRendiconti, NuovoRendiconto, Rendiconto, EconomatoContabilita)
-   - Template backend rendiconto.html usa filtro Jinja2 |ita (formato_italiano)
+   - Template backend rendiconto.html usa filtro Jinja2 |ita (formato_italiano) e |ita_int (intero con separatore migliaia)
    - Template backend 1.html corretto (prima usava %.2f senza separatore migliaia)
 
 ### Da implementare (priorita)
@@ -532,7 +536,7 @@ Token JWT nel header Authorization: Bearer <token>.
 
 ### Formattazione Importi
 - Frontend: usare SEMPRE `import { formatCurrency } from '../utils/formatters'` (o `../../utils/formatters` da sottocartelle). NON creare funzioni locali duplicate.
-- Backend template Jinja2: usare il filtro `|ita` (registrato in rendiconti_documenti.py come `formato_italiano`). NON usare `"%.2f"|format()`.
+- Backend template Jinja2: usare il filtro `|ita` (registrato in rendiconti_documenti.py come `formato_italiano`) per importi e `|ita_int` per numeri interi. NON usare `"%.2f"|format()`.
 
 ---
 
@@ -616,9 +620,17 @@ docker restart parrocchia-backend
 
 - Cache Python: eliminare __pycache__ dopo modifiche backend
 - Token JWT: scadono, se errore 401 fare logout/login
-- Template PDF: backend/templates/rendiconto.html (Jinja2 + WeasyPrint)
+- Template PDF V4: backend/templates/rendiconto.html (Jinja2 + WeasyPrint, 3 pagine)
+  - Pagina 1: Frontespizio (logo, dati parrocchia, periodo)
+  - Pagina 2: Movimenti (entrate e uscite in tabella unica con codici categoria)
+  - Pagina 3: Riepilogo economico, disponibilita liquide, dichiarazione parroco, approvazione
+  - NO flexbox (WeasyPrint non lo supporta bene) — usa float per layout orizzontali
+  - Footer via @page @bottom-center di WeasyPrint (non div manuali)
+  - Logo come semplice <img> senza cerchio/bordo
+  - Riferimento visuale: anteprima_rendiconto_v4.html (NON modificare il CSS del template senza confrontare col riferimento)
 - Categorie: codici numerici crescenti (1, 2, 1.1, 1.2), "000" per riporti
 - api.js: gestisce automaticamente locale vs produzione
 - Password DB locale: parrocchia2025 (NON parrocchia)
 - .env backend: postgres:5432 in Docker, localhost:5432 fuori Docker
 - FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx (modal nella barra superiore) e Conti.jsx (modal nella pagina conti). Modifiche al form vanno fatte in ENTRAMBI i file!
+- SALDO INIZIALE NEGATIVO: contabilita.py gestisce saldi negativi come movimento tipo 'uscita' con valore assoluto (sia creazione che modifica conto)
