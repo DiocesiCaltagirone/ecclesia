@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Rendiconto Economico - Anteprima V4</title>
+<style>
+  @page {
+    size: A4;
+    margin: 15mm 20mm;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11pt;
+    color: #1a1a1a;
+    background: #e8e8e8;
+    line-height: 1.4;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 10mm auto;
+    background: white;
+    padding: 15mm 20mm;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    position: relative;
+    page-break-after: always;
+  }
+
+  /* HEADER */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5pt solid #1a365d;
+    padding-bottom: 5pt;
+    margin-bottom: 14pt;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    color: #555;
+  }
+  .page-header-left { font-weight: 600; color: #1a365d; }
+  .page-header-right { color: #777; }
+
+  /* FOOTER */
+  .page-footer {
+    position: absolute;
+    bottom: 12mm;
+    left: 20mm;
+    right: 20mm;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 7.5pt;
+    color: #999;
+    border-top: 0.5pt solid #ddd;
+    padding-top: 4pt;
+  }
+
+  /* =========================================== */
+  /* FRONTESPIZIO                                 */
+  /* =========================================== */
+  .frontespizio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 260mm;
+    text-align: center;
+  }
+
+  .front-logo {
+    width: 60mm;
+    height: 60mm;
+    border: 2pt solid #1a365d;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10pt;
+    background: #f5f7fa;
+  }
+  .front-logo-text {
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: #1a365d;
+  }
+
+  .front-diocesi {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 18pt;
+    font-weight: 700;
+    color: #1a365d;
+    letter-spacing: 2pt;
+    margin-bottom: 24pt;
+  }
+
+  .front-linea-sottile {
+    width: 100mm;
+    height: 0.8pt;
+    background: linear-gradient(90deg, transparent, #1a365d, transparent);
+    margin: 0 auto 24pt auto;
+  }
+
+  .front-titolo {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 4pt;
+    letter-spacing: 1.5pt;
+  }
+  .front-sottotitolo {
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    color: #666;
+    margin-bottom: 24pt;
+  }
+  .front-parrocchia {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 15pt;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4pt;
+  }
+  .front-comune {
+    font-size: 12pt;
+    color: #555;
+    margin-bottom: 20pt;
+  }
+  .front-periodo {
+    font-family: Arial, sans-serif;
+    font-size: 13pt;
+    font-weight: 600;
+    color: #1a365d;
+    border: 1.5pt solid #1a365d;
+    padding: 7pt 28pt;
+    margin-bottom: 30pt;
+  }
+
+  .front-dati-colonna {
+    text-align: left;
+    width: 120mm;
+    margin: 0 auto;
+  }
+  .front-dato {
+    display: flex;
+    justify-content: space-between;
+    padding: 5pt 0;
+    font-size: 11pt;
+    border-bottom: 0.5pt dotted #ccc;
+  }
+  .front-dato-label {
+    color: #666;
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+  }
+  .front-dato-value {
+    font-weight: 600;
+    color: #333;
+    font-size: 11pt;
+  }
+  .front-data-compilazione {
+    margin-top: 24pt;
+    font-size: 9pt;
+    color: #999;
+  }
+
+  /* =========================================== */
+  /* RIPORTO ESERCIZIO                            */
+  /* =========================================== */
+  .riporto-box {
+    background: #f5efe6;
+    border: 1pt solid #c9a96e;
+    border-radius: 3pt;
+    padding: 10pt 16pt;
+    margin-bottom: 16pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .riporto-label {
+    font-weight: 700;
+    color: #7c4d1e;
+    font-size: 11.5pt;
+  }
+  .riporto-importo {
+    font-weight: 700;
+    font-size: 14pt;
+    color: #7c4d1e;
+    font-variant-numeric: tabular-nums;
+  }
+  .riporto-importo.negativo {
+    color: #b91c1c;
+  }
+
+  /* =========================================== */
+  /* SEZIONE TITOLO                               */
+  /* =========================================== */
+  .section-title {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 15pt;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 3pt;
+  }
+  .section-subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 8.5pt;
+    color: #888;
+    margin-bottom: 14pt;
+  }
+
+  /* =========================================== */
+  /* TABELLA UNICA                                */
+  /* =========================================== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+  }
+
+  thead th {
+    background: #1a365d;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    padding: 7pt 10pt;
+    text-align: left;
+  }
+  thead th.col-importo { text-align: right; width: 100pt; }
+  thead th.col-codice { width: 40pt; text-align: center; }
+
+  tbody tr { border-bottom: 0.5pt solid #e8e8e8; }
+
+  /* Categoria padre = banda colorata */
+  tbody tr.cat-padre td {
+    font-weight: 700;
+    background: #eef2f7;
+    border-bottom: 0.8pt solid #bbb;
+    border-top: 0.5pt solid #ccc;
+    padding-top: 9pt;
+    padding-bottom: 6pt;
+    font-size: 11pt;
+    color: #1a365d;
+  }
+
+  /* Sottocategoria */
+  tbody tr.cat-figlio td {
+    padding-left: 22pt;
+    font-weight: 400;
+    color: #333;
+  }
+  tbody tr.cat-figlio:nth-child(even) {
+    background: #fafbfc;
+  }
+
+  td { padding: 5pt 10pt; vertical-align: middle; }
+  td.col-importo {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  td.col-codice {
+    text-align: center;
+    color: #999;
+    font-size: 8.5pt;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Importi negativi (uscite) */
+  td.col-importo.negativo {
+    color: #b91c1c;
+  }
+  tr.cat-padre td.col-importo.negativo {
+    color: #922;
+  }
+
+  /* Separatore tra entrate e uscite */
+  tr.separatore-sezione td {
+    border-bottom: none;
+    padding: 3pt 0;
+    background: transparent;
+  }
+
+  /* Righe totali */
+  tr.riga-subtotale td {
+    font-weight: 600;
+    font-size: 10.5pt;
+    color: #333;
+    background: #f0f0f0;
+    border-top: 1pt solid #ccc;
+    border-bottom: 1pt solid #ccc;
+    padding-top: 7pt;
+    padding-bottom: 7pt;
+  }
+  tr.riga-subtotale td.col-importo.positivo { color: #166534; }
+  tr.riga-subtotale td.col-importo.negativo { color: #b91c1c; }
+
+  tr.riga-totale-finale td {
+    font-weight: 700;
+    font-size: 13pt;
+    color: #1a365d;
+    border-top: 2.5pt double #1a365d;
+    border-bottom: none;
+    padding-top: 10pt;
+    padding-bottom: 10pt;
+    background: transparent;
+  }
+  tr.riga-totale-finale td.col-importo.positivo { color: #166534; }
+  tr.riga-totale-finale td.col-importo.negativo { color: #b91c1c; }
+
+  /* =========================================== */
+  /* RIEPILOGO                                    */
+  /* =========================================== */
+  .riepilogo-box {
+    background: #f8f9fb;
+    border: 0.8pt solid #ddd;
+    border-radius: 3pt;
+    padding: 16pt;
+    margin-bottom: 16pt;
+  }
+  .riepilogo-title {
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+  .riepilogo-riga {
+    display: flex;
+    justify-content: space-between;
+    padding: 5pt 0;
+    border-bottom: 0.5pt dotted #ccc;
+    font-size: 10.5pt;
+  }
+  .riepilogo-riga:last-child { border-bottom: none; }
+  .riepilogo-riga.totale {
+    font-weight: 700;
+    font-size: 12pt;
+    color: #1a365d;
+    border-top: 1.5pt solid #1a365d;
+    border-bottom: none;
+    padding-top: 8pt;
+    margin-top: 4pt;
+  }
+  .riepilogo-label { color: #444; }
+  .riepilogo-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .riepilogo-value.positivo { color: #166534; }
+  .riepilogo-value.negativo { color: #b91c1c; }
+
+  .conti-table { width: 100%; margin-top: 6pt; }
+  .conti-table th {
+    background: #eef2f7;
+    color: #1a365d;
+    font-family: Arial, sans-serif;
+    font-size: 8.5pt;
+    padding: 5pt 10pt;
+    border-bottom: 0.8pt solid #ccc;
+    text-transform: uppercase;
+  }
+  .conti-table td {
+    padding: 5pt 10pt;
+    border-bottom: 0.5pt solid #e8e8e8;
+    font-size: 10pt;
+  }
+
+  /* =========================================== */
+  /* DICHIARAZIONE E APPROVAZIONE                 */
+  /* =========================================== */
+  .dichiarazione-parroco {
+    font-size: 10.5pt;
+    text-align: justify;
+    color: #333;
+    margin-top: 20pt;
+    line-height: 1.6;
+  }
+  .parroco-firma {
+    margin-top: 14pt;
+    text-align: right;
+    font-size: 11pt;
+  }
+  .parroco-ruolo {
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    color: #555;
+  }
+  .parroco-nome {
+    font-weight: 700;
+    font-size: 12pt;
+    color: #1a365d;
+  }
+  .data-invio {
+    margin-top: 10pt;
+    font-size: 9.5pt;
+    color: #555;
+  }
+  .separatore {
+    border-top: 1pt dashed #aaa;
+    margin: 16pt 0;
+  }
+  .approvazione-box {
+    border: 1pt solid #1a365d;
+    background: #f5f7fa;
+    padding: 8pt 12pt;
+    text-align: center;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+  .approvazione-stato {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #166534;
+    letter-spacing: 1.5pt;
+    margin: 4pt 0;
+  }
+  .approvazione-stato.non-approvato { color: #b91c1c; }
+  .approvazione-data {
+    font-size: 8pt;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================= -->
+<!-- PAGINA 1 - FRONTESPIZIO       -->
+<!-- ============================= -->
+<div class="page">
+  <div class="frontespizio">
+    <div class="front-logo">
+      <span class="front-logo-text">LOGO<br>DIOCESI</span>
+    </div>
+    <div class="front-diocesi">Diocesi di Caltagirone</div>
+    <div class="front-linea-sottile"></div>
+    <div class="front-titolo">RENDICONTO ECONOMICO</div>
+    <div class="front-sottotitolo">Bilancio Consuntivo Parrocchiale</div>
+    <div class="front-parrocchia">Parrocchia Santa Maria del Popolo</div>
+    <div class="front-comune">Caltagirone (CT)</div>
+    <div class="front-periodo">1 Gennaio 2023 — 31 Dicembre 2023</div>
+    <div class="front-dati-colonna">
+      <div class="front-dato">
+        <span class="front-dato-label">Parroco</span>
+        <span class="front-dato-value">Don Mario Rossi</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Nominato il</span>
+        <span class="front-dato-value">15/09/2018</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Possesso canonico</span>
+        <span class="front-dato-value">01/10/2018</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Vicario</span>
+        <span class="front-dato-value">Don Giuseppe Bianchi</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">C.F. Parrocchia</span>
+        <span class="front-dato-value">12345678901</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Abitanti</span>
+        <span class="front-dato-value">4.500</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Erezione canonica</span>
+        <span class="front-dato-value">15/06/1650</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Riconoscimento civile</span>
+        <span class="front-dato-value">12/03/1985</span>
+      </div>
+      <div class="front-dato">
+        <span class="front-dato-label">Indirizzo</span>
+        <span class="front-dato-value">Via Roma, 123 — 95041</span>
+      </div>
+    </div>
+    <div class="front-data-compilazione">Compilato il 15/03/2024</div>
+  </div>
+  <div class="page-footer">Rendiconto Economico 2023 — Parrocchia Santa Maria del Popolo — Pag. 1</div>
+</div>
+
+
+<!-- ============================= -->
+<!-- PAGINA 2 - MOVIMENTI          -->
+<!-- ============================= -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-header-left">Parrocchia Santa Maria del Popolo — Rendiconto 2023</span>
+    <span class="page-header-right">MOVIMENTI</span>
+  </div>
+
+  <div class="section-title">📋 Movimenti dell'Esercizio</div>
+  <div class="section-subtitle">Periodo: 01/01/2023 — 31/12/2023</div>
+
+  <!-- RIPORTO - fuori dalla tabella -->
+  <div class="riporto-box">
+    <span class="riporto-label">Riporto da esercizio precedente</span>
+    <span class="riporto-importo">€ 52.061,94</span>
+  </div>
+
+  <!-- TABELLA UNICA -->
+  <table>
+    <thead>
+      <tr>
+        <th class="col-codice">Cod.</th>
+        <th>Descrizione</th>
+        <th class="col-importo">Importo €</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- === CATEGORIE ENTRATA === -->
+      <tr class="cat-padre">
+        <td class="col-codice">1</td>
+        <td>Offerte e Donazioni</td>
+        <td class="col-importo">6.891,16</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">1.1</td>
+        <td>Offerte Messe feriali</td>
+        <td class="col-importo">1.234,50</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">1.2</td>
+        <td>Offerte Messe festive</td>
+        <td class="col-importo">3.456,66</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">1.3</td>
+        <td>Cassette elemosine</td>
+        <td class="col-importo">1.200,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">1.4</td>
+        <td>Donazioni spontanee</td>
+        <td class="col-importo">1.000,00</td>
+      </tr>
+
+      <tr class="cat-padre">
+        <td class="col-codice">2</td>
+        <td>Attività Sacramentali</td>
+        <td class="col-importo">2.100,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">2.1</td>
+        <td>Battesimi</td>
+        <td class="col-importo">600,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">2.2</td>
+        <td>Matrimoni</td>
+        <td class="col-importo">1.200,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">2.3</td>
+        <td>Funerali</td>
+        <td class="col-importo">300,00</td>
+      </tr>
+
+      <tr class="cat-padre">
+        <td class="col-codice">3</td>
+        <td>Contributi Istituzionali</td>
+        <td class="col-importo">1.600,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">3.1</td>
+        <td>Contributo CEI (8xmille)</td>
+        <td class="col-importo">1.200,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">3.2</td>
+        <td>Contributo Diocesi</td>
+        <td class="col-importo">400,00</td>
+      </tr>
+
+      <!-- === CATEGORIE USCITA (importi negativi) === -->
+      <tr class="cat-padre">
+        <td class="col-codice">4</td>
+        <td>Utenze</td>
+        <td class="col-importo negativo">- 8.432,14</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">4.1</td>
+        <td>Energia elettrica</td>
+        <td class="col-importo negativo">- 3.200,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">4.2</td>
+        <td>Gas riscaldamento</td>
+        <td class="col-importo negativo">- 2.800,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">4.3</td>
+        <td>Acqua</td>
+        <td class="col-importo negativo">- 1.432,14</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">4.4</td>
+        <td>Telefono e internet</td>
+        <td class="col-importo negativo">- 1.000,00</td>
+      </tr>
+
+      <tr class="cat-padre">
+        <td class="col-codice">5</td>
+        <td>Manutenzioni Ordinarie</td>
+        <td class="col-importo negativo">- 6.200,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">5.1</td>
+        <td>Riparazioni edilizie</td>
+        <td class="col-importo negativo">- 3.500,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">5.2</td>
+        <td>Manutenzione impianti</td>
+        <td class="col-importo negativo">- 1.700,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">5.3</td>
+        <td>Pulizie</td>
+        <td class="col-importo negativo">- 1.000,00</td>
+      </tr>
+
+      <tr class="cat-padre">
+        <td class="col-codice">6</td>
+        <td>Liturgia e Culto</td>
+        <td class="col-importo negativo">- 3.000,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">6.1</td>
+        <td>Materiale liturgico</td>
+        <td class="col-importo negativo">- 1.800,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">6.2</td>
+        <td>Paramenti e arredi sacri</td>
+        <td class="col-importo negativo">- 1.200,00</td>
+      </tr>
+
+      <tr class="cat-padre">
+        <td class="col-codice">7</td>
+        <td>Spese per il Personale</td>
+        <td class="col-importo negativo">- 10.000,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">7.1</td>
+        <td>Compensi sagrestano</td>
+        <td class="col-importo negativo">- 7.200,00</td>
+      </tr>
+      <tr class="cat-figlio">
+        <td class="col-codice">7.2</td>
+        <td>Contributi e assicurazioni</td>
+        <td class="col-importo negativo">- 2.800,00</td>
+      </tr>
+
+      <!-- === SEPARATORE === -->
+      <tr class="separatore-sezione"><td colspan="3"></td></tr>
+
+      <!-- === TOTALI === -->
+      <tr class="riga-subtotale">
+        <td class="col-codice"></td>
+        <td>Totale Entrate</td>
+        <td class="col-importo positivo">10.591,16</td>
+      </tr>
+      <tr class="riga-subtotale">
+        <td class="col-codice"></td>
+        <td>Totale Uscite</td>
+        <td class="col-importo negativo">- 27.632,14</td>
+      </tr>
+      <tr class="riga-subtotale">
+        <td class="col-codice"></td>
+        <td>Risultato di Gestione</td>
+        <td class="col-importo negativo">- 17.040,98</td>
+      </tr>
+      <tr class="riga-totale-finale">
+        <td class="col-codice"></td>
+        <td>SALDO FINALE (riporto + gestione)</td>
+        <td class="col-importo positivo">35.020,96</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-footer">Rendiconto Economico 2023 — Parrocchia Santa Maria del Popolo — Pag. 2</div>
+</div>
+
+
+<!-- ============================= -->
+<!-- PAGINA 3 - RIEPILOGO E FIRME  -->
+<!-- ============================= -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-header-left">Parrocchia Santa Maria del Popolo — Rendiconto 2023</span>
+    <span class="page-header-right">RIEPILOGO</span>
+  </div>
+
+  <div class="section-title">📊 Riepilogo Economico</div>
+  <div class="section-subtitle">Esercizio 01/01/2023 — 31/12/2023</div>
+
+  <!-- Box Risultato Gestione -->
+  <div class="riepilogo-box">
+    <div class="riepilogo-title">Risultato di Gestione</div>
+    <div class="riepilogo-riga">
+      <span class="riepilogo-label">Riporto da esercizio precedente</span>
+      <span class="riepilogo-value">52.061,94</span>
+    </div>
+    <div class="riepilogo-riga">
+      <span class="riepilogo-label">Totale Entrate dell'esercizio</span>
+      <span class="riepilogo-value positivo">10.591,16</span>
+    </div>
+    <div class="riepilogo-riga">
+      <span class="riepilogo-label">Totale Uscite dell'esercizio</span>
+      <span class="riepilogo-value negativo">- 27.632,14</span>
+    </div>
+    <div class="riepilogo-riga totale">
+      <span class="riepilogo-label">SALDO FINALE</span>
+      <span class="riepilogo-value positivo">35.020,96</span>
+    </div>
+  </div>
+
+  <!-- Box Disponibilità Liquide -->
+  <div class="riepilogo-box">
+    <div class="riepilogo-title">Situazione Patrimoniale — Disponibilità Liquide</div>
+    <table class="conti-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Conto</th>
+          <th style="text-align:left;">Tipo</th>
+          <th style="text-align:right;">Saldo al 31/12/2023</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cassa Parrocchiale</td>
+          <td>Cassa</td>
+          <td class="col-importo" style="font-weight:600;">12.520,96</td>
+        </tr>
+        <tr>
+          <td>BCC Caltagirone - c/c 12345</td>
+          <td>Banca</td>
+          <td class="col-importo" style="font-weight:600;">18.000,00</td>
+        </tr>
+        <tr>
+          <td>Poste Italiane - c/c 67890</td>
+          <td>Postale</td>
+          <td class="col-importo" style="font-weight:600;">4.500,00</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="riepilogo-riga totale" style="margin-top:6pt;">
+      <span class="riepilogo-label">TOTALE DISPONIBILITÀ</span>
+      <span class="riepilogo-value positivo">35.020,96</span>
+    </div>
+  </div>
+
+  <!-- Dichiarazione del Parroco -->
+  <div class="dichiarazione-parroco">
+    Il sottoscritto, in qualità di legale rappresentante della Parrocchia, dichiara che il presente rendiconto economico è stato redatto in conformità alle disposizioni diocesane, che i dati in esso contenuti corrispondono alle risultanze delle scritture contabili e che il medesimo è stato esaminato e approvato dal Consiglio Parrocchiale per gli Affari Economici (C.A.E.P.).
+  </div>
+
+  <div class="parroco-firma">
+    <div class="parroco-ruolo">Il Parroco</div>
+    <div class="parroco-nome">Don Mario Rossi</div>
+  </div>
+
+  <div class="data-invio">Data invio: <strong>15/03/2024</strong></div>
+
+  <!-- Approvazione economo -->
+  <div class="separatore"></div>
+
+  <div class="approvazione-box">
+    Il bilancio, debitamente verificato dal Revisore Contabile della Diocesi, è stato:
+    <div class="approvazione-stato">APPROVATO</div>
+    <div class="approvazione-data">
+      In data <strong>28/04/2024</strong> — S.E. Mons. Calogero Peri, Vescovo della Diocesi di Caltagirone
+    </div>
+  </div>
+
+  <div class="page-footer">Rendiconto Economico 2023 — Parrocchia Santa Maria del Popolo — Pag. 3</div>
+</div>
+
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Rendiconto {{ ente.denominazione }} — {{ periodo_inizio_fmt }} - {{ periodo_fine_fmt }}</title>
+<title>Rendiconto Economico {{ anno }}</title>
 <style>
   @page {
     size: A4;
@@ -27,41 +27,55 @@
   }
 
   .page {
-    page-break-after: always;
+    width: 100%;
+    padding: 0;
     position: relative;
-  }
-  .page:last-child {
-    page-break-after: avoid;
+    page-break-after: always;
   }
 
   .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-bottom: 1.5pt solid #1a365d;
     padding-bottom: 5pt;
     margin-bottom: 14pt;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 8pt;
     color: #555;
+    overflow: hidden;
   }
-  .page-header-left { font-weight: 600; color: #1a365d; }
-  .page-header-right { color: #777; }
+  .page-header-left { float: left; font-weight: 600; color: #1a365d; }
+  .page-header-right { float: right; color: #777; }
 
-  /* ============ FRONTESPIZIO ============ */
+  /* ==================== FRONTESPIZIO (no flexbox per WeasyPrint) ==================== */
+
   .frontespizio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 250mm;
+    text-align: center;
+    padding-top: 10mm;
+  }
+
+  .front-logo {
+    margin-bottom: 16pt;
+    text-align: center;
+  }
+  .front-logo img {
+    max-width: 60mm;
+    max-height: 60mm;
+  }
+  .front-logo-placeholder {
+    width: 60mm;
+    height: 60mm;
+    margin: 0 auto;
+    background: #f5f7fa;
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: #1a365d;
+    line-height: 60mm;
     text-align: center;
   }
 
   .front-linea-sottile {
     width: 100mm;
-    height: 0;
-    border-top: 0.5pt solid #8a9ab5;
+    height: 0.8pt;
+    background: linear-gradient(90deg, transparent, #1a365d, transparent);
     margin: 0 auto 28pt auto;
   }
 
@@ -91,14 +105,15 @@
     color: #555;
     margin-bottom: 24pt;
   }
-  .front-periodo {
+  .front-periodo-box {
+    margin: 0 auto 34pt auto;
+    display: inline-block;
     font-family: Arial, sans-serif;
     font-size: 13pt;
     font-weight: 600;
     color: #1a365d;
     border: 1.5pt solid #1a365d;
     padding: 7pt 28pt;
-    margin-bottom: 34pt;
   }
 
   .front-dati-colonna {
@@ -107,45 +122,48 @@
     margin: 0 auto;
   }
   .front-dato {
-    display: flex;
-    justify-content: space-between;
     padding: 5pt 0;
     font-size: 11pt;
     border-bottom: 0.5pt dotted #ccc;
+    overflow: hidden;
   }
   .front-dato-label {
+    float: left;
     color: #666;
     font-family: Arial, sans-serif;
     font-size: 10pt;
   }
   .front-dato-value {
+    float: right;
     font-weight: 600;
     color: #333;
     font-size: 11pt;
   }
   .front-data-compilazione {
+    text-align: center;
     margin-top: 24pt;
     font-size: 9pt;
     color: #999;
   }
 
-  /* ============ MOVIMENTI ============ */
+  /* ==================== MOVIMENTI ==================== */
+
   .riporto-box {
     background: #f5efe6;
     border: 1pt solid #c9a96e;
     border-radius: 3pt;
     padding: 10pt 16pt;
     margin-bottom: 16pt;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    overflow: hidden;
   }
   .riporto-label {
+    float: left;
     font-weight: 700;
     color: #7c4d1e;
     font-size: 11.5pt;
   }
   .riporto-importo {
+    float: right;
     font-weight: 700;
     font-size: 14pt;
     color: #7c4d1e;
@@ -169,7 +187,6 @@
     margin-bottom: 14pt;
   }
 
-  /* ============ TABELLA MOVIMENTI ============ */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -207,9 +224,6 @@
     padding-left: 22pt;
     font-weight: 400;
     color: #333;
-  }
-  tbody tr.cat-figlio:nth-child(even) {
-    background: #fafbfc;
   }
 
   td { padding: 5pt 10pt; vertical-align: middle; }
@@ -259,7 +273,8 @@
   tr.riga-totale-finale td.col-importo.positivo { color: #166534; }
   tr.riga-totale-finale td.col-importo.negativo { color: #b91c1c; }
 
-  /* ============ RIEPILOGO ============ */
+  /* ==================== RIEPILOGO ==================== */
+
   .riepilogo-box {
     background: #f8f9fb;
     border: 0.8pt solid #ddd;
@@ -274,14 +289,13 @@
     color: #1a365d;
     margin-bottom: 10pt;
     text-transform: uppercase;
-    letter-spacing: 0;
+    letter-spacing: 1pt;
   }
   .riepilogo-riga {
-    display: flex;
-    justify-content: space-between;
     padding: 5pt 0;
     border-bottom: 0.5pt dotted #ccc;
     font-size: 10.5pt;
+    overflow: hidden;
   }
   .riepilogo-riga:last-child { border-bottom: none; }
   .riepilogo-riga.totale {
@@ -293,8 +307,8 @@
     padding-top: 8pt;
     margin-top: 4pt;
   }
-  .riepilogo-label { color: #444; }
-  .riepilogo-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .riepilogo-label { float: left; color: #444; }
+  .riepilogo-value { float: right; font-variant-numeric: tabular-nums; font-weight: 600; }
   .riepilogo-value.positivo { color: #166534; }
   .riepilogo-value.negativo { color: #b91c1c; }
 
@@ -314,7 +328,6 @@
     font-size: 10pt;
   }
 
-  /* ============ FIRME E DICHIARAZIONE ============ */
   .dichiarazione-parroco {
     font-size: 10.5pt;
     text-align: justify;
@@ -370,26 +383,32 @@
 </head>
 <body>
 
-<!-- ==================== PAGINA 1 — FRONTESPIZIO ==================== -->
+<!-- ==================== PAGINA 1: FRONTESPIZIO ==================== -->
 <div class="page">
   <div class="frontespizio">
-    {% if logo_diocesi %}
-    <img src="{{ logo_diocesi }}" style="max-width: 60mm; margin-bottom: 16pt;" alt="Logo Diocesi">
-    {% else %}
-    <div style="margin-bottom: 16pt; font-family: Arial, sans-serif; font-size: 10pt; color: #1a365d;">LOGO DIOCESI</div>
-    {% endif %}
+
+    <div class="front-logo">
+      {% if logo_diocesi %}
+        <img src="{{ logo_diocesi }}" alt="Logo Diocesi">
+      {% else %}
+        <div class="front-logo-placeholder">LOGO DIOCESI</div>
+      {% endif %}
+    </div>
 
     <div class="front-linea-sottile"></div>
+
     <div class="front-titolo">RENDICONTO ECONOMICO</div>
     <div class="front-sottotitolo">Bilancio Consuntivo Parrocchiale</div>
+
     <div class="front-parrocchia">{{ ente.denominazione }}</div>
     <div class="front-comune">{{ ente.comune }} ({{ ente.provincia }})</div>
-    <div class="front-periodo">{{ periodo_inizio_fmt }} — {{ periodo_fine_fmt }}</div>
+
+    <div class="front-periodo-box">{{ periodo_inizio_fmt }} — {{ periodo_fine_fmt }}</div>
 
     <div class="front-dati-colonna">
       <div class="front-dato">
         <span class="front-dato-label">Parroco</span>
-        <span class="front-dato-value">{{ ente.parroco or '' }}</span>
+        <span class="front-dato-value">{{ ente.parroco }}</span>
       </div>
       {% if ente.parroco_nominato_il %}
       <div class="front-dato">
@@ -409,12 +428,10 @@
         <span class="front-dato-value">{{ ente.vicario }}</span>
       </div>
       {% endif %}
-      {% if ente.codice_fiscale %}
       <div class="front-dato">
         <span class="front-dato-label">C.F. Parrocchia</span>
         <span class="front-dato-value">{{ ente.codice_fiscale }}</span>
       </div>
-      {% endif %}
       {% if ente.numero_abitanti %}
       <div class="front-dato">
         <span class="front-dato-label">Abitanti</span>
@@ -435,7 +452,7 @@
       {% endif %}
       <div class="front-dato">
         <span class="front-dato-label">Indirizzo</span>
-        <span class="front-dato-value">{{ ente.indirizzo or '' }}{% if ente.cap %} — {{ ente.cap }}{% endif %}</span>
+        <span class="front-dato-value">{{ ente.indirizzo }} — {{ ente.cap }}</span>
       </div>
     </div>
 
@@ -443,7 +460,7 @@
   </div>
 </div>
 
-<!-- ==================== PAGINA 2 — MOVIMENTI ==================== -->
+<!-- ==================== PAGINA 2: MOVIMENTI ==================== -->
 <div class="page">
   <div class="page-header">
     <span class="page-header-left">{{ ente.denominazione }} — Rendiconto {{ anno }}</span>
@@ -455,7 +472,7 @@
 
   <div class="riporto-box">
     <span class="riporto-label">Riporto da esercizio precedente</span>
-    <span class="riporto-importo{% if riporto_precedente < 0 %} negativo{% endif %}">{% if riporto_precedente < 0 %}- {% endif %}&euro; {{ riporto_precedente|abs|ita }}</span>
+    <span class="riporto-importo{% if riporto_precedente < 0 %} negativo{% endif %}">€ {{ riporto_precedente|ita }}</span>
   </div>
 
   <table>
@@ -463,38 +480,36 @@
       <tr>
         <th class="col-codice">Cod.</th>
         <th>Descrizione</th>
-        <th class="col-importo">Importo &euro;</th>
+        <th class="col-importo">Importo €</th>
       </tr>
     </thead>
     <tbody>
-      {# === ENTRATE === #}
       {% for cat in categorie_entrate %}
       <tr class="cat-padre">
         <td class="col-codice">{{ cat.codice }}</td>
         <td>{{ cat.nome }}</td>
         <td class="col-importo">{{ cat.totale|ita }}</td>
       </tr>
-      {% for sub in cat.sottocategorie %}
+      {% for sotto in cat.sottocategorie %}
       <tr class="cat-figlio">
-        <td class="col-codice">{{ sub.codice }}</td>
-        <td>{{ sub.nome }}</td>
-        <td class="col-importo">{{ sub.totale|ita }}</td>
+        <td class="col-codice">{{ sotto.codice }}</td>
+        <td>{{ sotto.nome }}</td>
+        <td class="col-importo">{{ sotto.totale|ita }}</td>
       </tr>
       {% endfor %}
       {% endfor %}
 
-      {# === USCITE === #}
       {% for cat in categorie_uscite %}
       <tr class="cat-padre">
         <td class="col-codice">{{ cat.codice }}</td>
         <td>{{ cat.nome }}</td>
         <td class="col-importo negativo">- {{ cat.totale|ita }}</td>
       </tr>
-      {% for sub in cat.sottocategorie %}
+      {% for sotto in cat.sottocategorie %}
       <tr class="cat-figlio">
-        <td class="col-codice">{{ sub.codice }}</td>
-        <td>{{ sub.nome }}</td>
-        <td class="col-importo negativo">- {{ sub.totale|ita }}</td>
+        <td class="col-codice">{{ sotto.codice }}</td>
+        <td>{{ sotto.nome }}</td>
+        <td class="col-importo negativo">- {{ sotto.totale|ita }}</td>
       </tr>
       {% endfor %}
       {% endfor %}
@@ -514,19 +529,18 @@
       <tr class="riga-subtotale">
         <td class="col-codice"></td>
         <td>Risultato di Gestione</td>
-        <td class="col-importo {% if saldo >= 0 %}positivo{% else %}negativo{% endif %}">{% if saldo < 0 %}- {% endif %}{{ saldo|abs|ita }}</td>
+        <td class="col-importo {% if (totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}">{% if (totale_entrate - totale_uscite) < 0 %}- {% endif %}{{ (totale_entrate - totale_uscite)|abs|ita }}</td>
       </tr>
-      {% set saldo_finale = riporto_precedente + saldo %}
       <tr class="riga-totale-finale">
         <td class="col-codice"></td>
         <td>SALDO FINALE (riporto + gestione)</td>
-        <td class="col-importo {% if saldo_finale >= 0 %}positivo{% else %}negativo{% endif %}">{% if saldo_finale < 0 %}- {% endif %}{{ saldo_finale|abs|ita }}</td>
+        <td class="col-importo {% if (riporto_precedente + totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}">{{ (riporto_precedente + totale_entrate - totale_uscite)|ita }}</td>
       </tr>
     </tbody>
   </table>
 </div>
 
-<!-- ==================== PAGINA 3 — RIEPILOGO ==================== -->
+<!-- ==================== PAGINA 3: RIEPILOGO ==================== -->
 <div class="page">
   <div class="page-header">
     <span class="page-header-left">{{ ente.denominazione }} — Rendiconto {{ anno }}</span>
@@ -540,7 +554,7 @@
     <div class="riepilogo-title">Risultato di Gestione</div>
     <div class="riepilogo-riga">
       <span class="riepilogo-label">Riporto da esercizio precedente</span>
-      <span class="riepilogo-value{% if riporto_precedente < 0 %} negativo{% endif %}">{% if riporto_precedente < 0 %}- {% endif %}{{ riporto_precedente|abs|ita }}</span>
+      <span class="riepilogo-value">{{ riporto_precedente|ita }}</span>
     </div>
     <div class="riepilogo-riga">
       <span class="riepilogo-label">Totale Entrate dell'esercizio</span>
@@ -550,21 +564,20 @@
       <span class="riepilogo-label">Totale Uscite dell'esercizio</span>
       <span class="riepilogo-value negativo">- {{ totale_uscite|ita }}</span>
     </div>
-    {% set saldo_finale = riporto_precedente + saldo %}
     <div class="riepilogo-riga totale">
       <span class="riepilogo-label">SALDO FINALE</span>
-      <span class="riepilogo-value {% if saldo_finale >= 0 %}positivo{% else %}negativo{% endif %}">{% if saldo_finale < 0 %}- {% endif %}{{ saldo_finale|abs|ita }}</span>
+      <span class="riepilogo-value {% if (riporto_precedente + totale_entrate - totale_uscite) >= 0 %}positivo{% else %}negativo{% endif %}">{{ (riporto_precedente + totale_entrate - totale_uscite)|ita }}</span>
     </div>
   </div>
 
   <div class="riepilogo-box">
-    <div class="riepilogo-title">Situazione Patrimoniale — Disponibilit&agrave; Liquide</div>
+    <div class="riepilogo-title">Situazione Patrimoniale — Disponibilità Liquide</div>
     <table class="conti-table">
       <thead>
         <tr>
-          <th style="text-align: left;">Conto</th>
-          <th style="text-align: left;">Tipo</th>
-          <th style="text-align: right;">Saldo al {{ periodo_fine_fmt }}</th>
+          <th style="text-align:left;">Conto</th>
+          <th style="text-align:left;">Tipo</th>
+          <th style="text-align:right;">Saldo al {{ periodo_fine_fmt }}</th>
         </tr>
       </thead>
       <tbody>
@@ -572,44 +585,46 @@
         <tr>
           <td>{{ conto.nome }}</td>
           <td>{{ conto.tipo }}</td>
-          <td class="col-importo" style="font-weight: 600;">{{ conto.saldo|ita }}</td>
+          <td class="col-importo" style="font-weight:600;">{{ conto.saldo|ita }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-    <div class="riepilogo-riga totale" style="margin-top: 6pt;">
-      <span class="riepilogo-label">TOTALE DISPONIBILIT&Agrave;</span>
-      <span class="riepilogo-value {% if totale_disponibilita >= 0 %}positivo{% else %}negativo{% endif %}">{{ totale_disponibilita|ita }}</span>
+    <div class="riepilogo-riga totale" style="margin-top:6pt;">
+      <span class="riepilogo-label">TOTALE DISPONIBILITÀ</span>
+      <span class="riepilogo-value positivo">{{ totale_disponibilita|ita }}</span>
     </div>
   </div>
 
   <div class="dichiarazione-parroco">
-    Il sottoscritto, in qualit&agrave; di legale rappresentante della Parrocchia, dichiara che il presente
-    rendiconto economico &egrave; stato redatto in conformit&agrave; alle disposizioni diocesane, che i dati in esso
-    contenuti corrispondono alle risultanze delle scritture contabili e che il medesimo &egrave; stato esaminato
-    e approvato dal Consiglio Parrocchiale per gli Affari Economici (C.A.E.P.).
+    Il sottoscritto, in qualità di legale rappresentante della Parrocchia, dichiara che il presente rendiconto economico è stato redatto in conformità alle disposizioni diocesane, che i dati in esso contenuti corrispondono alle risultanze delle scritture contabili e che il medesimo è stato esaminato e approvato dal Consiglio Parrocchiale per gli Affari Economici (C.A.E.P.).
   </div>
 
   <div class="parroco-firma">
     <div class="parroco-ruolo">Il Parroco</div>
-    <div class="parroco-nome">{{ ente.parroco or '' }}</div>
+    <div class="parroco-nome">{{ ente.parroco }}</div>
   </div>
 
   {% if data_invio %}
   <div class="data-invio">Data invio: <strong>{{ data_invio }}</strong></div>
   {% endif %}
 
-  {% if approvato %}
   <div class="separatore"></div>
+
   <div class="approvazione-box">
-    Il bilancio, debitamente verificato dal Revisore Contabile della Diocesi, &egrave; stato:
+    {% if approvato %}
+    Il bilancio, debitamente verificato dal Revisore Contabile della Diocesi, è stato:
     <div class="approvazione-stato">APPROVATO</div>
     <div class="approvazione-data">
-      {% if data_approvazione %}In data <strong>{{ data_approvazione }}</strong> — {% endif %}{{ vescovo }}, {{ vescovo_titolo }} della {{ ente.diocesi or 'Diocesi di Caltagirone' }}
+      In data <strong>{{ data_approvazione }}</strong> — S.E. Mons. {{ vescovo }}, {{ vescovo_titolo }} della {{ ente.diocesi }}
     </div>
+    {% else %}
+    <div class="approvazione-stato non-approvato">IN ATTESA DI APPROVAZIONE</div>
+    <div class="approvazione-data">
+      Il presente rendiconto è in attesa di verifica da parte della Curia Diocesana.
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
-
 </div>
 
 </body>
