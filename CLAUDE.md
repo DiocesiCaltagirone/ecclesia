@@ -20,7 +20,7 @@ Quando fai modifiche:
 ## ARCHITETTURA E STACK
 
 ### Stack Tecnologico
-- Frontend: React 18 + Vite + TailwindCSS
+- Frontend: React 19 + Vite + TailwindCSS
 - Backend: Python FastAPI
 - Database: PostgreSQL 15
 - Cache: Redis
@@ -130,7 +130,7 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── App.jsx                     # Router principale
 │   │   ├── pages\
 │   │   │   ├── Dashboard.jsx           # Home page ("Benvenuto in EcclesiaWeb")
-│   │   │   ├── Login.jsx               # Pagina login
+│   │   │   ├── Login.jsx               # Pagina login (card bianca + onda blu, logo diocesi, ricordami)
 │   │   │   ├── ImpostazioniDatiGenerali.jsx  # Form dati parrocchia + parroco + vicario
 │   │   │   ├── Amministrazione\        # Sezione economo diocesano
 │   │   │   │   └── GestioneParrocchie.jsx
@@ -150,14 +150,17 @@ C:\Users\Lux\parrocchia-app\
 │   │   │       └── [vari componenti]
 │   │   ├── components\
 │   │   │   ├── Layout.jsx              # Layout con sidebar
-│   │   │   ├── Sidebar.jsx             # Menu laterale dinamico per ruolo
+│   │   │   ├── Logo.jsx                # Logo SVG placeholder (NON PIU USATO, sostituito da logo-diocesi.png)
 │   │   │   ├── ModalAllegati.jsx       # Modal per upload/visualizza allegati movimenti
 │   │   │   └── CambioPasswordModal.jsx # Modal cambio password condiviso (usato in Layout, ContabilitaLayout, HeaderAmministrazione)
 │   │   ├── utils\
 │   │   │   └── formatters.js           # Funzione condivisa formatCurrency (formato italiano)
 │   │   └── services\
-│   │       └── api.js                  # Configurazione Axios + base URL
+│   │       └── api.js                  # Configurazione Axios + base URL + interceptor 401
 │   └── vite.config.js                  # Config Vite + proxy API
+│   └── public\
+│       ├── logo-diocesi.png            # Logo ufficiale Diocesi di Caltagirone (126KB)
+│       └── vite.svg
 ├── anteprima_rendiconto_v4.html         # Riferimento visuale approvato per il PDF rendiconto
 ├── docker-compose.yml
 ├── deploy.sh                           # Script deploy su server
@@ -427,10 +430,10 @@ Dopo chiusura rendiconto 2023:
 
 ---
 
-## FUNZIONALITA IMPLEMENTATE (stato al 27/02/2026)
+## FUNZIONALITA IMPLEMENTATE (stato al 03/03/2026)
 
 ### Completate
-1. Autenticazione JWT con login/logout
+1. Autenticazione JWT con login/logout (sessionStorage per token, interceptor 401 in api.js)
 2. Sistema multi-ente (un utente puo gestire piu parrocchie)
 3. Sistema permessi basato su ruoli (economo, parroco, operatore)
 4. Dashboard con messaggio "Benvenuto in EcclesiaWeb"
@@ -465,23 +468,34 @@ Dopo chiusura rendiconto 2023:
    - Funzione condivisa formatCurrency in frontend/src/utils/formatters.js (implementazione manuale, NO Intl.NumberFormat che non e' affidabile su tutti i browser)
    - Usata in tutti i file frontend (Conti, MovimentiConto, MovimentiGenerale, Rapporti, ListaRendiconti, NuovoRendiconto, Rendiconto, EconomatoContabilita)
    - Template backend rendiconto.html usa filtro Jinja2 |ita (formato_italiano) e |ita_int (intero con separatore migliaia)
+16. Pagina Login redesign completa:
+   - Design: card bianca (logo + titolo) + onda SVG curva + form su sfondo blu scuro (#1a365d)
+   - Logo ufficiale Diocesi di Caltagirone (frontend/public/logo-diocesi.png)
+   - Checkbox "Ricordami" (salva email in localStorage, token resta in sessionStorage)
+   - Modal "Password dimenticata?" (chiede email, chiama POST /api/auth/reset-password)
+   - NOTA: endpoint /api/auth/reset-password NON ESISTE nel backend attivo (era in main_OLD.py). Nessun servizio email configurato (no SMTP/SendGrid). Da implementare.
+17. Gestione sessione migliorata:
+   - sessionStorage per token/user/ente_id (si cancella alla chiusura tab/browser, persiste su F5)
+   - localStorage SOLO per saved_email (ricordami) — deve persistere tra sessioni
+   - Interceptor response 401 in api.js: cancella sessione e redirect a /login se token scaduto
 
 ### Da implementare (priorita)
 ALTA:
-1. Giroconto tra registri
-2. Interfaccia visualizzazione Audit Log
-3. Riconciliazione bancaria
+1. Endpoint backend POST /api/auth/reset-password + servizio email (SMTP o SendGrid)
+2. Giroconto tra registri
+3. Interfaccia visualizzazione Audit Log
+4. Riconciliazione bancaria
 
 MEDIA:
-4. Import movimenti da CSV/Excel
-5. Modulo Anagrafica completo (famiglie, relazioni)
-6. Modulo Inventario (beni mobili/immobili)
-7. Export dati
+5. Import movimenti da CSV/Excel
+6. Modulo Anagrafica completo (famiglie, relazioni)
+7. Modulo Inventario (beni mobili/immobili)
+8. Export dati
 
 BASSA:
-8. Dashboard statistiche
-9. Notifiche email
-10. Backup automatico schedulato
+9. Dashboard statistiche
+10. Notifiche email
+11. Backup automatico schedulato
 
 ---
 
@@ -624,13 +638,15 @@ docker restart parrocchia-backend
 17. formatCurrency non metteva punto migliaia: Intl.NumberFormat('it-IT') non affidabile su tutti i browser (fix: implementazione manuale con regex)
 18. PUT /registri check saldo bloccato usava colonna inesistente rendiconto_id (fix: controllo campo bloccato del movimento saldo_iniziale)
 19. Cambio password funzionava solo dalla Home (Layout.jsx): ContabilitaLayout.jsx aveva solo `alert('Da implementare')`, HeaderAmministrazione.jsx non aveva il modal. Fix: estratto CambioPasswordModal.jsx come componente condiviso, importato in tutti e 3 i layout.
+20. Sessione: pagina vuota dopo chiusura tab/browser perche token JWT in localStorage persisteva scaduto. Fix: migrato tutto a sessionStorage (si cancella alla chiusura). Aggiunto interceptor 401 in api.js per redirect automatico a /login.
 
 ---
 
 ## NOTE TECNICHE CRITICHE
 
 - Cache Python: eliminare __pycache__ dopo modifiche backend
-- Token JWT: scadono, se errore 401 fare logout/login
+- Token JWT: salvati in sessionStorage (NON localStorage). Si cancellano alla chiusura tab. Interceptor 401 in api.js gestisce redirect automatico a /login.
+- STORAGE POLICY: sessionStorage per dati di sessione (token, user, ente_id, current_ente_id, current_ente). localStorage SOLO per preferenze persistenti (saved_email per "Ricordami").
 - Template PDF V4: backend/templates/rendiconto.html (Jinja2 + WeasyPrint, 3 pagine)
   - Pagina 1: Frontespizio (logo, dati parrocchia, periodo)
   - Pagina 2: Movimenti (entrate e uscite in sezioni separate con codici categoria, ordinamento numerico)
@@ -640,7 +656,7 @@ docker restart parrocchia-backend
   - Logo come semplice <img> senza cerchio/bordo
   - Riferimento visuale: anteprima_rendiconto_v4.html (NON modificare il CSS del template senza confrontare col riferimento)
 - Categorie: codici numerici crescenti (1, 2, 1.1, 1.2), "000" per riporti
-- api.js: gestisce automaticamente locale vs produzione
+- api.js: gestisce automaticamente locale vs produzione, ha request interceptor (token + ente_id) e response interceptor (401 → redirect /login)
 - Password DB locale: parrocchia2025 (NON parrocchia)
 - .env backend: postgres:5432 in Docker, localhost:5432 fuori Docker
 - FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx (modal nella barra superiore) e Conti.jsx (modal nella pagina conti). Modifiche al form vanno fatte in ENTRAMBI i file!
@@ -650,3 +666,5 @@ docker restart parrocchia-backend
   - ContabilitaLayout.jsx → tutta la sezione /contabilita/*
   - HeaderAmministrazione.jsx → pagina Amministrazione
   Funzionalita comuni (es. CambioPasswordModal) vanno importate in TUTTI e 3.
+- LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (SVG placeholder, deprecato).
+- RESET PASSWORD: il frontend ha il modal ma l'endpoint backend /api/auth/reset-password NON ESISTE ancora. Il vecchio codice era in main_OLD.py. Nessun servizio email (SMTP/SendGrid) configurato.
