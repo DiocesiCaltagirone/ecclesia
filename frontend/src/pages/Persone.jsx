@@ -33,8 +33,8 @@ function Persone() {
 
   setLoading(true);
   try {
-    const enteId = localStorage.getItem('current_ente_id');
-    const token = localStorage.getItem('token');
+    const enteId = sessionStorage.getItem('current_ente_id');
+    const token = sessionStorage.getItem('token');
     
     if (!token || !enteId) {
       setError('Dati di autenticazione mancanti');
@@ -79,8 +79,8 @@ function Persone() {
     e.preventDefault();
     
     try {
-      const enteId = localStorage.getItem('current_ente_id');
-      const token = localStorage.getItem('token');
+      const enteId = sessionStorage.getItem('current_ente_id');
+      const token = sessionStorage.getItem('token');
       
       await api.post('/api/anagrafica/persone', {
         ...formData,

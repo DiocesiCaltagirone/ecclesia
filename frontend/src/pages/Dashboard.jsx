@@ -17,8 +17,8 @@ function Dashboard() {
 
   const caricaPermessi = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
 
       console.log('🔍 DEBUG - Token:', token ? 'Presente' : 'Mancante');
       console.log('🔍 DEBUG - Ente ID:', enteId);

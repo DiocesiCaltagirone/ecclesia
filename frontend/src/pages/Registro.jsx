@@ -23,8 +23,8 @@ function Registro() {
   const loadAllPersone = async () => {
     setLoading(true);
     try {
-      const enteId = localStorage.getItem('current_ente_id');
-      const token = localStorage.getItem('token');
+      const enteId = sessionStorage.getItem('current_ente_id');
+      const token = sessionStorage.getItem('token');
 
       const response = await api.get('/api/anagrafica/persone', {
         params: {

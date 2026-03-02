@@ -28,7 +28,7 @@ import EconomatoContabilita from './pages/EconomatoContabilita';
 
 // Componente per proteggere le rotte
 function PrivateRoute({ children }) {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
 }
 

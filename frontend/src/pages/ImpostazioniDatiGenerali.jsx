@@ -42,8 +42,8 @@ function ImpostazioniDatiGenerali() {
 
   const loadDatiEnte = async () => {
     try {
-      const enteId = localStorage.getItem('current_ente_id');
-      const token = localStorage.getItem('token');
+      const enteId = sessionStorage.getItem('current_ente_id');
+      const token = sessionStorage.getItem('token');
 
       const response = await api.get(`/api/enti/${enteId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -99,8 +99,8 @@ function ImpostazioniDatiGenerali() {
     setSaving(true);
 
     try {
-      const enteId = localStorage.getItem('current_ente_id');
-      const token = localStorage.getItem('token');
+      const enteId = sessionStorage.getItem('current_ente_id');
+      const token = sessionStorage.getItem('token');
 
       await api.put(`/api/enti/${enteId}`, formData, {
         headers: {
@@ -110,11 +110,11 @@ function ImpostazioniDatiGenerali() {
 
       alert('Dati salvati con successo!');
 
-      // Aggiorna i dati in localStorage
+      // Aggiorna i dati in sessionStorage
       const updatedEnte = await api.get(`/api/enti/${enteId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      localStorage.setItem('current_ente', JSON.stringify(updatedEnte.data));
+      sessionStorage.setItem('current_ente', JSON.stringify(updatedEnte.data));
 
       // Ricarica la pagina per aggiornare l'header
       window.location.reload();

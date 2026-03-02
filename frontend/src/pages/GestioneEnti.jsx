@@ -44,7 +44,7 @@ const GestioneEnti = () => {
 
   const fetchEnti = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/amministrazione/enti', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -67,7 +67,7 @@ const GestioneEnti = () => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/amministrazione/enti', {
         method: 'POST',
         headers: {
@@ -106,7 +106,7 @@ const GestioneEnti = () => {
     if (!confirm('Rimuovere questo operatore dall\'ente?')) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}`, {
         method: 'DELETE',
         headers: {
@@ -153,7 +153,7 @@ const GestioneEnti = () => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/enti/${enteSelezionato.id}`, {
         method: 'PUT',
         headers: {
@@ -183,7 +183,7 @@ const GestioneEnti = () => {
     if (!confirm(`Sei sicuro di voler eliminare "${denominazione}"?\n\nQuesta azione disattiverà l'ente.`)) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/enti/${enteId}`, {
         method: 'DELETE',
         headers: {
@@ -216,7 +216,7 @@ const GestioneEnti = () => {
     if (!confirm(messaggio)) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(
         `/api/template-categorie/applica-a-ente/${ente.id}`,
         {

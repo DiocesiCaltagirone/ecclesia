@@ -39,8 +39,8 @@ const Conti = () => {
   const fetchConti = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
 
       const response = await fetch('/api/contabilita/registri', {
         headers: {
@@ -62,8 +62,8 @@ const Conti = () => {
 
   const fetchUltimoRendiconto = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
       const response = await fetch('/api/contabilita/ultimo-rendiconto', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -86,8 +86,8 @@ const Conti = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
       const url = editingConto
         ? `/api/contabilita/registri/${editingConto.id}`
         : '/api/contabilita/registri';
@@ -129,8 +129,8 @@ const Conti = () => {
     if (!confirm('Sei sicuro di voler eliminare questo conto?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
       const response = await fetch(`/api/contabilita/registri/${id}`, {
         method: 'DELETE',
         headers: {

@@ -8,12 +8,12 @@ const HeaderAmministrazione = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('ente_id');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('ente_id');
     navigate('/login');
   };
 

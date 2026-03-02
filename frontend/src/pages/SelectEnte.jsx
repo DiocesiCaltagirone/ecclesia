@@ -16,7 +16,7 @@ function SelectEnte() {
 
   const loadEnti = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await api.get('/api/enti/my-enti', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -30,7 +30,7 @@ function SelectEnte() {
   };
 
   const caricaNomeUtente = () => {
-    const user = localStorage.getItem('user');
+    const user = sessionStorage.getItem('user');
     if (user) {
       try {
         const userData = JSON.parse(user);
@@ -47,14 +47,14 @@ function SelectEnte() {
   };
 
   const selectEnte = (ente) => {
-    localStorage.setItem('current_ente_id', ente.id);
-    localStorage.setItem('ente_id', ente.id);
-    localStorage.setItem('current_ente', JSON.stringify(ente));
+    sessionStorage.setItem('current_ente_id', ente.id);
+    sessionStorage.setItem('ente_id', ente.id);
+    sessionStorage.setItem('current_ente', JSON.stringify(ente));
     navigate('/dashboard');
   };
 
   const logout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   };
 

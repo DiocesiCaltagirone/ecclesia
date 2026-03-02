@@ -28,7 +28,7 @@ const TabSacramenti = ({ persona }) => {
   const loadSacramenti = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get(
         `/sacramenti/persone/${persona.id}/riepilogo`,
         { headers: { Authorization: `Bearer ${token}` } }

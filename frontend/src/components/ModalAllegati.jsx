@@ -13,7 +13,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
   const caricaAllegati = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(
         `/api/contabilita/movimenti/${movimento.id}/allegati`,
         {
@@ -42,7 +42,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       for (const file of files) {
         const formData = new FormData();
@@ -76,7 +76,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
 
   const handleDownload = async (allegato) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(
         `/api/contabilita/allegati/${allegato.id}/download`,
         {
@@ -105,7 +105,7 @@ const ModalAllegati = ({ movimento, onClose }) => {
     if (!window.confirm(`Eliminare "${allegato.nome_originale}"?`)) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(
         `/api/contabilita/allegati/${allegato.id}`,
         {

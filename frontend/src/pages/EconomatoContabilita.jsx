@@ -20,7 +20,7 @@ const EconomatoContabilita = () => {
   const [allegatoRespingimento, setAllegatoRespingimento] = useState(null);
 
 
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}` };
 
   useEffect(() => {

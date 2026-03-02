@@ -39,7 +39,7 @@ const TemplateCategorieAdmin = () => {
 
   const loadCategorie = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/template-categorie', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -119,7 +119,7 @@ const TemplateCategorieAdmin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       // Genera codice automatico progressivo
       const codice = generaCodiceAutomatico(formData.categoria_padre_id);
@@ -181,7 +181,7 @@ const TemplateCategorieAdmin = () => {
     if (!window.confirm(`Sei sicuro di voler eliminare "${descrizione}"?\n\n⚠️ Verranno eliminate anche tutte le sottocategorie!`)) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/template-categorie/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -209,7 +209,7 @@ const TemplateCategorieAdmin = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/template-categorie/${editingCategoria.id}`, {
         method: 'PUT',
         headers: {

@@ -81,7 +81,7 @@ const GestioneUtenti = () => {
 
   const fetchEnti = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/amministrazione/enti', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -99,7 +99,7 @@ const GestioneUtenti = () => {
 
   const fetchUtenti = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/amministrazione/utenti', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -178,7 +178,7 @@ const GestioneUtenti = () => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       const response = await fetch(`/api/amministrazione/utenti/${utenteSelezionato.id}`, {
         method: 'PUT',
@@ -247,7 +247,7 @@ const GestioneUtenti = () => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       const utenteData = {
         username: formData.email,
@@ -319,7 +319,7 @@ const GestioneUtenti = () => {
 
   const handleResetPassword = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/utenti/${utenteSelezionato.id}/reset-password`, {
         method: 'POST',
         headers: {
@@ -344,7 +344,7 @@ const GestioneUtenti = () => {
     if (!confirm(`Sei sicuro di voler eliminare "${nomeCompleto}"?\n\nQuesta azione disattiverà l'utente.`)) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/utenti/${utenteId}`, {
         method: 'DELETE',
         headers: {
@@ -367,7 +367,7 @@ const GestioneUtenti = () => {
 
   const togglePermesso = async (utenteId, enteId, permesso, valoreAttuale) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       const utente = utenti.find(u => u.id === utenteId);
       const ente = utente?.enti.find(e => e.id === enteId);

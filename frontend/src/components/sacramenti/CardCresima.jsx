@@ -11,7 +11,7 @@ const CardCresima = ({ data, onEdit, onDelete }) => {
 
     try {
       setDeleting(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await axios.delete(
         `/sacramenti/cresime/${data.id}`,
         { headers: { Authorization: `Bearer ${token}` } }

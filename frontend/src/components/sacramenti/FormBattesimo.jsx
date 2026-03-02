@@ -39,8 +39,8 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
 
   const loadEnteCorrente = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('selectedEnteId');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('selectedEnteId');
       const response = await axios.get(
         `/api/enti/${enteId}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -53,7 +53,7 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
 
   const loadCitta = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       // Assumo che ci sia un endpoint per ottenere i comuni
       const response = await axios.get(
         '/api/comuni',
@@ -73,7 +73,7 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
 
   const loadParrocchie = async (comune) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get(
         `/api/enti?comune=${comune}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -91,7 +91,7 @@ const FormBattesimo = ({ personaId, data, onClose, onSave }) => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       let payload = {
         ...formData,

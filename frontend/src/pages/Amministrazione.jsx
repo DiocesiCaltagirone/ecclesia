@@ -24,7 +24,7 @@ const Amministrazione = () => {
 
   useEffect(() => {
     // Carica info utente
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    const userData = JSON.parse(sessionStorage.getItem('user') || '{}');
     setUser(userData);
     setSettingsData({
       titolo: userData.titolo || '',
@@ -39,7 +39,7 @@ const Amministrazione = () => {
 
   const loadStats = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       // Carica numero Enti
       const entiRes = await fetch('/api/amministrazione/enti', {
@@ -66,9 +66,9 @@ const Amministrazione = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('ente_id');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('ente_id');
     navigate('/login');
   };
 
@@ -83,7 +83,7 @@ const Amministrazione = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -111,7 +111,7 @@ const Amministrazione = () => {
     setSuccess('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/auth/update-profile', {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -120,7 +120,7 @@ const Amministrazione = () => {
 
       if (response.ok) {
         const updated = await response.json();
-        localStorage.setItem('user', JSON.stringify(updated));
+        sessionStorage.setItem('user', JSON.stringify(updated));
         setUser(updated);
         setSuccess('Dati aggiornati!');
         setTimeout(() => {

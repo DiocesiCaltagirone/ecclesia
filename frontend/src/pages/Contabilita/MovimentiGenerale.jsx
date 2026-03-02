@@ -41,8 +41,8 @@ const MovimentiGenerale = () => {
     cerca: ''
   });
 
-  const token = localStorage.getItem('token');
-  const enteId = localStorage.getItem('ente_id');
+  const token = sessionStorage.getItem('token');
+  const enteId = sessionStorage.getItem('ente_id');
   const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
 
   useEffect(() => {

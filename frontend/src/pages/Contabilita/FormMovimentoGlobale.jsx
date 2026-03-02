@@ -27,8 +27,8 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
   const [sottocategorie, setSottocategorie] = useState([]);
   const [microcategorie, setMicrocategorie] = useState([]);
 
-  const token = localStorage.getItem('token');
-  const enteId = localStorage.getItem('ente_id');
+  const token = sessionStorage.getItem('token');
+  const enteId = sessionStorage.getItem('ente_id');
   const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
 
   // Carica lista conti

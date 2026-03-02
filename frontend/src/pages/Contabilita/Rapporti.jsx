@@ -153,8 +153,8 @@ const Rapporti = () => {
 
   const caricaConti = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
       const response = await axios.get('/api/contabilita/registri', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -169,8 +169,8 @@ const Rapporti = () => {
 
   const caricaCategorie = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
 
       console.log('🔑 TOKEN:', token ? 'PRESENTE' : 'ASSENTE');
       console.log('🏛️ ENTE_ID:', enteId);
@@ -339,8 +339,8 @@ const Rapporti = () => {
   const generaReport = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
 
       // ✅ DEBUG: Vedi cosa invii
       console.log('📅 DATE INVIATE:', {

@@ -42,7 +42,7 @@ const ParrocchieDiocesi = () => {
 
   const loadParrocchie = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/amministrazione/parrocchie-diocesi', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -62,7 +62,7 @@ const ParrocchieDiocesi = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch('/api/amministrazione/parrocchie-diocesi', {
         method: 'POST',
         headers: {
@@ -87,7 +87,7 @@ const ParrocchieDiocesi = () => {
     if (!confirm('Sei sicuro di voler eliminare questa parrocchia?')) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/parrocchie-diocesi/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -118,7 +118,7 @@ const ParrocchieDiocesi = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(`/api/amministrazione/parrocchie-diocesi/${editingParrocchia.id}`, {
         method: 'PUT',
         headers: {
@@ -153,7 +153,7 @@ const ParrocchieDiocesi = () => {
     if (!confirm(messaggio)) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await fetch(
         `/api/template-categorie/applica-a-ente/${parrocchia.id}`,
         {
@@ -203,7 +203,7 @@ const ParrocchieDiocesi = () => {
 
         if (comune && denominazione) {
           try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             await fetch('/api/amministrazione/parrocchie-diocesi', {
               method: 'POST',
               headers: {

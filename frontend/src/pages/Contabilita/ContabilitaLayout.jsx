@@ -53,8 +53,8 @@ const ContabilitaLayout = () => {
   useEffect(() => {
     const caricaDati = async () => {
       try {
-        const enteId = localStorage.getItem('ente_id');
-        const token = localStorage.getItem('token');
+        const enteId = sessionStorage.getItem('ente_id');
+        const token = sessionStorage.getItem('token');
 
         const response = await fetch(`/api/enti/${enteId}`, {
           headers: {
@@ -65,7 +65,7 @@ const ContabilitaLayout = () => {
 
         if (response.ok) {
           const ente = await response.json();
-          const userStored = localStorage.getItem('user');
+          const userStored = sessionStorage.getItem('user');
           let displayName = 'Utente';
 
           if (userStored) {
@@ -126,8 +126,8 @@ const ContabilitaLayout = () => {
   }, []);
 
   const handleChangeEnte = (enteId) => {
-    localStorage.setItem('current_ente_id', enteId);
-    localStorage.setItem('ente_id', enteId);
+    sessionStorage.setItem('current_ente_id', enteId);
+    sessionStorage.setItem('ente_id', enteId);
     window.location.reload();
   };
 
@@ -148,15 +148,15 @@ const ContabilitaLayout = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   };
 
   const handleSubmitConto = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
-    const enteId = localStorage.getItem('ente_id');
+    const token = sessionStorage.getItem('token');
+    const enteId = sessionStorage.getItem('ente_id');
 
     const saldoStr = String(formConto.saldo_iniziale).replace(',', '.');
     const payload = {
@@ -202,8 +202,8 @@ const ContabilitaLayout = () => {
 
   const handleSaveTransazione = async (payload) => {
     try {
-      const token = localStorage.getItem('token');
-      const enteId = localStorage.getItem('ente_id');
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('ente_id');
 
       const response = await fetch('/api/contabilita/movimenti', {
         method: 'POST',
@@ -349,7 +349,7 @@ const ContabilitaLayout = () => {
           <div className="p-3">
             <button
               onClick={() => {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const user = JSON.parse(sessionStorage.getItem('user') || '{}');
                 if (user.username === 'admin') {
                   navigate('/amministrazione');
                 } else {

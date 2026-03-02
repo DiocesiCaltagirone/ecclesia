@@ -40,9 +40,9 @@ function Layout() {
 
   const loadEnteData = async () => {
     try {
-      const enteId = localStorage.getItem('current_ente_id');
-      localStorage.setItem('ente_id', enteId);  // ← AGGIUNTO! Sincronizza
-      const token = localStorage.getItem('token');
+      const enteId = sessionStorage.getItem('current_ente_id');
+      sessionStorage.setItem('ente_id', enteId);  // ← AGGIUNTO! Sincronizza
+      const token = sessionStorage.getItem('token');
 
       // Carica dati ente corrente
       const enteResponse = await api.get(`/api/enti/${enteId}`, {
@@ -73,11 +73,11 @@ function Layout() {
 
   const loadUserData = async () => {
     try {
-      // Prima prova a caricare dal localStorage
-      const userStored = localStorage.getItem('user');
+      // Prima prova a caricare dal sessionStorage
+      const userStored = sessionStorage.getItem('user');
       if (userStored) {
         const user = JSON.parse(userStored);
-        console.log('👤 Utente da localStorage:', user);
+        console.log('👤 Utente da sessionStorage:', user);
 
         // Componi nome: titolo (Don/Suor) + nome + cognome
         let displayName = '';
@@ -89,8 +89,8 @@ function Layout() {
         return;
       }
 
-      // Se non c'è nel localStorage, prova l'API
-      const token = localStorage.getItem('token');
+      // Se non c'è nel sessionStorage, prova l'API
+      const token = sessionStorage.getItem('token');
       const response = await api.get('/api/auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -111,13 +111,13 @@ function Layout() {
   };
 
   const handleChangeEnte = (enteId) => {
-    localStorage.setItem('current_ente_id', enteId);
-    localStorage.setItem('ente_id', enteId);  // ← AGGIUNTO!
+    sessionStorage.setItem('current_ente_id', enteId);
+    sessionStorage.setItem('ente_id', enteId);  // ← AGGIUNTO!
     window.location.reload();
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   };
 

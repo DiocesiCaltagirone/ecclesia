@@ -13,19 +13,35 @@ const api = axios.create({
 // Interceptor per aggiungere token alle richieste
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    const enteId = localStorage.getItem('current_ente_id');
+
+    const enteId = sessionStorage.getItem('current_ente_id');
     if (enteId) {
       config.headers['X-Ente-Id'] = enteId;
     }
-    
+
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor per gestire token scaduto (401)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('ente_id');
+      sessionStorage.removeItem('current_ente_id');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('current_ente');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );

@@ -9,8 +9,8 @@ const ListaRendiconti = () => {
   const [motivoDettaglio, setMotivoDettaglio] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('token');
-  const enteId = localStorage.getItem('ente_id');
+  const token = sessionStorage.getItem('token');
+  const enteId = sessionStorage.getItem('ente_id');
   const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
 
   useEffect(() => {

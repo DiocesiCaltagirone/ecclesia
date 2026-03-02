@@ -11,7 +11,7 @@ const CardMatrimonio = ({ data, personaId, onEdit, onDelete }) => {
 
     try {
       setDeleting(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await axios.delete(
         `/sacramenti/matrimoni/${data.id}`,
         { headers: { Authorization: `Bearer ${token}` } }

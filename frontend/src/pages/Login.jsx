@@ -23,8 +23,8 @@ function Login() {
 
     try {
       const data = await login(username, password);
-      localStorage.setItem('token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('token', data.access_token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
 
       // Carica i dati completi dell'utente con gli enti
       const userResponse = await api.get('/api/auth/me', {
@@ -38,7 +38,7 @@ function Login() {
       // Salva l'ente_id se l'utente ha almeno un ente
       if (userData.enti && userData.enti.length > 0) {
         const primoEnteId = userData.enti[0].id;
-        localStorage.setItem('ente_id', primoEnteId);
+        sessionStorage.setItem('ente_id', primoEnteId);
       }
 
       // REDIRECT IN BASE AL RUOLO
