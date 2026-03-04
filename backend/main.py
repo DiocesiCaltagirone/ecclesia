@@ -70,7 +70,7 @@ def verify_ente_access(
     """)
 
     result = db.execute(query, {
-        "user_id": current_user["id"],
+        "user_id": current_user["user_id"],
         "ente_id": ente_id
     }).fetchone()
 
@@ -225,7 +225,7 @@ async def get_my_enti(
         ORDER BY e.denominazione
     """)
 
-    results = db.execute(query, {"user_id": current_user["id"]}).fetchall()
+    results = db.execute(query, {"user_id": current_user["user_id"]}).fetchall()
 
     enti = []
     for row in results:

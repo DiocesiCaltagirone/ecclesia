@@ -159,7 +159,7 @@ def create_registro(
             "importo": importo_saldo,
             "tipo_movimento": tipo_mov_saldo,
             "data_inizio": data_inizio,
-            "user_id": current_user.get('id')
+            "user_id": current_user.get('user_id')
         })
 
         
@@ -169,7 +169,7 @@ def create_registro(
             azione="INSERT",
             tabella="registri_contabili",
             record_id=registro_id,
-            utente_id=current_user.get('id'),
+            utente_id=current_user.get('user_id'),
             utente_email=current_user.get('email'),
             ente_id=ente_id,
             dati_nuovi={"nome": nome, "tipo": tipo, "saldo_iniziale": saldo_iniziale},
@@ -305,7 +305,7 @@ def update_registro(
         azione="UPDATE",
         tabella="registri_contabili",
         record_id=registro_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_precedenti=dati_precedenti,
@@ -392,7 +392,7 @@ def delete_registro(
         azione="DELETE",
         tabella="registri_contabili",
         record_id=registro_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_precedenti=dati_precedenti,
@@ -669,7 +669,7 @@ def create_categoria(
         azione="INSERT",
         tabella="piano_conti",
         record_id=categoria_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_nuovi=data,
@@ -716,7 +716,7 @@ def update_categoria(
         azione="UPDATE",
         tabella="piano_conti",
         record_id=categoria_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_precedenti=dati_precedenti,
@@ -772,7 +772,7 @@ def delete_categoria(
         azione="DELETE",
         tabella="piano_conti",
         record_id=categoria_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_precedenti=dati_precedenti,
@@ -1104,7 +1104,7 @@ def create_movimento(
         "causale": data.get("note", "Movimento"),
         "descrizione": data.get("descrizione", ""),
         "note": data.get("note", ""),
-        "created_by": current_user.get("id")
+        "created_by": current_user.get("user_id")
      })
 
     # Registra audit
@@ -1113,7 +1113,7 @@ def create_movimento(
         azione="INSERT",
         tabella="movimenti_contabili",
         record_id=movimento_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_nuovi=data,
@@ -1237,7 +1237,7 @@ def create_giroconto(
             "importo": importo,
             "causale": nota_uscita,
             "note": nota_uscita,
-            "user_id": current_user.get('id')
+            "user_id": current_user.get('user_id')
         })
         
         
@@ -1265,7 +1265,7 @@ def create_giroconto(
             "importo": importo,
             "causale": nota_entrata,
             "note": nota_entrata,
-            "user_id": current_user.get('id')
+            "user_id": current_user.get('user_id')
         })
         
         
@@ -1293,7 +1293,7 @@ def create_giroconto(
             azione="INSERT",
             tabella="movimenti_contabili",
             record_id=movimento_uscita_id,
-            utente_id=current_user.get('id'),
+            utente_id=current_user.get('user_id'),
             utente_email=current_user.get('email'),
             ente_id=ente_id,
             dati_nuovi={"tipo": "giroconto_uscita", "importo": importo, "da": nome_origine, "a": nome_destinazione},
@@ -1305,7 +1305,7 @@ def create_giroconto(
             azione="INSERT",
             tabella="movimenti_contabili",
             record_id=movimento_entrata_id,
-            utente_id=current_user.get('id'),
+            utente_id=current_user.get('user_id'),
             utente_email=current_user.get('email'),
             ente_id=ente_id,
             dati_nuovi={"tipo": "giroconto_entrata", "importo": importo, "da": nome_origine, "a": nome_destinazione},
@@ -1399,7 +1399,7 @@ def update_movimento(
         azione="UPDATE",
         tabella="movimenti_contabili",
         record_id=movimento_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_precedenti=dati_precedenti,
@@ -1453,7 +1453,7 @@ def delete_movimento(
         azione="DELETE",
         tabella="movimenti_contabili",
         record_id=movimento_id,
-        utente_id=current_user.get('id'),
+        utente_id=current_user.get('user_id'),
         utente_email=current_user.get('email'),
         ente_id=ente_id,
         dati_precedenti=dati_precedenti,
