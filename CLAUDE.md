@@ -430,7 +430,7 @@ Dopo chiusura rendiconto 2023:
 
 ---
 
-## FUNZIONALITA IMPLEMENTATE (stato al 03/03/2026)
+## FUNZIONALITA IMPLEMENTATE (stato al 04/03/2026)
 
 ### Completate
 1. Autenticazione JWT con login/logout (sessionStorage per token, interceptor 401 in api.js)
@@ -639,6 +639,45 @@ docker restart parrocchia-backend
 18. PUT /registri check saldo bloccato usava colonna inesistente rendiconto_id (fix: controllo campo bloccato del movimento saldo_iniziale)
 19. Cambio password funzionava solo dalla Home (Layout.jsx): ContabilitaLayout.jsx aveva solo `alert('Da implementare')`, HeaderAmministrazione.jsx non aveva il modal. Fix: estratto CambioPasswordModal.jsx come componente condiviso, importato in tutti e 3 i layout.
 20. Sessione: pagina vuota dopo chiusura tab/browser perche token JWT in localStorage persisteva scaduto. Fix: migrato tutto a sessionStorage (si cancella alla chiusura). Aggiunto interceptor 401 in api.js per redirect automatico a /login.
+21. current_user["id"] non esisteva: dopo unificazione get_current_user su auth.py (che restituisce "user_id"), main.py e contabilita.py usavano ancora la chiave "id". Fix: 17 occorrenze corrette in "user_id" (2 in main.py, 15 in contabilita.py).
+
+---
+
+## REFACTORING ESEGUITO (04/03/2026)
+
+Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
+
+### Fase 1 — Fix critici e pulizia (COMPLETATA)
+
+**Blocco 1** (commit 9049516):
+- Creato .gitignore, rimossi __pycache__ dal tracking git
+- Eliminati 10 file backup/morti (~3000 righe): main_OLD.py, certificati_OLD.py, certificati_backup.py, amministrazione_BACKUP.py, fix_db.py, fix_constraint.sql, test_certificati.py, Dockerfile.txt, templates/1.html, models/sacramenti.py.py
+- Eliminati file duplicati frontend: Logo.jsx (x2), DataContext duplicato, directory src/src/
+- Sicurezza: aggiunto check is_economo a 26 endpoint in amministrazione.py
+- Sicurezza: whitelist tabella in services/audit.py (prevenzione SQL injection)
+- Sicurezza: rimossa password predefinita dalle risposte API
+
+**Blocco 2** (commit ea37326):
+- Installato lucide-react (dipendenza mancante, sezione sacramenti non funzionava)
+- Fix Registro.jsx: definiti handleEdit, handleDelete, importato useNavigate
+- Fix Persone.jsx: aggiunto useState per error/setError
+- Fix DettaglioPersona.jsx: corretto path import TabSacramenti
+- Rimossi 132 console.log dal frontend (32 file)
+- Rimossi ~98 print dal backend (sostituiti con logging dove necessario)
+
+### Fase 2 — Eliminare duplicazioni backend (IN CORSO)
+
+**Blocco 3** (commit e3e1ff5):
+- Rimossi endpoint duplicati da main.py: login, /auth/me, persone (ridotto da 694 a 419 righe)
+- Fix auth.py: login accetta sia username che email
+- Unificata get_current_user: eliminata versione locale da main.py, si usa solo auth.py
+
+**Hotfix** (commit a193eb6):
+- Corrette 17 occorrenze current_user["id"] → current_user["user_id"] in main.py e contabilita.py
+
+**Da fare (Fase 2)**:
+- 2.3: Migrare persone.py e certificati.py da X-User-ID a JWT
+- 2.4: Riscrivere sacramenti.py e stampe.py con pattern DB compatibile (asyncpg → sincrono)
 
 ---
 
@@ -668,3 +707,4 @@ docker restart parrocchia-backend
   Funzionalita comuni (es. CambioPasswordModal) vanno importate in TUTTI e 3.
 - LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (SVG placeholder, deprecato).
 - RESET PASSWORD: il frontend ha il modal ma l'endpoint backend /api/auth/reset-password NON ESISTE ancora. Il vecchio codice era in main_OLD.py. Nessun servizio email (SMTP/SendGrid) configurato.
+- CURRENT_USER: get_current_user (auth.py) restituisce un dict con chiave "user_id" (NON "id"). Usare SEMPRE current_user["user_id"] o current_user.get("user_id"). La vecchia chiave "id" NON esiste piu.
