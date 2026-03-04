@@ -47,7 +47,7 @@ async def login(
     query = text("""
     SELECT id, username, email, password_hash, nome, cognome, titolo, attivo, is_economo
     FROM utenti
-    WHERE email = :email
+    WHERE email = :email OR username = :email
     """)
     
     result = db.execute(query, {"email": form_data.username}).fetchone()
