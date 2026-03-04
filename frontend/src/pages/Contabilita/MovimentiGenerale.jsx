@@ -99,7 +99,6 @@ const MovimentiGenerale = () => {
       });
 
     } catch (error) {
-      console.error('Errore caricamento dati:', error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +112,6 @@ const MovimentiGenerale = () => {
         setCategorie(data.categorie || []);
       }
     } catch (error) {
-      console.error('Errore caricamento categorie:', error);
     }
   };
 
@@ -149,19 +147,15 @@ const MovimentiGenerale = () => {
     }
 
     // Nascondi movimenti bloccati dei conti selezionati (DOPO tutti i filtri)
-    console.log('🔍 Conti nascosti:', Array.from(contiNascosti));
     risultato = risultato.filter(m => {
       if (m.tipo_speciale === 'saldo_iniziale') {
-        console.log('✅ Riga marrone sempre visibile:', m.registro_id);
         return true;
       }
       if (m.bloccato && contiNascosti.has(m.registro_id)) {
-        console.log('❌ Nascondo movimento bloccato:', m.id, m.registro_id);
         return false;
       }
       return true;
     });
-    console.log('📊 Movimenti dopo filtro:', risultato.length);
 
     // PRIMA calcola saldo in ordine CRONOLOGICO (dal più vecchio) PER OGNI CONTO
     const risultatoOrdinatoCronologico = [...risultato].sort((a, b) => {
@@ -264,7 +258,6 @@ const MovimentiGenerale = () => {
         alert(errorData.detail || 'Errore salvataggio movimento');
       }
     } catch (error) {
-      console.error('Errore:', error);
       alert('Errore salvataggio movimento');
     }
   };
@@ -317,7 +310,6 @@ const MovimentiGenerale = () => {
         alert('Errore eliminazione movimento');
       }
     } catch (error) {
-      console.error('Errore:', error);
       alert('Errore eliminazione movimento');
     }
   };

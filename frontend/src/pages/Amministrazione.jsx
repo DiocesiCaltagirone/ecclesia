@@ -59,7 +59,6 @@ const Amministrazione = () => {
         utentiTotali: utentiNonEconomi.length || 0    // Per card VERDE (Utenti)
       });
     } catch (error) {
-      console.error('Errore caricamento statistiche:', error);
     } finally {
       setLoading(false);
     }

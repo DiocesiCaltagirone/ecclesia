@@ -40,10 +40,8 @@ const Categorie = () => {
         const data = await res.json();
         setCategorie(data.categorie || []);
       } else {
-        console.error('Errore fetch categorie:', res.status);
       }
     } catch (error) {
-      console.error('Errore connessione:', error);
       alert('❌ Backend non raggiungibile!\n\nAssicurati che il server sia avviato:\ncd backend\nuvicorn main:app --reload --host 0.0.0.0 --port 8000');
     } finally {
       setLoading(false);
@@ -153,7 +151,6 @@ const Categorie = () => {
         alert(`Errore: ${error.detail || 'Impossibile eliminare'}`);
       }
     } catch (error) {
-      console.error('Errore eliminazione:', error);
       alert('Errore durante eliminazione');
     }
   };

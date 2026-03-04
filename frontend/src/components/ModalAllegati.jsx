@@ -26,7 +26,6 @@ const ModalAllegati = ({ movimento, onClose }) => {
         setAllegati(data);
       }
     } catch (error) {
-      console.error('Errore caricamento allegati:', error);
       setError('Impossibile caricare gli allegati');
     } finally {
       setLoading(false);
@@ -66,7 +65,6 @@ const ModalAllegati = ({ movimento, onClose }) => {
       await caricaAllegati();
 
     } catch (error) {
-      console.error('Errore upload:', error);
       setError(error.message);
     } finally {
       setUploading(false);
@@ -96,7 +94,6 @@ const ModalAllegati = ({ movimento, onClose }) => {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Errore download:', error);
       alert('Errore durante il download del file');
     }
   };
@@ -118,7 +115,6 @@ const ModalAllegati = ({ movimento, onClose }) => {
         await caricaAllegati();
       }
     } catch (error) {
-      console.error('Errore eliminazione:', error);
       alert('Errore durante l\'eliminazione del file');
     }
   };

@@ -93,7 +93,6 @@ const NuovoRendiconto = () => {
         navigate('/contabilita/rendiconto/lista');
       }
     } catch (error) {
-      console.error('Errore caricamento rendiconto:', error);
     } finally {
       setLoading(false);
     }
@@ -110,7 +109,6 @@ const NuovoRendiconto = () => {
         }
       }
     } catch (error) {
-      console.error('Errore verifica rendiconto precedente:', error);
     } finally {
       setLoading(false);
     }
@@ -127,7 +125,6 @@ const NuovoRendiconto = () => {
         setDocumenti(data.documenti || []);
       }
     } catch (error) {
-      console.error('Errore caricamento documenti:', error);
     }
   };
 
@@ -179,7 +176,6 @@ const NuovoRendiconto = () => {
         alert('Errore: ' + error.detail);
       }
     } catch (error) {
-      console.error('Errore creazione rendiconto:', error);
       alert('Errore di connessione');
     } finally {
       setCreando(false);
@@ -209,7 +205,6 @@ const NuovoRendiconto = () => {
         alert('Errore: ' + error.detail);
       }
     } catch (error) {
-      console.error('Errore upload:', error);
       alert('Errore upload documento');
     } finally {
       setUploading(false);
@@ -237,7 +232,6 @@ const NuovoRendiconto = () => {
         alert('Errore eliminazione bozza');
       }
     } catch (error) {
-      console.error('Errore eliminazione:', error);
       alert('Errore di connessione');
     }
   };
@@ -261,7 +255,6 @@ const NuovoRendiconto = () => {
         alert('Errore: ' + error.detail);
       }
     } catch (error) {
-      console.error('Errore invio:', error);
       alert('Errore di connessione');
     }
   };
@@ -281,7 +274,6 @@ const NuovoRendiconto = () => {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Errore download:', error);
     }
   };
 

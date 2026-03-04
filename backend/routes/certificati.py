@@ -219,7 +219,6 @@ async def genera_certificato_battesimo(battesimo_id: str, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Errore genera_certificato_battesimo: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore generazione certificato: {str(e)}"
@@ -386,7 +385,6 @@ async def download_certificato(numero_protocollo: str, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Errore download_certificato: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore download: {str(e)}"
@@ -430,7 +428,6 @@ async def get_storico_certificati(request: Request):
         }
         
     except Exception as e:
-        print(f"Errore get_storico_certificati: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore recupero storico: {str(e)}"

@@ -163,7 +163,6 @@ const Rapporti = () => {
       });
       setConti(response.data);
     } catch (error) {
-      console.error('Errore caricamento conti:', error);
     }
   };
 
@@ -172,8 +171,6 @@ const Rapporti = () => {
       const token = sessionStorage.getItem('token');
       const enteId = sessionStorage.getItem('ente_id');
 
-      console.log('🔑 TOKEN:', token ? 'PRESENTE' : 'ASSENTE');
-      console.log('🏛️ ENTE_ID:', enteId);
 
       const response = await axios.get('/api/contabilita/categorie', {
         headers: {
@@ -182,18 +179,14 @@ const Rapporti = () => {
         }
       });
 
-      console.log('📊 RESPONSE COMPLETA:', response.data);
       const data = response.data.categorie || [];
-      console.log('📊 CATEGORIE RICEVUTE:', data);
       setCategorie(data);
     } catch (error) {
-      console.error('❌ ERRORE:', error);
     }
   };
 
   // Costruisce albero gerarchico da array piatto
   const buildCategorieTree = (categorie) => {
-    console.log('🌳 BUILD TREE - INPUT:', categorie);
 
     const map = {};
     const roots = [];
@@ -207,8 +200,6 @@ const Rapporti = () => {
       };
     });
 
-    console.log('🔍 PRIMA CATEGORIA:', categorie[0]);
-    console.log('🔍 HA parent_id?', categorie[0]?.parent_id);
 
     // Collega padri e figli usando parent_id
     categorie.forEach(cat => {
@@ -221,8 +212,6 @@ const Rapporti = () => {
       }
     });
 
-    console.log('🌳 BUILD TREE - ROOTS:', roots.length);
-    console.log('🌳 PRIMA ROOT:', roots[0]);
 
     return roots;
   };
@@ -342,13 +331,6 @@ const Rapporti = () => {
       const token = sessionStorage.getItem('token');
       const enteId = sessionStorage.getItem('ente_id');
 
-      // ✅ DEBUG: Vedi cosa invii
-      console.log('📅 DATE INVIATE:', {
-        dataInizio: filtri.dataInizio,
-        dataFine: filtri.dataFine,
-        periodo: periodoSelezionato
-      });
-
       const response = await axios.post(
         '/api/contabilita/report',
         {
@@ -369,7 +351,6 @@ const Rapporti = () => {
       setDatiReport(response.data);
       setMostraAnteprima(true);
     } catch (error) {
-      console.error('Errore generazione report:', error);
       alert('Errore nella generazione del report');
     } finally {
       setLoading(false);

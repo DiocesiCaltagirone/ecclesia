@@ -18,7 +18,6 @@ const CardPrimaComunione = ({ data, onEdit, onDelete }) => {
       );
       onDelete();
     } catch (error) {
-      console.error('Errore eliminazione prima comunione:', error);
       alert('Errore durante l\'eliminazione');
     } finally {
       setDeleting(false);

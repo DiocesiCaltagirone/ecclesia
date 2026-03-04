@@ -54,7 +54,6 @@ const Conti = () => {
         setConti(data);
       }
     } catch (error) {
-      console.error('Errore caricamento conti:', error);
     } finally {
       setLoading(false);
     }
@@ -79,7 +78,6 @@ const Conti = () => {
         }
       }
     } catch (error) {
-      console.error('Errore fetch ultimo rendiconto:', error);
     }
   };
 
@@ -121,7 +119,6 @@ const Conti = () => {
         alert(errorData.detail || 'Errore nel salvataggio del conto');
       }
     } catch (error) {
-      console.error('Errore salvataggio conto:', error);
     }
   };
 
@@ -143,7 +140,6 @@ const Conti = () => {
         fetchConti();
       }
     } catch (error) {
-      console.error('Errore eliminazione conto:', error);
     }
   };
 

@@ -166,7 +166,6 @@ async def get_persone(
         return persone
         
     except Exception as e:
-        print(f"Errore get_persone: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore recupero persone: {str(e)}"
@@ -197,7 +196,6 @@ async def get_persona(persona_id: str, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Errore get_persona: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore recupero persona: {str(e)}"
@@ -312,7 +310,6 @@ async def create_persona(persona: PersonaCreate, request: Request):
         if conn:
             conn.rollback()
             conn.close()
-        print(f"Errore create_persona: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore creazione persona: {str(e)}"
@@ -402,7 +399,6 @@ async def update_persona(persona_id: str, persona: PersonaUpdate, request: Reque
         if conn:
             conn.rollback()
             conn.close()
-        print(f"Errore update_persona: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore aggiornamento persona: {str(e)}"
@@ -470,7 +466,6 @@ async def delete_persona(persona_id: str, request: Request):
         if conn:
             conn.rollback()
             conn.close()
-        print(f"Errore delete_persona: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore cancellazione persona: {str(e)}"
@@ -558,7 +553,6 @@ async def ricerca_avanzata(
         }
         
     except Exception as e:
-        print(f"Errore ricerca_avanzata: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Errore ricerca: {str(e)}"

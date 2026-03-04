@@ -14,7 +14,6 @@ try:
     WEASYPRINT_AVAILABLE = True
 except (ImportError, OSError):
     WEASYPRINT_AVAILABLE = False
-    print("?? WeasyPrint non disponibile - generazione PDF disabilitata in locale")
 from pathlib import Path
 from datetime import datetime
 
@@ -486,7 +485,6 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         conn = get_db_connection()
         cur = conn.cursor()
         
-        print(f"📄 Inizio generazione PDF per rendiconto: {rendiconto_id}")
         
         # 1. Recupera dati ente
         cur.execute("""
@@ -782,7 +780,6 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         
         # 9. Genera PDF (solo se WeasyPrint disponibile)
         if not WEASYPRINT_AVAILABLE:
-            print("⚠️ WeasyPrint non disponibile - PDF non generato")
             raise Exception("WeasyPrint non disponibile in questo ambiente")
         
         year = periodo_inizio.year
@@ -803,7 +800,6 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         
         conn.commit()
         
-        print(f"✅ PDF generato: {pdf_path}")
         
         cur.close()
         conn.close()
@@ -811,7 +807,6 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
         return f"{year}/{filename}"
         
     except Exception as e:
-        print(f"❌ Errore generazione PDF: {e}")
         import traceback
         traceback.print_exc()
         raise

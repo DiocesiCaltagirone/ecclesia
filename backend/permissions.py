@@ -45,7 +45,6 @@ def può_modificare_anagrafica(utente_id: str, persona_id: str) -> bool:
         return risultato[0] if risultato else False
         
     except Exception as e:
-        print(f"Errore verifica permessi anagrafica: {e}")
         return False
     finally:
         if conn:
@@ -81,7 +80,6 @@ def get_parrocchia_proprietaria(persona_id: str) -> Optional[dict]:
         return dict(cur.fetchone()) if cur.rowcount > 0 else None
         
     except Exception as e:
-        print(f"Errore recupero parrocchia proprietaria: {e}")
         return None
     finally:
         if conn:
@@ -141,7 +139,6 @@ def può_modificare_sacramento(utente_id: str, tabella: str, sacramento_id: str)
         return risultato[0] if risultato else False
         
     except Exception as e:
-        print(f"Errore verifica permessi sacramento: {e}")
         return False
     finally:
         if conn:
@@ -185,7 +182,6 @@ def get_parrocchia_amministrante(tabella: str, sacramento_id: str) -> Optional[d
         return dict(cur.fetchone()) if cur.rowcount > 0 else None
         
     except Exception as e:
-        print(f"Errore recupero parrocchia amministrante: {e}")
         return None
     finally:
         if conn:
@@ -258,7 +254,6 @@ def get_persone_visibili(parrocchia_id: str, limit: int = 100, offset: int = 0) 
         return [dict(row) for row in cur.fetchall()]
         
     except Exception as e:
-        print(f"Errore recupero persone visibili: {e}")
         return []
     finally:
         if conn:
@@ -316,7 +311,6 @@ def get_persona_completa(persona_id: str, parrocchia_id: str) -> Optional[dict]:
         return persona
         
     except Exception as e:
-        print(f"Errore recupero persona completa: {e}")
         return None
     finally:
         if conn:
@@ -353,7 +347,6 @@ def get_parrocchia_utente(utente_id: str) -> Optional[str]:
         return str(risultato[0]) if risultato else None
         
     except Exception as e:
-        print(f"Errore recupero parrocchia utente: {e}")
         return None
     finally:
         if conn:
@@ -386,7 +379,6 @@ def è_economo_diocesano(utente_id: str) -> bool:
         return cur.rowcount > 0
         
     except Exception as e:
-        print(f"Errore verifica economo: {e}")
         return False
     finally:
         if conn:
@@ -460,7 +452,6 @@ def log_modifica(
         return True
         
     except Exception as e:
-        print(f"Errore registrazione log: {e}")
         if conn:
             conn.rollback()
         return False
@@ -528,7 +519,6 @@ def get_log_modifiche(
         return [dict(row) for row in cur.fetchall()]
         
     except Exception as e:
-        print(f"Errore recupero log modifiche: {e}")
         return []
     finally:
         if conn:

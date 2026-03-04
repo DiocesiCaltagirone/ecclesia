@@ -51,7 +51,6 @@ function Layout() {
           'X-Ente-Id': enteId
         }
       });
-      console.log('Dati ente caricati:', enteResponse.data);
       setCurrentEnte(enteResponse.data);
 
       // Carica lista enti dell'utente
@@ -63,11 +62,9 @@ function Layout() {
       // Trova ente corrente e carica permessi
       const enteCorrente = (entiResponse.data.enti || []).find(e => e.id === enteId);
       if (enteCorrente && enteCorrente.permessi) {
-        console.log('✅ Permessi caricati:', enteCorrente.permessi);
         setPermessi(enteCorrente.permessi);
       }
     } catch (error) {
-      console.error('Errore caricamento ente:', error);
     }
   };
 
@@ -77,7 +74,6 @@ function Layout() {
       const userStored = sessionStorage.getItem('user');
       if (userStored) {
         const user = JSON.parse(userStored);
-        console.log('👤 Utente da sessionStorage:', user);
 
         // Componi nome: titolo (Don/Suor) + nome + cognome
         let displayName = '';
@@ -96,7 +92,6 @@ function Layout() {
       });
 
       const user = response.data;
-      console.log('👤 Utente da API:', user);
 
       let displayName = '';
       if (user.titolo) displayName += user.titolo + ' ';
@@ -105,7 +100,6 @@ function Layout() {
 
       setUserName(displayName.trim() || 'Utente');
     } catch (error) {
-      console.error('Errore caricamento utente:', error);
       setUserName('Utente');
     }
   };

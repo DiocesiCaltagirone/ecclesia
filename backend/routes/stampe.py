@@ -326,7 +326,6 @@ async def genera_pdf(
         )
         
     except Exception as e:
-        print(f"❌ Errore generazione PDF: {e}")
         raise HTTPException(500, f"Errore generazione PDF: {str(e)}")
 
 
@@ -412,7 +411,6 @@ async def approva_rendiconto(
         
     except Exception as e:
         await db.rollback()
-        print(f"❌ Errore approvazione: {e}")
         raise HTTPException(500, f"Errore approvazione: {str(e)}")
 
 

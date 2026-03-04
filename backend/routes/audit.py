@@ -83,7 +83,6 @@ async def get_audit_log(
         return {"audit": audit_list, "count": len(audit_list)}
         
     except Exception as e:
-        print(f"❌ Errore get audit: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -132,7 +131,6 @@ async def get_storia_record(
         }
         
     except Exception as e:
-        print(f"❌ Errore storia record: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -171,5 +169,4 @@ async def get_statistiche_audit(
         return {"statistiche": stats}
         
     except Exception as e:
-        print(f"❌ Errore statistiche: {e}")
         raise HTTPException(status_code=500, detail=str(e))

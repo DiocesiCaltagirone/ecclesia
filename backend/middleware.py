@@ -178,14 +178,12 @@ async def log_request_middleware(request: Request, call_next):
     start_time = time.time()
     
     # Log richiesta
-    print(f"[{request.method}] {request.url.path}")
     
     # Processa richiesta
     response = await call_next(request)
     
     # Log risposta
     process_time = time.time() - start_time
-    print(f"Completato in {process_time:.2f}s - Status: {response.status_code}")
     
     return response
 
@@ -371,6 +369,5 @@ async def log_operation(
             ip_address=ip_address,
             user_agent=user_agent
         )
-    except Exception as e:
-        print(f"Errore logging operazione: {e}")
-        # Non bloccare l'operazione se il logging fallisce
+    except Exception:
+        pass  # Non bloccare l'operazione se il logging fallisce

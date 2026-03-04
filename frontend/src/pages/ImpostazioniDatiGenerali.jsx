@@ -79,7 +79,6 @@ function ImpostazioniDatiGenerali() {
         vicario_nominato_il: ente.vicario_nominato_il || ''
       });
     } catch (error) {
-      console.error('Errore caricamento dati:', error);
       alert('Errore nel caricamento dei dati');
     } finally {
       setLoading(false);
@@ -119,7 +118,6 @@ function ImpostazioniDatiGenerali() {
       // Ricarica la pagina per aggiornare l'header
       window.location.reload();
     } catch (error) {
-      console.error('Errore salvataggio:', error);
       alert('Errore durante il salvataggio');
     } finally {
       setSaving(false);

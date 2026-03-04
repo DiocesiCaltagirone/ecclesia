@@ -94,7 +94,6 @@ const MovimentiConto = () => {
         });
       }
     } catch (error) {
-      console.error('Errore caricamento movimenti:', error);
     } finally {
       setLoading(false);
     }
@@ -108,7 +107,6 @@ const MovimentiConto = () => {
         setCategorie(data.categorie || []);
       }
     } catch (error) {
-      console.error('Errore caricamento categorie:', error);
     }
   };
 
@@ -250,7 +248,6 @@ const MovimentiConto = () => {
         alert(errorData.detail || 'Errore salvataggio movimento');
       }
     } catch (error) {
-      console.error('Errore:', error);
       alert('Errore salvataggio movimento');
     }
   };
@@ -308,7 +305,6 @@ const MovimentiConto = () => {
         alert('Errore eliminazione movimento');
       }
     } catch (error) {
-      console.error('Errore:', error);
       alert('Errore eliminazione movimento');
     }
   };

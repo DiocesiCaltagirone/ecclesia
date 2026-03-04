@@ -1,7 +1,7 @@
 // frontend/src/components/DettaglioPersona.jsx
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import TabSacramenti from './sacramenti/TabSacramenti';
+import TabSacramenti from './TabSacramenti';
 
 const DettaglioPersona = ({ persona, onClose, onUpdate }) => {
   const [activeTab, setActiveTab] = useState('anagrafica');

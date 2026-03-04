@@ -20,11 +20,8 @@ function Dashboard() {
       const token = sessionStorage.getItem('token');
       const enteId = sessionStorage.getItem('ente_id');
 
-      console.log('🔍 DEBUG - Token:', token ? 'Presente' : 'Mancante');
-      console.log('🔍 DEBUG - Ente ID:', enteId);
 
       if (!enteId) {
-        console.log('⚠️ Nessun ente selezionato');
         setLoading(false);
         return;
       }
@@ -38,26 +35,20 @@ function Dashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('👤 Lista enti completa:', data);
 
         // Trova l'ente corrente
         const entiUtente = data.enti || [];
         const enteCorrente = entiUtente.find(e => e.id === enteId);
 
-        console.log('🎯 Ente corrente trovato:', enteCorrente);
 
         if (enteCorrente && enteCorrente.permessi) {
-          console.log('✅ Permessi caricati:', enteCorrente.permessi);
           setPermessi(enteCorrente.permessi);
           setEnteCorrente(enteCorrente);
         } else {
-          console.log('❌ Nessun permesso trovato per questo ente');
         }
       } else {
-        console.log('❌ Errore risposta API:', response.status);
       }
     } catch (error) {
-      console.error('❌ Errore caricamento permessi:', error);
     } finally {
       setLoading(false);
     }

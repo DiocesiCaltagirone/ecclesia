@@ -36,7 +36,6 @@ const ImpostazioniDiocesi = () => {
         setImpostazioni(prev => ({ ...prev, ...data }));
       }
     } catch (error) {
-      console.error('Errore:', error);
     } finally {
       setLoading(false);
     }

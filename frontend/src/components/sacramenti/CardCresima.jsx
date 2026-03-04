@@ -18,7 +18,6 @@ const CardCresima = ({ data, onEdit, onDelete }) => {
       );
       onDelete();
     } catch (error) {
-      console.error('Errore eliminazione cresima:', error);
       alert('Errore durante l\'eliminazione');
     } finally {
       setDeleting(false);

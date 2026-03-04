@@ -20,6 +20,7 @@ function Persone() {
     email: '',
     vivente: true
   });
+  const [error, setError] = useState('');
 
   useEffect(() => {
     // Non carichiamo le persone all'inizio - solo dopo ricerca
@@ -55,7 +56,6 @@ function Persone() {
 
     setPersone(response.data.persone || []);
   } catch (error) {
-    console.error('Errore nella ricerca:', error);
     setError(error.message);
   } finally {
     setLoading(false);
@@ -124,7 +124,6 @@ function Persone() {
       });
     setPersone(response.data.persone || []);
   } catch (error) {
-    console.error('Errore ricaricamento:', error);
   }
 };
 await loadAll();
@@ -134,7 +133,6 @@ await loadAll();
         handleSearch();
       }
     } catch (error) {
-      console.error('Errore inserimento persona:', error);
       alert('Errore durante l\'inserimento');
     }
   };

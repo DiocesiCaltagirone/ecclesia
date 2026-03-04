@@ -109,7 +109,6 @@ def create_registro(
                     detail=f"Non è possibile creare un conto con data anteriore o uguale alla chiusura dell'esercizio del {ultima_chiusura.strftime('%d/%m/%Y')}."
                 )
 
-        print(f"📊 Creazione conto: {nome} - Saldo iniziale: {saldo_iniziale}")
         
         # Crea il registro (saldo_attuale calcolato dai movimenti)
         query_conto = text("""
@@ -135,7 +134,6 @@ def create_registro(
         tipo_mov_saldo = 'entrata' if saldo_iniziale >= 0 else 'uscita'
         importo_saldo = abs(saldo_iniziale)
 
-        print(f"✅ Creo movimento saldo iniziale: €{saldo_iniziale} (tipo: {tipo_mov_saldo}, importo: {importo_saldo})")
 
         movimento_id = str(uuid.uuid4())
         categoria_riporto_id = None
@@ -164,7 +162,6 @@ def create_registro(
             "user_id": current_user.get('id')
         })
 
-        print(f"✅ Movimento saldo iniziale creato: ID {movimento_id}")
         
         # Registra audit
         registra_audit(
@@ -194,7 +191,6 @@ def create_registro(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ ERRORE creazione conto: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
@@ -428,8 +424,6 @@ async def get_registri(
     includendo anche i movimenti speciali di tipo 'saldo_iniziale'.
     """
     try:
-        print("=" * 80)
-        print("🔍 DEBUG /registri")
         
         ente_id = current_user.get('ente_id') or x_ente_id
         
@@ -493,7 +487,6 @@ async def get_registri(
             saldo_attuale = float(row[6]) if row[6] else 0.0
             saldo_iniziale = float(row[7]) if row[7] else 0.0
             
-            print(f"📊 Conto: {row[1]} - Saldo: {saldo_attuale} - Saldo Iniziale: {saldo_iniziale}")
             
             registri.append({
                 "id": str(row[0]),
@@ -508,14 +501,11 @@ async def get_registri(
                 "saldo_bloccato": bool(row[9]) if row[9] is not None else False
             })
         
-        print(f"✅ Trovati {len(registri)} registri")
-        print("=" * 80)
         return registri
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ ERRORE: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
@@ -553,7 +543,6 @@ def get_ultimo_rendiconto(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ ERRORE ultimo-rendiconto: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================
@@ -1173,7 +1162,6 @@ def create_giroconto(
         if not data_movimento:
             raise HTTPException(status_code=400, detail="Data movimento obbligatoria")
         
-        print(f"🔄 Creazione giroconto: €{importo} da {conto_origine_id} a {conto_destinazione_id}")
         
         # Recupera nomi dei conti
         query_conti = text("""
@@ -1204,7 +1192,6 @@ def create_giroconto(
         
         if categoria_result:
             categoria_giroconto_id = str(categoria_result[0])
-            print(f"✅ Categoria Giroconto esistente: {categoria_giroconto_id}")
         else:
             # Crea categoria di sistema
             categoria_giroconto_id = str(uuid.uuid4())
@@ -1212,7 +1199,6 @@ def create_giroconto(
                 INSERT INTO piano_conti (id, ente_id, codice, descrizione, tipo, is_sistema, livello)
                 VALUES (:id, :ente_id, 'GIR', 'Giroconto', 'economico', TRUE, 1)
             """), {"id": categoria_giroconto_id, "ente_id": ente_id})
-            print(f"✅ Categoria Giroconto creata: {categoria_giroconto_id}")
         
         # Genera ID per i due movimenti
         movimento_uscita_id = str(uuid.uuid4())
@@ -1254,7 +1240,6 @@ def create_giroconto(
             "user_id": current_user.get('id')
         })
         
-        print(f"✅ Movimento uscita creato: {movimento_uscita_id}")
         
         # STEP 2: Crea movimento ENTRATA (SENZA collegamento)
         query_entrata = text("""
@@ -1283,7 +1268,6 @@ def create_giroconto(
             "user_id": current_user.get('id')
         })
         
-        print(f"✅ Movimento entrata creato: {movimento_entrata_id}")
         
         # STEP 3: Aggiorna i collegamenti (ora entrambi esistono)
         query_update = text("""
@@ -1302,7 +1286,6 @@ def create_giroconto(
             "collegato_id": movimento_uscita_id
         })
         
-        print(f"✅ Collegamenti aggiornati")
         
         # Registra audit per entrambi i movimenti
         registra_audit(
@@ -1331,7 +1314,6 @@ def create_giroconto(
         
         db.commit()
         
-        print(f"✅ Giroconto completato: €{importo} da {nome_origine} a {nome_destinazione}")
         
         return {
             "message": "Giroconto creato con successo",
@@ -1346,7 +1328,6 @@ def create_giroconto(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ ERRORE creazione giroconto: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
@@ -1574,7 +1555,6 @@ async def carica_allegato(
         row = result.fetchone()
         db.commit()
         
-        print(f"✅ Allegato caricato: {file.filename} → {relative_path}")
         
         return {
             "success": True,
@@ -1588,7 +1568,6 @@ async def carica_allegato(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Errore caricamento allegato: {e}")
         raise HTTPException(status_code=500, detail=f"Errore caricamento: {str(e)}")
 
 @router.get("/movimenti/{movimento_id}/allegati")
@@ -1624,7 +1603,6 @@ async def lista_allegati(
         return allegati
         
     except Exception as e:
-        print(f"❌ Errore lista allegati: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/allegati/{allegato_id}/download")
@@ -1654,7 +1632,6 @@ async def scarica_allegato(
         file_path = UPLOAD_DIR / percorso
         
         if not file_path.exists():
-            print(f"❌ File non trovato su disk: {file_path}")
             raise HTTPException(status_code=404, detail="File non trovato su filesystem")
         
         return FileResponse(
@@ -1667,7 +1644,6 @@ async def scarica_allegato(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Errore download allegato: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/allegati/{allegato_id}")
@@ -1695,10 +1671,7 @@ async def elimina_allegato(
         # Elimina file fisico
         if file_path.exists():
             file_path.unlink()
-            print(f"✅ File eliminato da disk: {file_path}")
-        else:
-            print(f"⚠️ File non trovato su disk: {file_path}")
-        
+
         # Elimina record
         delete_query = text("""
             DELETE FROM movimenti_allegati
@@ -1708,7 +1681,6 @@ async def elimina_allegato(
         db.execute(delete_query, {'allegato_id': allegato_id})
         db.commit()
         
-        print(f"✅ Record allegato eliminato: {allegato_id}")
         
         return {"success": True, "message": "Allegato eliminato con successo"}
         
@@ -1716,7 +1688,6 @@ async def elimina_allegato(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Errore eliminazione allegato: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/movimenti/{movimento_id}/allegati/count")
@@ -1738,7 +1709,6 @@ async def conta_allegati(
         return {"count": count or 0}
         
     except Exception as e:
-        print(f"❌ Errore conteggio allegati: {e}")
         return {"count": 0}
 
 # ============================================
@@ -1946,7 +1916,6 @@ async def genera_report(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Errore generazione report: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
@@ -2029,7 +1998,6 @@ async def lista_rendiconti_economo(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Errore lista rendiconti economo: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/economo/rendiconti/{rendiconto_id}/approva")
@@ -2045,7 +2013,6 @@ async def approva_rendiconto(
     Genera PDF firmato con timbro e firma del Vescovo.
     """
     try:
-        print(f"🔍 Tentativo approvazione rendiconto: {rendiconto_id}")
         
         if not current_user.get('is_economo'):
             raise HTTPException(status_code=403, detail="Solo l'economo può approvare")
@@ -2063,7 +2030,6 @@ async def approva_rendiconto(
         ente_id = result[1]
         stato = result[2]
         
-        print(f"📊 Stato rendiconto: {stato}")
         
         if stato != 'in_revisione':
             raise HTTPException(
@@ -2075,9 +2041,7 @@ async def approva_rendiconto(
             raise HTTPException(status_code=400, detail="PDF del rendiconto non trovato")
         
         # Applica firma digitale
-        print("✍️ Applicazione firma digitale...")
         pdf_firmato_path = await applica_firma_vescovo(pdf_path)
-        print(f"✅ Firma applicata: {pdf_firmato_path}")
         
         # Aggiorna stato
         update_query = text("""
@@ -2097,7 +2061,6 @@ async def approva_rendiconto(
         
         db.commit()
         
-        print(f"✅ Rendiconto approvato!")
         
         return {
             "message": "Rendiconto approvato con successo",
@@ -2110,7 +2073,6 @@ async def approva_rendiconto(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Errore approvazione: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
@@ -2205,7 +2167,6 @@ async def respingi_rendiconto(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Errore respingimento: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/rendiconti/allegati/{allegato_id}/download")
@@ -2331,7 +2292,6 @@ async def applica_firma_vescovo(pdf_path: str):
         from reportlab.lib.utils import ImageReader
         from io import BytesIO
         
-        print(f"📄 Inizio firma PDF: {pdf_path}")
         
         # Percorsi
         original_path = RENDICONTI_DIR / pdf_path
@@ -2348,8 +2308,6 @@ async def applica_firma_vescovo(pdf_path: str):
         if not firma_path.exists():
             raise FileNotFoundError(f"Firma non trovata: {firma_path}")
         
-        print(f"✅ Timbro: {timbro_path}")
-        print(f"✅ Firma: {firma_path}")
         
         # Leggi PDF originale
         pdf_reader = PdfReader(str(original_path))
@@ -2409,12 +2367,10 @@ async def applica_firma_vescovo(pdf_path: str):
         with open(str(new_path), "wb") as output_file:
             pdf_writer.write(output_file)
         
-        print(f"✅ PDF firmato: {new_path}")
         
         return f"{year}/{new_filename}"
         
     except Exception as e:
-        print(f"❌ Errore firma PDF: {e}")
         import traceback
         traceback.print_exc()
         raise

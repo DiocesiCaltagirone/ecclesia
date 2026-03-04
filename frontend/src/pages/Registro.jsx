@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 function Registro() {
@@ -14,6 +15,25 @@ function Registro() {
   });
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(true); // Mostra tutto all'inizio
+  const navigate = useNavigate();
+
+  const handleEdit = (id) => {
+    navigate(`/persone/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questa persona?')) return;
+    try {
+      const token = sessionStorage.getItem('token');
+      const enteId = sessionStorage.getItem('current_ente_id');
+      await api.delete(`/api/anagrafica/persone/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId }
+      });
+      loadAllPersone();
+    } catch (error) {
+      alert('Errore durante l\'eliminazione');
+    }
+  };
 
   // Carica TUTTE le persone all'avvio
   useEffect(() => {
@@ -40,7 +60,6 @@ function Registro() {
 
       setPersone(response.data.persone || []);
     } catch (error) {
-      console.error('Errore caricamento:', error);
     } finally {
       setLoading(false);
     }

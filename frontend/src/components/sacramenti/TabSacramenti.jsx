@@ -35,7 +35,6 @@ const TabSacramenti = ({ persona }) => {
       );
       setSacramenti(response.data);
     } catch (error) {
-      console.error('Errore caricamento sacramenti:', error);
     } finally {
       setLoading(false);
     }

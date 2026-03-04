@@ -47,7 +47,6 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
       );
       setEnteCorrente(response.data);
     } catch (err) {
-      console.error('Errore caricamento ente:', err);
     }
   };
 
@@ -60,7 +59,6 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
       );
       setCitta(response.data);
     } catch (err) {
-      console.error('Errore caricamento città:', err);
     }
   };
 
@@ -73,7 +71,6 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
       );
       setParrocchie(response.data);
     } catch (err) {
-      console.error('Errore caricamento parrocchie:', err);
       setParrocchie([]);
     }
   };
@@ -112,7 +109,6 @@ const FormCresima = ({ personaId, data, onClose, onSave }) => {
 
       onSave();
     } catch (err) {
-      console.error('Errore salvataggio cresima:', err);
       setError(err.response?.data?.detail || 'Errore durante il salvataggio');
     } finally {
       setSaving(false);

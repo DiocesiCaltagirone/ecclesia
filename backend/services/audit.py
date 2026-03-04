@@ -74,11 +74,9 @@ def registra_audit(
             "descrizione": descrizione
         })
         
-        print(f"✅ AUDIT: {azione} su {tabella} - Record {record_id}")
         return audit_id
         
     except Exception as e:
-        print(f"❌ Errore audit: {e}")
         # Non blocchiamo l'operazione principale se l'audit fallisce
         return None
 
@@ -111,7 +109,6 @@ def get_record_data(db: Session, tabella: str, record_id: str) -> Optional[Dict]
         return None
         
     except Exception as e:
-        print(f"❌ Errore get_record_data: {e}")
         return None
     
 def registra_audit_psycopg2(
@@ -155,9 +152,7 @@ def registra_audit_psycopg2(
             descrizione
         ))
         
-        print(f"✅ AUDIT: {azione} su {tabella} - Record {record_id}")
         return audit_id
         
     except Exception as e:
-        print(f"❌ Errore audit psycopg2: {e}")
         return None

@@ -40,7 +40,6 @@ const EconomatoContabilita = () => {
         setRendiconti(data.rendiconti || []);
       }
     } catch (error) {
-      console.error('Errore caricamento:', error);
     } finally {
       setLoading(false);
     }
@@ -103,7 +102,6 @@ const EconomatoContabilita = () => {
         }
       }
     } catch (error) {
-      console.error('Errore:', error);
       alert('Errore di connessione');
     } finally {
       setAzione(null);
@@ -125,7 +123,6 @@ const EconomatoContabilita = () => {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Errore download:', error);
     }
   };
 

@@ -132,9 +132,7 @@ async def crea_rendiconto(
         """, (ente_id, dati.periodo_inizio))
         
         resi_definitivi = cur.rowcount
-        if resi_definitivi > 0:
-            print(f"📌 Resi DEFINITIVI {resi_definitivi} rendiconti precedenti")
-        
+
         # Crea il rendiconto in stato PARROCCHIA
         cur.execute("""
            INSERT INTO rendiconti 
@@ -167,7 +165,6 @@ async def crea_rendiconto(
         )
         
         # 🆕 BLOCCA MOVIMENTI DEL PERIODO
-        print(f"🔒 Blocco movimenti periodo {dati.periodo_inizio} - {dati.periodo_fine}")
         cur.execute("""
             UPDATE movimenti_contabili
             SET bloccato = TRUE, rendiconto_id = %s
@@ -182,19 +179,16 @@ async def crea_rendiconto(
         ))
         
         movimenti_bloccati = cur.rowcount
-        print(f"✅ Bloccati {movimenti_bloccati} movimenti")
         
         # COMMIT dopo blocco movimenti
         conn.commit()
 
         # 🆕 CREA SALDI INIZIALI (con psycopg2!)
-        print(f"💰 Creazione saldi iniziali automatici...")
         
         try:
             # Data saldo iniziale = STESSA data di fine periodo
             # Es: periodo 01/01/2025 - 24/02/2026 → saldo iniziale 24/02/2026
             data_inizio_nuovo = dati.periodo_fine + timedelta(days=1)
-            print(f"📅 Data saldi iniziali: {data_inizio_nuovo}")
             
             # Trova categoria "Riporto da bilancio precedente"
             cur.execute("""
@@ -209,7 +203,7 @@ async def crea_rendiconto(
             categoria_result = cur.fetchone()
             
             if not categoria_result:
-                print(f"⚠️ Categoria saldi iniziali non trovata")
+                pass
             else:
                 categoria_id = categoria_result[0]
                 
@@ -222,7 +216,6 @@ async def crea_rendiconto(
                 """, (ente_id,))
                 
                 conti = cur.fetchall()
-                print(f"📊 Trovati {len(conti)} conti totali")
                 
                 # Per ogni conto, calcola saldo e crea movimento iniziale
                 for conto in conti:
@@ -247,7 +240,6 @@ async def crea_rendiconto(
                     
                     saldo_conto = cur.fetchone()[0]
 
-                    print(f"   💰 Conto {nome_conto}: saldo {saldo_conto}")
 
                     # 🆕 Crea movimento ANCHE se saldo = 0!
                     movimento_id = str(uuid.uuid4())
@@ -279,15 +271,12 @@ async def crea_rendiconto(
                 
                 # Commit dopo creazione saldi
                 conn.commit()
-                print(f"✅ Saldi iniziali creati per tutti i conti")
                 
         except Exception as e:
-            print(f"⚠️ Errore creazione saldi iniziali: {e}")
             import traceback
             traceback.print_exc()
         
         # 🆕 GENERA PDF
-        print(f"📄 Generazione PDF rendiconto...")
         pdf_path = None
         try:
             from routes.rendiconti_documenti import genera_pdf_rendiconto
@@ -301,11 +290,9 @@ async def crea_rendiconto(
             """, (pdf_path, rendiconto_id))
             
             conn.commit()
-            print(f"✅ PDF generato: {pdf_path}")
-        except Exception as e:
-            print(f"⚠️ Errore generazione PDF: {e}")
-        
-        
+        except Exception:
+            pass
+
         return {
             "id": rendiconto_id,
             "ente_id": str(ente_id),
@@ -523,7 +510,6 @@ async def elimina_rendiconto(
             )
         
         # 🆕 SBLOCCA MOVIMENTI
-        print(f"🔓 Sblocco movimenti del rendiconto {rendiconto_id}")
         cur.execute("""
             UPDATE movimenti_contabili
             SET bloccato = FALSE, rendiconto_id = NULL
@@ -531,10 +517,8 @@ async def elimina_rendiconto(
         """, (str(rendiconto_id),))
         
         movimenti_sbloccati = cur.rowcount
-        print(f"✅ Sbloccati {movimenti_sbloccati} movimenti")
         
         # 🆕 ELIMINA SALDI INIZIALI
-        print(f"🗑️ Eliminazione saldi iniziali del rendiconto {rendiconto_id}")
         cur.execute("""
             DELETE FROM movimenti_contabili
             WHERE ente_id = %s
@@ -543,7 +527,6 @@ async def elimina_rendiconto(
         """, (str(ente_id),))
         
         saldi_eliminati = cur.rowcount
-        print(f"✅ Eliminati {saldi_eliminati} saldi iniziali")
         
         # Elimina documenti fisici
         cur.execute("""

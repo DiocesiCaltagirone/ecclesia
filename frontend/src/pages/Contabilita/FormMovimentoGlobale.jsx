@@ -44,7 +44,6 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
         setConti(data || []);
       }
     } catch (error) {
-      console.error('Errore caricamento conti:', error);
     } finally {
       setLoadingConti(false);
     }

@@ -9,7 +9,6 @@ try:
     WEASYPRINT_AVAILABLE = True
 except (ImportError, OSError):
     WEASYPRINT_AVAILABLE = False
-    print("?? WeasyPrint non disponibile in pdf_generator")
 from datetime import datetime
 from decimal import Decimal
 

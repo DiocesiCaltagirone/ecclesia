@@ -99,7 +99,6 @@ const ContabilitaLayout = () => {
           // Carica permessi dell'ente corrente
           const enteCorrente = (entiData.enti || []).find(e => e.id === enteId);
           if (enteCorrente && enteCorrente.permessi) {
-            console.log('✅ Permessi contabilità caricati:', enteCorrente.permessi);
             setPermessi(enteCorrente.permessi);
           }
         }
@@ -118,7 +117,6 @@ const ContabilitaLayout = () => {
         }
 
       } catch (error) {
-        console.error('Errore caricamento dati:', error);
       }
     };
 
@@ -166,11 +164,7 @@ const ContabilitaLayout = () => {
       data_inizio: formConto.data_inizio
     };
 
-    console.log('🔍 DEBUG - Payload inviato:', payload);  // Per verificare
 
-    console.log('🔍 DEBUG - Token:', token ? 'Presente' : 'MANCANTE');
-    console.log('🔍 DEBUG - Ente ID:', enteId);
-    console.log('🔍 DEBUG - Payload:', payload);
 
     try {
       const response = await fetch('/api/contabilita/registri', {
@@ -183,7 +177,6 @@ const ContabilitaLayout = () => {
         body: JSON.stringify(payload)
       });
 
-      console.log('🔍 DEBUG - Response status:', response.status);
 
       if (response.ok) {
         setShowModalConto(false);
@@ -191,11 +184,9 @@ const ContabilitaLayout = () => {
         window.location.reload();
       } else {
         const errorData = await response.json();
-        console.error('❌ ERRORE Backend:', errorData);
         alert('Errore: ' + JSON.stringify(errorData));
       }
     } catch (error) {
-      console.error('❌ ERRORE Generale:', error);
       alert('Errore: ' + error.message);
     }
   };
@@ -222,7 +213,6 @@ const ContabilitaLayout = () => {
         alert('Errore: ' + JSON.stringify(errorData));
       }
     } catch (error) {
-      console.error('Errore salvataggio transazione:', error);
       alert('Errore di connessione');
     }
   };

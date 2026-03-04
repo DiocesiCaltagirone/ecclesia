@@ -18,7 +18,6 @@ const CardBattesimo = ({ data, onEdit, onDelete }) => {
       );
       onDelete();
     } catch (error) {
-      console.error('Errore eliminazione battesimo:', error);
       alert('Errore durante l\'eliminazione');
     } finally {
       setDeleting(false);

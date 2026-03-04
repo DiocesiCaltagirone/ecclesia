@@ -53,7 +53,6 @@ const ParrocchieDiocesi = () => {
       setParrocchie(data);
     } catch (err) {
       setError('Errore nel caricamento delle parrocchie');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -79,7 +78,6 @@ const ParrocchieDiocesi = () => {
       alert('Parrocchia aggiunta con successo!');
     } catch (err) {
       alert('Errore nel salvataggio della parrocchia');
-      console.error(err);
     }
   };
 
@@ -99,7 +97,6 @@ const ParrocchieDiocesi = () => {
       alert('Parrocchia eliminata con successo!');
     } catch (err) {
       alert('Errore nell\'eliminazione della parrocchia');
-      console.error(err);
     }
   };
 
@@ -136,7 +133,6 @@ const ParrocchieDiocesi = () => {
       alert('Parrocchia aggiornata con successo!');
     } catch (err) {
       alert('Errore nell\'aggiornamento della parrocchia');
-      console.error(err);
     }
   };
 
@@ -183,7 +179,6 @@ const ParrocchieDiocesi = () => {
       alert(risultato);
     } catch (err) {
       alert(`❌ Errore nell'applicazione del template:\n\n${err.message}`);
-      console.error(err);
     }
   };
 
@@ -213,7 +208,6 @@ const ParrocchieDiocesi = () => {
               body: JSON.stringify({ diocesi, comune, denominazione, provincia, cap })
             });
           } catch (err) {
-            console.error('Errore importazione riga:', err);
           }
         }
       }

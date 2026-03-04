@@ -31,7 +31,6 @@ const Rendiconto = () => {
         setRendiconti(data.rendiconti || []);
       }
     } catch (error) {
-      console.error('Errore caricamento rendiconti:', error);
     } finally {
       setLoading(false);
     }
@@ -52,7 +51,6 @@ const Rendiconto = () => {
       setMotivoDettaglio(data);
       setShowMotivoModal(true);
     } catch (error) {
-      console.error('Errore caricamento motivo:', error);
       alert('Errore nel caricamento dei dettagli');
     }
   };
@@ -79,7 +77,6 @@ const Rendiconto = () => {
       setShowMotivoModal(false);
       caricaRendiconti();
     } catch (error) {
-      console.error('Errore eliminazione:', error);
       alert('Errore nell\'eliminazione del rendiconto');
     }
   };
@@ -116,7 +113,6 @@ const Rendiconto = () => {
         alert('Errore: ' + error.detail);
       }
     } catch (error) {
-      console.error('Errore invio rendiconto:', error);
       alert('Errore di connessione');
     } finally {
       setInviando(false);
@@ -138,7 +134,6 @@ const Rendiconto = () => {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Errore download:', error);
     }
   };
 

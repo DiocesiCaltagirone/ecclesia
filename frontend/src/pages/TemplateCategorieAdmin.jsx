@@ -58,7 +58,6 @@ const TemplateCategorieAdmin = () => {
       
     } catch (err) {
       setError('Errore nel caricamento delle categorie');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -144,7 +143,6 @@ const TemplateCategorieAdmin = () => {
       alert('Categoria aggiunta con successo!');
     } catch (err) {
       alert('Errore nel salvataggio della categoria');
-      console.error(err);
     }
   };
 
@@ -193,7 +191,6 @@ const TemplateCategorieAdmin = () => {
       alert('Categoria eliminata con successo!');
     } catch (err) {
       alert('Errore nell\'eliminazione della categoria');
-      console.error(err);
     }
   };
 
@@ -227,7 +224,6 @@ const TemplateCategorieAdmin = () => {
       alert('Categoria aggiornata con successo!');
     } catch (err) {
       alert('Errore nell\'aggiornamento della categoria');
-      console.error(err);
     }
   };
 

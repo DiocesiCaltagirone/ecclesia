@@ -22,7 +22,6 @@ function SelectEnte() {
       });
       setEnti(response.data.enti || []);
     } catch (err) {
-      console.error('Errore caricamento enti:', err);
       setError('Errore nel caricamento degli enti');
     } finally {
       setLoading(false);

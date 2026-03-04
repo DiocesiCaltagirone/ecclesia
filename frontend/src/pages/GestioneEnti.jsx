@@ -56,7 +56,6 @@ const GestioneEnti = () => {
         setEnti(data);
       }
     } catch (error) {
-      console.error('Errore caricamento enti:', error);
     } finally {
       setLoading(false);
     }
@@ -95,7 +94,6 @@ const GestioneEnti = () => {
         alert('Errore durante il salvataggio');
       }
     } catch (error) {
-      console.error('Errore salvataggio ente:', error);
       alert('Errore di connessione');
     } finally {
       setSaving(false);
@@ -128,7 +126,6 @@ const GestioneEnti = () => {
         alert('Errore durante la rimozione');
       }
     } catch (error) {
-      console.error('Errore rimozione operatore:', error);
       alert('Errore di connessione');
     }
   };
@@ -172,7 +169,6 @@ const GestioneEnti = () => {
         alert('Errore durante il salvataggio');
       }
     } catch (error) {
-      console.error('Errore salvataggio:', error);
       alert('Errore di connessione');
     } finally {
       setSaving(false);
@@ -198,7 +194,6 @@ const GestioneEnti = () => {
         alert('Errore durante l\'eliminazione');
       }
     } catch (error) {
-      console.error('Errore eliminazione:', error);
       alert('Errore di connessione');
     }
   };
@@ -245,7 +240,6 @@ const GestioneEnti = () => {
       alert(risultato);
     } catch (err) {
       alert(`❌ Errore:\n\n${err.message}`);
-      console.error(err);
     }
   };
 

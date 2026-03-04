@@ -93,7 +93,6 @@ const GestioneUtenti = () => {
         setEnti(data);
       }
     } catch (error) {
-      console.error('Errore caricamento enti:', error);
     }
   };
 
@@ -111,7 +110,6 @@ const GestioneUtenti = () => {
         setUtenti(data);
       }
     } catch (error) {
-      console.error('Errore caricamento utenti:', error);
     } finally {
       setLoading(false);
     }
@@ -235,7 +233,6 @@ const GestioneUtenti = () => {
         alert('Errore durante il salvataggio');
       }
     } catch (error) {
-      console.error('Errore salvataggio:', error);
       alert('Errore di connessione');
     } finally {
       setSaving(false);
@@ -310,7 +307,6 @@ const GestioneUtenti = () => {
         alert(`Errore: ${errorData.detail || 'Errore durante la creazione'}`);
       }
     } catch (error) {
-      console.error('Errore creazione utente:', error);
       alert('Errore di connessione');
     } finally {
       setSaving(false);
@@ -335,7 +331,6 @@ const GestioneUtenti = () => {
         alert('Errore durante il reset');
       }
     } catch (error) {
-      console.error('Errore reset password:', error);
       alert('Errore di connessione');
     }
   };
@@ -360,7 +355,6 @@ const GestioneUtenti = () => {
         alert('Errore durante l\'eliminazione');
       }
     } catch (error) {
-      console.error('Errore eliminazione:', error);
       alert('Errore di connessione');
     }
   };
@@ -392,11 +386,9 @@ const GestioneUtenti = () => {
         fetchUtenti();
       } else {
         const errorData = await response.json();
-        console.error('Errore aggiornamento permessi:', errorData);
         alert('Errore durante l\'aggiornamento dei permessi');
       }
     } catch (error) {
-      console.error('Errore toggle permesso:', error);
       alert('Errore di connessione');
     }
   };

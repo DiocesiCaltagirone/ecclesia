@@ -18,7 +18,6 @@ const CardMatrimonio = ({ data, personaId, onEdit, onDelete }) => {
       );
       onDelete();
     } catch (error) {
-      console.error('Errore eliminazione matrimonio:', error);
       alert('Errore durante l\'eliminazione');
     } finally {
       setDeleting(false);
