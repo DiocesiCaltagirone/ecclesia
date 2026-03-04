@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+node_modules/
+dist/
+uploads/
+certificati_output/
+rendiconti/
+.DS_Store
+*.log

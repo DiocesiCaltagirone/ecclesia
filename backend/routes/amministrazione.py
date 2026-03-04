@@ -63,6 +63,14 @@ class UtenteUpdate(BaseModel):
     titolo: Optional[str] = None
 
 # ============================================
+# HELPER SICUREZZA
+# ============================================
+
+def verifica_economo(current_user: dict):
+    if not current_user.get('is_economo'):
+        raise HTTPException(status_code=403, detail="Accesso riservato all'economo diocesano")
+
+# ============================================
 # ENDPOINT COMUNI
 # ============================================
 
@@ -74,6 +82,7 @@ def get_comuni(
     """
     Ottiene la lista di tutti i comuni
     """
+    verifica_economo(current_user)
     query = """
         SELECT DISTINCT comune as nome, provincia, cap
         FROM enti 
@@ -94,6 +103,7 @@ def create_comune(
     """
     Crea un nuovo comune
     """
+    verifica_economo(current_user)
     return {"message": "Comune registrato", "comune": comune.nome}
 
 # ============================================
@@ -109,6 +119,7 @@ def get_parrocchie(
     """
     Ottiene la lista delle parrocchie
     """
+    verifica_economo(current_user)
 
     if comune:
         query = """
@@ -169,6 +180,7 @@ def create_parrocchia(
     """
     Crea una nuova parrocchia
     """
+    verifica_economo(current_user)
     parrocchia_id = str(uuid.uuid4())
     
     query = """
@@ -222,6 +234,7 @@ def update_parrocchia(
     """
     Modifica una parrocchia esistente
     """
+    verifica_economo(current_user)
     query = """
         UPDATE enti
         SET denominazione = :denominazione,
@@ -283,8 +296,9 @@ def delete_parrocchia(
     """
     Disattiva una parrocchia (soft delete)
     """
+    verifica_economo(current_user)
     query = """
-        UPDATE enti 
+        UPDATE enti
         SET attivo = FALSE
         WHERE id = :id
         RETURNING id
@@ -308,6 +322,7 @@ def get_parrocchia(
     """
     Ottiene i dettagli di una parrocchia specifica
     """
+    verifica_economo(current_user)
     query = """
         SELECT id, denominazione, comune, provincia, cap,
                indirizzo, telefono, email, parroco, attivo,
@@ -338,7 +353,8 @@ def get_enti(
     """
     Ottiene la lista degli enti CON gli operatori abbinati
     """
-    
+    verifica_economo(current_user)
+
     # Query per ottenere tutti gli enti
     if comune:
         query_enti = """
@@ -430,6 +446,7 @@ def create_ente(
     """
     Crea un nuovo ente
     """
+    verifica_economo(current_user)
     ente_id = str(uuid.uuid4())
     
     query = """
@@ -486,6 +503,7 @@ def update_ente(
     """
     Modifica un ente esistente
     """
+    verifica_economo(current_user)
     query = """
         UPDATE enti 
         SET denominazione = :denominazione,
@@ -580,8 +598,9 @@ def delete_ente(
     """
     Disattiva un ente (soft delete)
     """
+    verifica_economo(current_user)
     query = """
-        UPDATE enti 
+        UPDATE enti
         SET attivo = FALSE
         WHERE id = :id
         RETURNING id, denominazione
@@ -611,6 +630,7 @@ def update_permessi_operatore(
     """
     Aggiorna i permessi di un operatore su un ente
     """
+    verifica_economo(current_user)
     import json
     
     query = """
@@ -645,6 +665,7 @@ def rimuovi_operatore_da_ente(
     """
     Rimuove un operatore da un ente
     """
+    verifica_economo(current_user)
     query = """
         DELETE FROM utenti_enti 
         WHERE utente_id = :utente_id AND ente_id = :ente_id
@@ -676,7 +697,8 @@ def get_utenti(
     """
     Ottiene la lista degli utenti CON gli enti abbinati
     """
-    
+    verifica_economo(current_user)
+
     query_utenti = """
     SELECT id, username, email, titolo, nome, cognome, attivo, is_economo
     FROM utenti
@@ -739,6 +761,7 @@ def create_utente(
     """
     Crea un nuovo utente con password predefinita
     """
+    verifica_economo(current_user)
     import bcrypt
     
     # Genera password predefinita
@@ -777,7 +800,7 @@ def create_utente(
             "titolo": row[5],
             "attivo": row[6],
             "enti": [],
-            "message": f"Utente creato! Password predefinita: {DEFAULT_PASSWORD}"
+            "message": "Utente creato. La password predefinita è stata impostata."
         }
     except Exception as e:
         db.rollback()
@@ -794,6 +817,7 @@ def update_utente(
     """
     Modifica un utente esistente
     """
+    verifica_economo(current_user)
     query = """
         UPDATE utenti 
         SET username = :username,
@@ -866,6 +890,7 @@ def delete_utente(
     """
     Disattiva un utente (soft delete) e rimuove tutte le sue associazioni
     """
+    verifica_economo(current_user)
     # Prima disattiva l'utente
     query = """
         UPDATE utenti 
@@ -908,6 +933,7 @@ def reset_password(
     """
     Ripristina la password predefinita
     """
+    verifica_economo(current_user)
     import bcrypt
     
     DEFAULT_PASSWORD = "Parrocchia2024!"
@@ -932,8 +958,7 @@ def reset_password(
         raise HTTPException(status_code=404, detail="Utente non trovato")
     
     return {
-        "message": "Password ripristinata con successo",
-        "password_predefinita": DEFAULT_PASSWORD,
+        "message": "Password ripristinata. La password predefinita è stata impostata.",
         "utente": {
             "id": str(row[0]),
             "email": row[1],
@@ -950,6 +975,7 @@ def create_utente_ente(
     """
     Crea associazione utente-ente
     """
+    verifica_economo(current_user)
     import json
     
     assoc_id = str(uuid.uuid4())
@@ -999,7 +1025,8 @@ def update_utente_ente(
     """
     Modifica associazione utente-ente (cambia ente o ruolo)
     """
-    
+    verifica_economo(current_user)
+
     # Se cambia ente, elimina vecchia associazione e crea nuova
     if data.get("ente_id") and data["ente_id"] != ente_id:
         # Elimina vecchia
@@ -1060,7 +1087,8 @@ def get_parrocchie_diocesi(
     """
     Ottiene l'elenco delle parrocchie diocesi
     """
-    
+    verifica_economo(current_user)
+
     if comune:
         query = """
             SELECT id, comune, denominazione, provincia, diocesi, cap,
@@ -1104,10 +1132,11 @@ def get_parrocchia_diocesi_dettaglio(
     """
     Ottiene i dettagli di una parrocchia diocesi
     """
+    verifica_economo(current_user)
     query = """
         SELECT id, comune, denominazione, provincia, diocesi, cap,
                created_at, updated_at
-        FROM parrocchie_diocesi 
+        FROM parrocchie_diocesi
         WHERE id = :id
     """
     
@@ -1138,6 +1167,7 @@ def create_parrocchia_diocesi(
     """
     Aggiunge una nuova parrocchia diocesi
     """
+    verifica_economo(current_user)
     parrocchia_id = str(uuid.uuid4())
     
     query = """
@@ -1181,6 +1211,7 @@ def update_parrocchia_diocesi(
     """
     Modifica una parrocchia diocesi
     """
+    verifica_economo(current_user)
     query = """
         UPDATE parrocchie_diocesi 
         SET comune = :comune,
@@ -1229,6 +1260,7 @@ def delete_parrocchia_diocesi(
     """
     Elimina una parrocchia diocesi
     """
+    verifica_economo(current_user)
     query = """
         DELETE FROM parrocchie_diocesi 
         WHERE id = :id
@@ -1253,6 +1285,7 @@ def get_comuni_diocesi(
     """
     Ottiene la lista dei comuni dalla diocesi
     """
+    verifica_economo(current_user)
     query = """
         SELECT DISTINCT comune, provincia
         FROM parrocchie_diocesi

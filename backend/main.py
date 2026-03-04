@@ -295,12 +295,7 @@ async def login(
     attivo = result[3]
     is_economo = result[4]  # ⭐ AGGIUNGI QUESTA RIGA
 
-    # ⭐ DEBUG: Stampa per vedere cosa c'è
-    print(f"🔍 DEBUG LOGIN:")
-    print(f"   user_id: {user_id}")
-    print(f"   username: {username}")
-    print(f"   is_economo: {is_economo}")
-    print(f"   tipo: {type(is_economo)}")
+    print(f"Login: {username}")
     
     if not verify_password(form_data.password, password_hash):
         raise HTTPException(

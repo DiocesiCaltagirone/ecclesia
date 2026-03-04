@@ -88,6 +88,9 @@ def get_record_data(db: Session, tabella: str, record_id: str) -> Optional[Dict]
     Recupera i dati attuali di un record per salvarli prima di UPDATE/DELETE.
     """
     try:
+        TABELLE_CONSENTITE = set(TABELLE_MONITORATE) | {'audit_log'}
+        if tabella not in TABELLE_CONSENTITE:
+            raise ValueError(f"Tabella non valida: {tabella}")
         query = text(f"SELECT * FROM {tabella} WHERE id = :id")
         result = db.execute(query, {"id": record_id}).fetchone()
         
