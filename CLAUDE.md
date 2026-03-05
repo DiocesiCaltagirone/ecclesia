@@ -430,7 +430,7 @@ Dopo chiusura rendiconto 2023:
 
 ---
 
-## FUNZIONALITA IMPLEMENTATE (stato al 04/03/2026)
+## FUNZIONALITA IMPLEMENTATE (stato al 05/03/2026)
 
 ### Completate
 1. Autenticazione JWT con login/logout (sessionStorage per token, interceptor 401 in api.js)
@@ -643,7 +643,7 @@ docker restart parrocchia-backend
 
 ---
 
-## REFACTORING ESEGUITO (04/03/2026)
+## REFACTORING ESEGUITO (05/03/2026)
 
 Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 
@@ -681,9 +681,14 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - certificati.py: 4 endpoint migrati da X-User-ID a JWT (Depends(get_current_user))
 - middleware.py: eliminate get_current_user, get_current_parrocchia, require_economo (65 righe)
 - middleware.log_operation ora riceve user_id e parrocchia_id dal JWT
+- X-User-ID completamente eliminato dal backend. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT.
 
-**Da fare (Fase 2)**:
-- 2.4: Riscrivere sacramenti.py e stampe.py con pattern DB compatibile (asyncpg → sincrono)
+**Blocco 6 — SOSPESO**:
+- 2.4: sacramenti.py (504 righe, asyncpg) e stampe.py (490 righe, async SQLAlchemy) usano pattern DB incompatibile
+- Auth JWT gia OK in entrambi. Verranno riscritti da zero quando si implementa il modulo anagrafica completo.
+
+**Fix produzione** (commit 4413b3e):
+- Dropdown Citta duplicata: aggiunto TRIM(comune) in amministrazione.py per eliminare spazi nascosti
 
 ---
 
@@ -714,3 +719,5 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (SVG placeholder, deprecato).
 - RESET PASSWORD: il frontend ha il modal ma l'endpoint backend /api/auth/reset-password NON ESISTE ancora. Il vecchio codice era in main_OLD.py. Nessun servizio email (SMTP/SendGrid) configurato.
 - CURRENT_USER: get_current_user (auth.py) restituisce un dict con chiave "user_id" (NON "id"). Usare SEMPRE current_user["user_id"] o current_user.get("user_id"). La vecchia chiave "id" NON esiste piu.
+- X-USER-ID ELIMINATO: header X-User-ID completamente rimosso dal backend. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT. NON reintrodurre mai X-User-ID.
+- SACRAMENTI/STAMPE NON FUNZIONANTI: sacramenti.py (asyncpg) e stampe.py (async SQLAlchemy) hanno pattern DB incompatibile col setup sincrono. Auth JWT OK. Da riscrivere con pattern sincrono quando si implementa modulo anagrafica.
