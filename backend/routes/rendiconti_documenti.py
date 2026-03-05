@@ -21,6 +21,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import get_db_connection
 from auth import get_current_user
+from constants import StatoRendiconto, TipoMovimento
 
 router = APIRouter(prefix="/api/contabilita", tags=["Rendiconti Documenti"])
 
@@ -73,7 +74,7 @@ async def upload_documento_rendiconto(
         if not rendiconto:
             raise HTTPException(status_code=404, detail="Rendiconto non trovato")
         
-        if rendiconto[1] != 'parrocchia':
+        if rendiconto[1] != StatoRendiconto.PARROCCHIA:
             raise HTTPException(
                 status_code=400,
                 detail="Impossibile caricare documenti: il rendiconto non è in stato 'parrocchia'"
@@ -345,7 +346,7 @@ async def delete_documento(
         if not doc:
             raise HTTPException(status_code=404, detail="Documento non trovato")
         
-        if doc[1] != 'parrocchia':
+        if doc[1] != StatoRendiconto.PARROCCHIA:
             raise HTTPException(
                 status_code=400,
                 detail="Impossibile eliminare: il rendiconto non è in stato 'parrocchia'"
@@ -403,7 +404,7 @@ async def invia_rendiconto(
             raise HTTPException(status_code=404, detail="Rendiconto non trovato")
         
         # Può inviare solo da 'parrocchia' o 'definitivo'
-        if rendiconto[1] not in ['parrocchia', 'definitivo']:
+        if rendiconto[1] not in [StatoRendiconto.PARROCCHIA, StatoRendiconto.DEFINITIVO]:
             raise HTTPException(
                 status_code=400,
                 detail=f"Impossibile inviare: il rendiconto è in stato '{rendiconto[1]}'. Solo i rendiconti in stato 'parrocchia' o 'definitivo' possono essere inviati."
@@ -455,7 +456,7 @@ async def invia_rendiconto(
         return {
             "message": "Rendiconto inviato con successo alla Diocesi",
             "rendiconto_id": str(rendiconto_id),
-            "stato": "inviato",
+            "stato": StatoRendiconto.INVIATO,
             "data_invio": datetime.now().isoformat(),
             "tipo_ente": tipo_ente
         }
@@ -666,8 +667,8 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
                     })
             return result
         
-        categorie_entrate = organizza_per_categoria(movimenti_raw, 'entrata')
-        categorie_uscite = organizza_per_categoria(movimenti_raw, 'uscita')
+        categorie_entrate = organizza_per_categoria(movimenti_raw, TipoMovimento.ENTRATA)
+        categorie_uscite = organizza_per_categoria(movimenti_raw, TipoMovimento.USCITA)
         
         # Calcola totali
         totale_entrate = sum(c['totale'] for c in categorie_entrate)
@@ -746,7 +747,7 @@ async def genera_pdf_rendiconto(rendiconto_id: str, ente_id: str):
             'totale_attivo': totale_attivo,
             'totale_disponibilita': totale_attivo,
             'riporto_precedente': riporto_precedente,
-            'approvato': rend[5] == 'approvato',
+            'approvato': rend[5] == StatoRendiconto.APPROVATO,
             'anno': periodo_fine.year,
             'data_invio': rend[6].strftime('%d/%m/%Y') if rend[6] else '',
             'data_approvazione': rend[7].strftime('%d/%m/%Y') if rend[7] else '',

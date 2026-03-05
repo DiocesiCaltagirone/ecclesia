@@ -18,6 +18,7 @@ class StatoRendiconto(str, Enum):
     INVIATO = "inviato"         # inviato alla diocesi
     APPROVATO = "approvato"
     RESPINTO = "respinto"
+    DEFINITIVO = "definitivo"  # rendiconto precedente chiuso
 
 
 class RuoloUtente(str, Enum):
