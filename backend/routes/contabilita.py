@@ -32,6 +32,7 @@ import shutil
 from database import get_db
 from auth import get_current_user
 from services.audit import registra_audit, get_record_data
+from constants import TipoMovimento
 
 router = APIRouter(prefix="/api/contabilita", tags=["contabilita"])
 
@@ -131,7 +132,7 @@ def create_registro(
         
         # Crea sempre il movimento saldo iniziale
         # Se negativo (scoperto), tipo_movimento = 'uscita' con valore assoluto
-        tipo_mov_saldo = 'entrata' if saldo_iniziale >= 0 else 'uscita'
+        tipo_mov_saldo = TipoMovimento.ENTRATA if saldo_iniziale >= 0 else TipoMovimento.USCITA
         importo_saldo = abs(saldo_iniziale)
 
 
@@ -239,7 +240,7 @@ def update_registro(
         mov_result = db.execute(text(check_movimento), {"registro_id": registro_id}).fetchone()
         
         # Se negativo (scoperto), tipo_movimento = 'uscita' con valore assoluto
-        tipo_mov_saldo = 'entrata' if nuovo_saldo >= 0 else 'uscita'
+        tipo_mov_saldo = TipoMovimento.ENTRATA if nuovo_saldo >= 0 else TipoMovimento.USCITA
         importo_saldo = abs(nuovo_saldo)
 
         if mov_result:
@@ -913,9 +914,9 @@ def get_movimenti_generali(
     
     # Calcola totali (solo movimenti non bloccati)
     totale_entrate = sum(m['importo'] for m in movimenti_con_saldo
-                         if m['tipo_movimento'] == 'entrata' and not m.get('bloccato'))
+                         if m['tipo_movimento'] == TipoMovimento.ENTRATA and not m.get('bloccato'))
     totale_uscite = sum(m['importo'] for m in movimenti_con_saldo
-                        if m['tipo_movimento'] == 'uscita' and not m.get('bloccato'))
+                        if m['tipo_movimento'] == TipoMovimento.USCITA and not m.get('bloccato'))
     saldo = totale_entrate - totale_uscite
 
     return {
@@ -981,7 +982,7 @@ def get_movimenti_conto(
         
         # Calcola saldo progressivo SOLO per movimenti NON bloccati
         if not mov[7]:  # mov[7] = bloccato
-            if mov[2] == 'entrata':
+            if mov[2] == TipoMovimento.ENTRATA:
                 saldo_progressivo += float(mov[3])
             else:
                 saldo_progressivo -= float(mov[3])
@@ -1004,8 +1005,8 @@ def get_movimenti_conto(
         })
     
     # Calcola totali (solo movimenti non bloccati)
-    totale_entrate = sum(m['importo'] for m in movimenti_list if m['tipo_movimento'] == 'entrata' and not m['bloccato'])
-    totale_uscite = sum(m['importo'] for m in movimenti_list if m['tipo_movimento'] == 'uscita' and not m['bloccato'])
+    totale_entrate = sum(m['importo'] for m in movimenti_list if m['tipo_movimento'] == TipoMovimento.ENTRATA and not m['bloccato'])
+    totale_uscite = sum(m['importo'] for m in movimenti_list if m['tipo_movimento'] == TipoMovimento.USCITA and not m['bloccato'])
     
     return {
         "conto_nome": conto[0],
@@ -1808,9 +1809,9 @@ async def genera_report(
         # Filtro tipo movimento
         tipi = []
         if tipi_mov.get('entrate'):
-            tipi.append('entrata')
+            tipi.append(TipoMovimento.ENTRATA)
         if tipi_mov.get('uscite'):
-            tipi.append('uscita')
+            tipi.append(TipoMovimento.USCITA)
         
         if tipi:
             placeholders = ','.join([f':tipo_{i}' for i in range(len(tipi))])
@@ -1823,8 +1824,8 @@ async def genera_report(
         movimenti = db.execute(text(query), params).fetchall()
         
         # Calcola totali
-        totale_entrate = sum(float(m[3]) for m in movimenti if m[4] == 'entrata')
-        totale_uscite = sum(float(m[3]) for m in movimenti if m[4] == 'uscita')
+        totale_entrate = sum(float(m[3]) for m in movimenti if m[4] == TipoMovimento.ENTRATA)
+        totale_uscite = sum(float(m[3]) for m in movimenti if m[4] == TipoMovimento.USCITA)
         
         # Costruisci risposta
         movimenti_list = []
@@ -2259,7 +2260,7 @@ def calcola_saldo_progressivo(movimenti):
         
         # ✅ Somma SOLO se movimento NON bloccato
         if not mov.get("bloccato", False):
-            if mov["tipo_movimento"] == "entrata":
+            if mov["tipo_movimento"] == TipoMovimento.ENTRATA:
                 saldi_per_conto[conto_id] += mov["importo"]
             else:
                 saldi_per_conto[conto_id] -= mov["importo"]
