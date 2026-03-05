@@ -358,18 +358,18 @@ def get_enti(
     # Query per ottenere tutti gli enti
     if comune:
         query_enti = """
-            SELECT id, denominazione, comune, provincia, cap, 
+            SELECT id, denominazione, TRIM(comune) AS comune, provincia, cap,
                    indirizzo, telefono, email, codice_fiscale, attivo
-            FROM enti 
-            WHERE comune = :comune AND attivo = TRUE
+            FROM enti
+            WHERE TRIM(comune) = :comune AND attivo = TRUE
             ORDER BY denominazione
         """
         result = db.execute(text(query_enti), {"comune": comune})
     else:
         query_enti = """
-            SELECT id, denominazione, comune, provincia, cap,
+            SELECT id, denominazione, TRIM(comune) AS comune, provincia, cap,
                    indirizzo, telefono, email, codice_fiscale, attivo
-            FROM enti 
+            FROM enti
             WHERE attivo = TRUE
             ORDER BY comune, denominazione
         """

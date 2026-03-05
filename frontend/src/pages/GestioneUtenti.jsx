@@ -408,8 +408,8 @@ const GestioneUtenti = () => {
     return colori[ruolo] || 'bg-gray-100 text-gray-700';
   };
 
-  const cittaDisponibili = [...new Set(enti.map(e => e.comune).filter(Boolean))].sort();
-  const comuniDisponibili = [...new Set(enti.map(e => e.comune).filter(Boolean))].sort();
+  const cittaDisponibili = [...new Set(enti.map(e => e.comune?.trim()).filter(Boolean))].sort();
+  const comuniDisponibili = [...new Set(enti.map(e => e.comune?.trim()).filter(Boolean))].sort();
 
   if (loading) {
     return (
