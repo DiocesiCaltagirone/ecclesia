@@ -4,12 +4,13 @@
 # ============================================
 # Gestisce tutte le operazioni CRUD sulle persone con controllo permessi
 
-from fastapi import APIRouter, Request, HTTPException, status, Query
+from fastapi import APIRouter, Request, HTTPException, status, Query, Depends
 from typing import List, Optional
 from pydantic import BaseModel, validator
 from datetime import date
 import permissions
 import middleware
+from auth import get_current_user
 from database import get_db_connection
 from psycopg2.extras import RealDictCursor
 import uuid
@@ -109,18 +110,18 @@ class PersonaResponse(BaseModel):
 
 @router.get("/", response_model=List[PersonaResponse])
 async def get_persone(
-    request: Request,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Ottiene l'elenco delle persone visibili.
     TUTTE le persone sono visibili con indicazione se modificabili.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -173,14 +174,14 @@ async def get_persone(
 
 
 @router.get("/{persona_id}")
-async def get_persona(persona_id: str, request: Request):
+async def get_persona(persona_id: str, current_user: dict = Depends(get_current_user)):
     """
     Ottiene i dati completi di una persona con tutti i sacramenti.
     Include flag per indicare quali dati sono modificabili.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         # Usa la funzione che abbiamo creato
         persona = permissions.get_persona_completa(persona_id, parrocchia_id)
@@ -207,14 +208,14 @@ async def get_persona(persona_id: str, request: Request):
 # ============================================
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_persona(persona: PersonaCreate, request: Request):
+async def create_persona(persona: PersonaCreate, request: Request, current_user: dict = Depends(get_current_user)):
     """
     Crea una nuova persona.
     La parrocchia_proprietaria_id viene impostata automaticamente.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -295,7 +296,9 @@ async def create_persona(persona: PersonaCreate, request: Request):
             tabella="persone",
             record_id=persona_id,
             tipo_operazione="INSERT",
-            dati_nuovi=dict(persona)
+            dati_nuovi=dict(persona),
+            user_id=current_user["user_id"],
+            parrocchia_id=current_user["ente_id"]
         )
         
         conn.close()
@@ -321,13 +324,13 @@ async def create_persona(persona: PersonaCreate, request: Request):
 # ============================================
 
 @router.put("/{persona_id}")
-async def update_persona(persona_id: str, persona: PersonaUpdate, request: Request):
+async def update_persona(persona_id: str, persona: PersonaUpdate, request: Request, current_user: dict = Depends(get_current_user)):
     """
     Aggiorna i dati di una persona.
     SOLO la parrocchia proprietaria può modificare l'anagrafica base.
     """
     try:
-        user_id = middleware.get_current_user(request)
+        user_id = current_user["user_id"]
         
         # VERIFICA PERMESSI
         try:
@@ -383,7 +386,9 @@ async def update_persona(persona_id: str, persona: PersonaUpdate, request: Reque
             record_id=persona_id,
             tipo_operazione="UPDATE",
             dati_precedenti=dati_precedenti,
-            dati_nuovi=dict(persona.dict(exclude_unset=True))
+            dati_nuovi=dict(persona.dict(exclude_unset=True)),
+            user_id=current_user["user_id"],
+            parrocchia_id=current_user["ente_id"]
         )
         
         conn.close()
@@ -410,13 +415,13 @@ async def update_persona(persona_id: str, persona: PersonaUpdate, request: Reque
 # ============================================
 
 @router.delete("/{persona_id}")
-async def delete_persona(persona_id: str, request: Request):
+async def delete_persona(persona_id: str, request: Request, current_user: dict = Depends(get_current_user)):
     """
     Cancella una persona.
     SOLO la parrocchia proprietaria può cancellare.
     """
     try:
-        user_id = middleware.get_current_user(request)
+        user_id = current_user["user_id"]
         
         # VERIFICA PERMESSI
         try:
@@ -451,7 +456,9 @@ async def delete_persona(persona_id: str, request: Request):
             tabella="persone",
             record_id=persona_id,
             tipo_operazione="DELETE",
-            dati_precedenti=dati_cancellati
+            dati_precedenti=dati_cancellati,
+            user_id=current_user["user_id"],
+            parrocchia_id=current_user["ente_id"]
         )
         
         conn.close()
@@ -478,20 +485,20 @@ async def delete_persona(persona_id: str, request: Request):
 
 @router.get("/ricerca/avanzata")
 async def ricerca_avanzata(
-    request: Request,
     cognome: Optional[str] = None,
     nome: Optional[str] = None,
     data_nascita: Optional[date] = None,
     comune: Optional[str] = None,
     codice_fiscale: Optional[str] = None,
-    limit: int = Query(100, ge=1, le=1000)
+    limit: int = Query(100, ge=1, le=1000),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Ricerca avanzata persone con filtri multipli.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)

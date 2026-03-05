@@ -613,10 +613,12 @@ dist/
 
 | # | Azione | Tempo |
 |---|--------|------:|
-| 2.1 | Eliminare endpoint duplicati da main.py (login, persone, enti, me) — ridurlo a ~100 righe | 2 ore |
-| 2.2 | Unificare get_current_user: mantenere solo auth.py, aggiornare tutti i file | 2 ore |
-| 2.3 | Migrare persone.py e certificati.py da X-User-ID a JWT | 3-4 ore |
+| 2.1 | Eliminare endpoint duplicati da main.py (login, persone, enti, me) — ridurlo a ~100 righe | 2 ore | COMPLETATO (Blocco 3) |
+| 2.2 | Unificare get_current_user: mantenere solo auth.py, aggiornare tutti i file | 2 ore | COMPLETATO (Blocco 4) |
+| 2.3 | Migrare persone.py e certificati.py da X-User-ID a JWT | 3-4 ore | COMPLETATO (Blocco 4+5) |
 | 2.4 | Riscrivere sacramenti.py e stampe.py con pattern DB compatibile | 4-6 ore |
+
+> **Nota Blocco 4+5 (05/03/2026):** middleware.py: eliminate get_current_user, get_current_parrocchia, require_economo (65 righe). log_operation ora riceve user_id e parrocchia_id dal JWT. persone.py (6 endpoint) e certificati.py (4 endpoint) migrati da header X-User-ID insicuro a Depends(get_current_user) da auth.py. get_current_user esiste ora in un solo posto: auth.py.
 
 ### FASE 3 — Estrarre servizi e costanti (Tempo stimato: 8-10 ore)
 

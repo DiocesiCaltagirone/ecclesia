@@ -4,11 +4,12 @@
 # ============================================
 # Gestisce la generazione e il download dei certificati PDF
 
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status, Depends
 from fastapi.responses import FileResponse
 from typing import Dict
 import permissions
 import middleware
+from auth import get_current_user
 from database import get_db_connection
 from psycopg2.extras import RealDictCursor
 from certificati import CertificatoGenerator, genera_numero_protocollo
@@ -112,14 +113,14 @@ def registra_certificato_emesso(
 # ============================================
 
 @router.post("/battesimo/{battesimo_id}")
-async def genera_certificato_battesimo(battesimo_id: str, request: Request):
+async def genera_certificato_battesimo(battesimo_id: str, request: Request, current_user: dict = Depends(get_current_user)):
     """
     Genera certificato di battesimo in PDF.
     Richiede che l'utente appartenga alla parrocchia amministrante.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         # Verifica permessi
         try:
@@ -206,7 +207,9 @@ async def genera_certificato_battesimo(battesimo_id: str, request: Request):
             tabella="certificati",
             record_id=battesimo_id,
             tipo_operazione="GENERA_CERTIFICATO",
-            dati_nuovi={"numero_protocollo": numero_protocollo, "tipo": "battesimo"}
+            dati_nuovi={"numero_protocollo": numero_protocollo, "tipo": "battesimo"},
+            user_id=current_user["user_id"],
+            parrocchia_id=current_user["ente_id"]
         )
         
         return {
@@ -226,11 +229,11 @@ async def genera_certificato_battesimo(battesimo_id: str, request: Request):
 
 
 @router.post("/cresima/{cresima_id}")
-async def genera_certificato_cresima(cresima_id: str, request: Request):
+async def genera_certificato_cresima(cresima_id: str, current_user: dict = Depends(get_current_user)):
     """Genera certificato di cresima in PDF"""
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         # Verifica permessi
         permissions.verifica_permesso_sacramento(user_id, "cresime", cresima_id)
@@ -328,14 +331,14 @@ async def genera_certificato_cresima(cresima_id: str, request: Request):
 # ============================================
 
 @router.get("/download/{numero_protocollo}")
-async def download_certificato(numero_protocollo: str, request: Request):
+async def download_certificato(numero_protocollo: str, current_user: dict = Depends(get_current_user)):
     """
     Download del certificato PDF.
     Solo la parrocchia che lo ha emesso può scaricarlo.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         # Cerca certificato
         conn = get_db_connection()
@@ -396,13 +399,13 @@ async def download_certificato(numero_protocollo: str, request: Request):
 # ============================================
 
 @router.get("/storico")
-async def get_storico_certificati(request: Request):
+async def get_storico_certificati(current_user: dict = Depends(get_current_user)):
     """
     Ottiene lo storico dei certificati emessi dalla parrocchia.
     """
     try:
-        user_id = middleware.get_current_user(request)
-        parrocchia_id = middleware.get_current_parrocchia(request)
+        user_id = current_user["user_id"]
+        parrocchia_id = current_user["ente_id"]
         
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)

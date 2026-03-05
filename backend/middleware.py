@@ -257,78 +257,6 @@ def handle_validation_error(error: Exception) -> JSONResponse:
 
 
 # ============================================
-# CONTEXT HELPERS
-# ============================================
-
-def get_current_user(request: Request) -> str:
-    """
-    Ottiene l'ID dell'utente corrente dalla richiesta.
-    
-    Args:
-        request: Oggetto Request FastAPI
-    
-    Returns:
-        str: UUID dell'utente
-    
-    Raises:
-        HTTPException: Se utente non autenticato
-    """
-    user_id = request.headers.get("X-User-ID")
-    
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Non autenticato"
-        )
-    
-    return user_id
-
-
-def get_current_parrocchia(request: Request) -> str:
-    """
-    Ottiene l'ID della parrocchia dell'utente corrente.
-    
-    Args:
-        request: Oggetto Request FastAPI
-    
-    Returns:
-        str: UUID della parrocchia
-    
-    Raises:
-        HTTPException: Se utente non autenticato o parrocchia non trovata
-    """
-    user_id = get_current_user(request)
-    parrocchia_id = permissions.get_parrocchia_utente(user_id)
-    
-    if not parrocchia_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Parrocchia non trovata per questo utente"
-        )
-    
-    return parrocchia_id
-
-
-def require_economo(request: Request) -> None:
-    """
-    Verifica che l'utente corrente sia l'economo diocesano.
-    
-    Args:
-        request: Oggetto Request FastAPI
-    
-    Raises:
-        HTTPException: Se utente non è economo
-    """
-    user_id = get_current_user(request)
-    
-    if not permissions.è_economo_diocesano(user_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Operazione riservata all'economo diocesano"
-        )
-
-
-# ============================================
 # UTILITY LOGGING
 # ============================================
 
@@ -338,12 +266,14 @@ async def log_operation(
     record_id: str,
     tipo_operazione: str,
     dati_precedenti: dict = None,
-    dati_nuovi: dict = None
+    dati_nuovi: dict = None,
+    user_id: str = None,
+    parrocchia_id: str = None
 ):
     """
     Registra un'operazione nel log.
     Da chiamare dopo operazioni CRUD importanti.
-    
+
     Args:
         request: Oggetto Request FastAPI
         tabella: Nome tabella modificata
@@ -351,10 +281,10 @@ async def log_operation(
         tipo_operazione: 'INSERT', 'UPDATE', 'DELETE'
         dati_precedenti: Dati prima della modifica
         dati_nuovi: Dati dopo la modifica
+        user_id: UUID utente (obbligatorio)
+        parrocchia_id: UUID parrocchia (obbligatorio)
     """
     try:
-        user_id = get_current_user(request)
-        parrocchia_id = get_current_parrocchia(request)
         ip_address = get_client_ip(request)
         user_agent = get_user_agent(request)
         
