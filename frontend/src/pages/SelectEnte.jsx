@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import chiesaImg from '../assets/chiesa.png';
 
 function SelectEnte() {
   const [enti, setEnti] = useState([]);
@@ -57,15 +58,6 @@ function SelectEnte() {
     navigate('/login');
   };
 
-  // Icona chiesa SVG inline
-  const ChurchIcon = ({ className }) => (
-    <svg className={className} viewBox="0 0 64 64" fill="currentColor" opacity="0.15">
-      <path d="M32 2l2 0 0 8 6 0 0 2-6 0 0 6 14 10 0 34-32 0 0-34 14-10 0-6-6 0 0-2 6 0 0-8zM20 30l0 28 8 0 0-12a4 4 0 0 1 8 0l0 12 8 0 0-28-12-8.5z"/>
-      <rect x="24" y="34" width="6" height="6" rx="1" opacity="0.3"/>
-      <rect x="34" y="34" width="6" height="6" rx="1" opacity="0.3"/>
-    </svg>
-  );
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100 flex items-center justify-center">
@@ -83,11 +75,7 @@ function SelectEnte() {
       <div className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
+            <img src={chiesaImg} alt="EcclesiaWeb" className="w-10 h-10 object-contain" />
             <span className="text-lg font-bold text-gray-800">EcclesiaWeb</span>
           </div>
           <div className="flex items-center gap-4">
@@ -147,8 +135,8 @@ function SelectEnte() {
                 className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 hover:border-green-300 transition-all duration-300 text-left overflow-hidden transform hover:-translate-y-1"
               >
                 {/* Icona chiesa decorativa sullo sfondo */}
-                <div className="absolute top-4 right-4 text-green-600">
-                  <ChurchIcon className="w-16 h-16" />
+                <div className="absolute top-4 right-4">
+                  <img src={chiesaImg} alt="" className="w-20 h-20 object-contain opacity-20" />
                 </div>
 
                 <div className="p-6 relative">
