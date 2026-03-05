@@ -12,6 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import get_db_connection, SessionLocal
 from auth import get_current_user
 from services.audit import registra_audit_psycopg2
+from constants import StatoRendiconto, TipoMovimento
 
 router = APIRouter(prefix="/api/contabilita", tags=["Rendiconti"])
 
@@ -263,7 +264,7 @@ async def crea_rendiconto(
                         registro_id,
                         categoria_id,
                         data_inizio_nuovo,
-                        "entrata" if saldo_conto >= 0 else "uscita",
+                        TipoMovimento.ENTRATA if saldo_conto >= 0 else TipoMovimento.USCITA,
                         abs(saldo_conto) if saldo_conto != 0 else 0,
                         "Saldo iniziale",
                         f"Riporto automatico da rendiconto {rendiconto_id}"
@@ -298,7 +299,7 @@ async def crea_rendiconto(
             "ente_id": str(ente_id),
             "periodo_inizio": str(dati.periodo_inizio),
             "periodo_fine": str(dati.periodo_fine),
-            "stato": "parrocchia",
+            "stato": StatoRendiconto.PARROCCHIA,
             "totale_entrate": float(totale_entrate),
             "totale_uscite": float(totale_uscite),
             "saldo": float(saldo),
@@ -503,7 +504,7 @@ async def elimina_rendiconto(
         ente_id = rendiconto[2]
         
         # Verifica che sia eliminabile (solo parrocchia o respinto)
-        if stato not in ['parrocchia', 'respinto']:
+        if stato not in [StatoRendiconto.PARROCCHIA, StatoRendiconto.RESPINTO]:
             raise HTTPException(
                 status_code=403,
                 detail=f"Impossibile eliminare un rendiconto in stato: {stato}. Solo i rendiconti in stato 'parrocchia' o 'respinto' possono essere eliminati."
@@ -693,9 +694,9 @@ async def approva_rendiconto(
         if not rendiconto:
             raise HTTPException(status_code=404, detail="Rendiconto non trovato")
         
-        if rendiconto[1] != 'inviato':
+        if rendiconto[1] != StatoRendiconto.INVIATO:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Solo i rendiconti in stato 'inviato' possono essere approvati. Stato attuale: {rendiconto[1]}"
             )
         
@@ -708,8 +709,8 @@ async def approva_rendiconto(
             utente_id=current_user.get('user_id'),
             utente_email=current_user.get('email'),
             ente_id=rendiconto[2],
-            dati_precedenti={"stato": "inviato"},
-            dati_nuovi={"stato": "approvato"},
+            dati_precedenti={"stato": StatoRendiconto.INVIATO},
+            dati_nuovi={"stato": StatoRendiconto.APPROVATO},
             descrizione="Approvazione rendiconto"
         )
         
@@ -727,7 +728,7 @@ async def approva_rendiconto(
         return {
             "message": "Rendiconto approvato con successo",
             "id": str(rendiconto_id),
-            "nuovo_stato": "approvato"
+            "nuovo_stato": StatoRendiconto.APPROVATO
         }
         
     except HTTPException:
@@ -775,9 +776,9 @@ async def respingi_rendiconto(
         if not rendiconto:
             raise HTTPException(status_code=404, detail="Rendiconto non trovato")
         
-        if rendiconto[1] != 'inviato':
+        if rendiconto[1] != StatoRendiconto.INVIATO:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Solo i rendiconti in stato 'inviato' possono essere respinti. Stato attuale: {rendiconto[1]}"
             )
         
@@ -790,8 +791,8 @@ async def respingi_rendiconto(
             utente_id=current_user.get('user_id'),
             utente_email=current_user.get('email'),
             ente_id=rendiconto[2],
-            dati_precedenti={"stato": "inviato"},
-            dati_nuovi={"stato": "respinto", "motivo": motivazione},
+            dati_precedenti={"stato": StatoRendiconto.INVIATO},
+            dati_nuovi={"stato": StatoRendiconto.RESPINTO, "motivo": motivazione},
             descrizione=f"Respingimento rendiconto: {motivazione}"
         )
         
@@ -811,7 +812,7 @@ async def respingi_rendiconto(
         return {
             "message": "Rendiconto respinto. Il parroco può eliminarlo per sbloccare i movimenti e correggere.",
             "id": str(rendiconto_id),
-            "nuovo_stato": "respinto"
+            "nuovo_stato": StatoRendiconto.RESPINTO
         }
         
     except HTTPException:
