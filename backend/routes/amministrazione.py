@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from auth import get_current_user
 from database import get_db
+from constants import RuoloUtente
 import uuid
 
 router = APIRouter(prefix="/api/amministrazione", tags=["amministrazione"])
@@ -1054,7 +1055,7 @@ def update_utente_ente(
         db.execute(text(insert_query), {
             "utente_id": utente_id,
             "ente_id": data["ente_id"],
-            "ruolo": data.get("ruolo", "operatore"),
+            "ruolo": data.get("ruolo", RuoloUtente.OPERATORE),
             "permessi": permessi_json
         })
     else:
@@ -1067,7 +1068,7 @@ def update_utente_ente(
         db.execute(text(update_query), {
             "utente_id": utente_id,
             "ente_id": ente_id,
-            "ruolo": data.get("ruolo", "operatore")
+            "ruolo": data.get("ruolo", RuoloUtente.OPERATORE)
         })
     
     db.commit()
