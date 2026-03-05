@@ -690,6 +690,17 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 **Fix produzione** (commit 4413b3e):
 - Dropdown Citta duplicata: aggiunto TRIM(comune) in amministrazione.py per eliminare spazi nascosti
 
+### Fase 3 — Estrarre servizi e costanti (IN CORSO)
+
+**Blocco 3.1** (commits 8bc519f → 1d1385d):
+- Creato backend/constants.py con 5 Enum: StatoRendiconto (6 stati), RuoloUtente (3), TipoMovimento (2), TipoSpecialeMovimento (2), TipoRegistro (2)
+- 32 magic strings sostituite in 4 file:
+  - rendiconti_crud.py: 11 (StatoRendiconto 10 + TipoMovimento 1)
+  - contabilita.py: 12 (TipoMovimento 12)
+  - rendiconti_documenti.py: 7 (StatoRendiconto 5 + TipoMovimento 2)
+  - amministrazione.py: 2 (RuoloUtente 2)
+- Query SQL lasciate intatte (stringhe letterali nelle query)
+
 ---
 
 ## NOTE TECNICHE CRITICHE

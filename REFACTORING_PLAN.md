@@ -628,7 +628,7 @@ dist/
 
 | # | Azione | Tempo |
 |---|--------|------:|
-| 3.1 | Creare `backend/constants.py` con Enum per stati, ruoli, tipi | 1.5 ore |
+| 3.1 | Creare `backend/constants.py` con Enum per stati, ruoli, tipi | 1.5 ore | COMPLETATO |
 | 3.2 | Creare `backend/services/rendiconti.py` — estrarre logica da rendiconti_crud.py | 3 ore |
 | 3.3 | Creare `backend/services/contabilita.py` — estrarre logica da contabilita.py | 3 ore |
 | 3.4 | Creare `backend/services/pdf.py` — estrarre generazione PDF | 2 ore |
