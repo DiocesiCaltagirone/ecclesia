@@ -732,3 +732,9 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - CURRENT_USER: get_current_user (auth.py) restituisce un dict con chiave "user_id" (NON "id"). Usare SEMPRE current_user["user_id"] o current_user.get("user_id"). La vecchia chiave "id" NON esiste piu.
 - X-USER-ID ELIMINATO: header X-User-ID completamente rimosso dal backend. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT. NON reintrodurre mai X-User-ID.
 - SACRAMENTI/STAMPE NON FUNZIONANTI: sacramenti.py (asyncpg) e stampe.py (async SQLAlchemy) hanno pattern DB incompatibile col setup sincrono. Auth JWT OK. Da riscrivere con pattern sincrono quando si implementa modulo anagrafica.
+- MAIN.PY — stato attuale (419 righe):
+  - 3 endpoint enti (/api/enti/my-enti, GET, PUT) → attivi, usati dal frontend, da migrare in routes/enti.py in futuro
+  - 2 endpoint anagrafica (/api/anagrafica/persone GET e POST) → usati dal frontend, da eliminare quando si riscrive anagrafica
+  - persone.py (prefix /api/persone/) → NON usato dal frontend, da eliminare quando si riscrive anagrafica
+  - DELETE /api/anagrafica/persone/{id} → chiamato da Registro.jsx ma non esiste in nessun file backend — BUG da fixare nell'anagrafica
+  - Root / e health /api/health → restano in main.py per sempre
