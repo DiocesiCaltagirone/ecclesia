@@ -77,55 +77,59 @@ function SelectEnte() {
     <div className="se-page">
       <div className="se-circle" />
 
-      {/* Header: logo + titolo */}
+      {/* Header bianco */}
       <div className="se-header">
-        <img src="/logo-diocesi.png" alt="Diocesi di Caltagirone" className="se-logo" />
-        <h1 className="se-title">EcclesiaWeb</h1>
-        <p className="se-subtitle">Seleziona Parrocchia</p>
-      </div>
-
-      {/* Utente + Esci */}
-      <div className="se-user-bar">
-        <span className="se-user-name">{nomeUtente}</span>
-        <button onClick={logout} className="se-logout">Esci</button>
-      </div>
-
-      {/* Errore */}
-      {error && (
-        <div className="se-error">{error}</div>
-      )}
-
-      {/* Lista enti */}
-      {enti.length === 0 ? (
-        <div className="se-empty">
-          <p>Nessuna parrocchia disponibile</p>
+        <div className="se-header-inner">
+          <div className="se-header-left">
+            <img src="/logo-diocesi.png" alt="Diocesi" className="se-logo" />
+            <div className="se-brand">
+              <span className="se-brand-title">EcclesiaWeb</span>
+              <span className="se-brand-sub">Sistema Gestionale Parrocchiale</span>
+            </div>
+          </div>
+          <div className="se-header-right">
+            <span className="se-user-name">{nomeUtente}</span>
+            <button onClick={logout} className="se-esci">Esci</button>
+          </div>
         </div>
-      ) : (
-        <div className="se-grid">
-          {enti.map((ente, index) => (
-            <div
-              key={ente.id}
-              className="se-card"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {/* Parte alta — bianca con immagine chiesa */}
+      </div>
+
+      {/* Onda bianca */}
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none"
+        style={{display:'block',width:'100%',height:'80px'}}>
+        <path d="M0,0 L1440,0 L1440,40 C1100,80 800,20 500,55
+          C300,75 100,45 0,40 Z" fill="white"/>
+      </svg>
+
+      {/* Contenuto */}
+      <div className="se-content">
+        <p className="se-title">SELEZIONA ENTE</p>
+
+        {error && <div className="se-error">{error}</div>}
+
+        {enti.length === 0 ? (
+          <div className="se-empty">Nessun ente disponibile</div>
+        ) : (
+          <div className="se-grid">
+            {enti.map((ente, index) => (
+              <div key={ente.id} className="se-card"
+                style={{animationDelay:`${index*0.1}s`}}>
+
+              {/* Parte bianca */}
               <div className="se-card-top">
-                <img src={chiesaImg} alt="" className="se-chiesa-img" />
+                <img src={chiesaImg} alt="" className="se-chiesa" />
                 <h3 className="se-card-nome">{ente.denominazione}</h3>
                 <p className="se-card-luogo">
-                  {ente.comune} {ente.provincia && `(${ente.provincia})`}
+                  {ente.comune}{ente.provincia && ` (${ente.provincia})`}
                 </p>
               </div>
 
-              {/* Parte bassa — scura con badge e bottone */}
+              {/* Parte blu */}
               <div className="se-card-bottom">
-                {/* Ruolo */}
-                <div className="se-badge-row">
+                <div className="se-badge-ruolo-row">
                   <span className="se-badge se-badge-ruolo">{ente.ruolo}</span>
                 </div>
-
-                {/* Moduli */}
-                <div className="se-badge-row">
+                <div className="se-badge-moduli-row">
                   {ente.permessi?.anagrafica && (
                     <span className="se-badge se-badge-modulo">Anagrafica</span>
                   )}
@@ -136,18 +140,16 @@ function SelectEnte() {
                     <span className="se-badge se-badge-modulo">Inventario</span>
                   )}
                 </div>
-
-                <button
-                  onClick={() => selectEnte(ente)}
-                  className="se-btn"
-                >
+                <button onClick={() => selectEnte(ente)} className="se-btn">
                   Accedi
                 </button>
               </div>
+
             </div>
           ))}
         </div>
       )}
+      </div>
 
       {/* Footer */}
       <p className="se-footer">&copy; 2025 Diocesi di Caltagirone</p>
@@ -162,11 +164,9 @@ const styles = `
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
     background: linear-gradient(135deg, #1a365d 0%, #2c5282 40%, #2b6cb0 70%, #1a365d 100%);
     position: relative;
     overflow-x: hidden;
-    padding: 30px 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -198,68 +198,102 @@ const styles = `
 
   /* ===== HEADER ===== */
   .se-header {
-    text-align: center;
-    margin-bottom: 8px;
+    background: #ffffff;
+    padding: 16px 40px 14px;
     position: relative;
-    z-index: 1;
-    animation: se-fadeSlideUp 0.5s ease-out both;
+    z-index: 2;
+  }
+
+  .se-header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .se-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
 
   .se-logo {
-    width: 160px;
+    width: 80px;
     height: auto;
-    display: block;
-    margin: 0 auto 12px;
   }
 
-  .se-title {
-    font-size: 1.5rem;
-    color: #ffffff;
+  .se-brand {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .se-brand-title {
+    font-size: 1.6rem;
     font-weight: 700;
+    color: #1a365d;
     letter-spacing: 2px;
-    margin: 0 0 2px;
+    line-height: 1.2;
   }
 
-  .se-subtitle {
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 2px;
+  .se-brand-sub {
+    font-size: 0.6rem;
+    color: #718096;
     text-transform: uppercase;
-    margin: 0;
+    letter-spacing: 3px;
   }
 
-  /* ===== USER BAR ===== */
-  .se-user-bar {
+  .se-header-right {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 16px 0 24px;
-    position: relative;
-    z-index: 1;
-    animation: se-fadeSlideUp 0.6s ease-out both;
   }
 
   .se-user-name {
-    color: rgba(255,255,255,0.6);
-    font-size: 0.85rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a365d;
   }
 
-  .se-logout {
-    background: rgba(255,100,100,0.15);
+  .se-esci {
+    background: rgba(255,100,100,0.1);
     border: 1px solid rgba(255,100,100,0.25);
-    color: #ff8a8a;
-    font-size: 0.75rem;
+    color: #e53e3e;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 6px 16px;
+    padding: 8px 18px;
     border-radius: 8px;
     cursor: pointer;
+    align-self: stretch;
     transition: all 0.3s ease;
   }
-  .se-logout:hover {
-    background: rgba(255,100,100,0.25);
+  .se-esci:hover {
+    background: rgba(255,100,100,0.2);
     border-color: rgba(255,100,100,0.4);
+  }
+
+  /* ===== CONTENT ===== */
+  .se-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+
+  .se-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin: 0 0 30px;
+    text-align: center;
+    animation: se-fadeSlideUp 0.5s ease-out both;
   }
 
   /* ===== ERRORE ===== */
@@ -272,9 +306,8 @@ const styles = `
     color: #ff8a8a;
     font-size: 0.85rem;
     max-width: 700px;
-    width: 90%;
-    position: relative;
-    z-index: 1;
+    width: 100%;
+    text-align: center;
   }
 
   /* ===== EMPTY ===== */
@@ -283,43 +316,39 @@ const styles = `
     font-size: 1rem;
     text-align: center;
     padding: 60px 20px;
-    position: relative;
-    z-index: 1;
   }
 
   /* ===== GRID ===== */
   .se-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     max-width: 700px;
-    width: 90%;
-    position: relative;
-    z-index: 1;
+    width: 100%;
   }
 
   /* ===== CARD ===== */
   .se-card {
     background: #ffffff;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 16px 50px rgba(0,0,0,0.25);
     overflow: hidden;
     animation: se-fadeSlideUp 0.7s ease-out both;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   .se-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 28px 70px rgba(0,0,0,0.4);
+    transform: translateY(-5px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
   }
 
   /* ===== CARD PARTE ALTA ===== */
   .se-card-top {
-    background: #ffffff;
-    padding: 28px 28px 18px;
+    padding: 28px 24px 20px;
     text-align: center;
+    border-bottom: 1px solid #e2e8f0;
   }
 
-  .se-chiesa-img {
+  .se-chiesa {
     width: 80px;
     height: 80px;
     object-fit: contain;
@@ -329,7 +358,7 @@ const styles = `
   }
 
   .se-card-nome {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: #1a365d;
     font-weight: 700;
     margin: 0 0 4px;
@@ -337,7 +366,7 @@ const styles = `
   }
 
   .se-card-luogo {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: #718096;
     margin: 0;
   }
@@ -345,25 +374,31 @@ const styles = `
   /* ===== CARD PARTE BASSA ===== */
   .se-card-bottom {
     background: linear-gradient(180deg, #1a365d 0%, #1e3a5f 100%);
-    padding: 18px 28px 24px;
+    padding: 16px 24px 22px;
   }
 
   /* ===== BADGE ===== */
-  .se-badge-row {
+  .se-badge-ruolo-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+  }
+
+  .se-badge-moduli-row {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
   }
 
   .se-badge {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 0.62rem;
+    font-weight: 700;
     text-transform: uppercase;
     padding: 4px 12px;
     border-radius: 20px;
+    letter-spacing: 0.5px;
   }
 
   .se-badge-ruolo {
@@ -382,7 +417,7 @@ const styles = `
   .se-btn {
     width: 100%;
     padding: 12px;
-    margin-top: 6px;
+    margin-top: 4px;
     border: none;
     background: linear-gradient(135deg, #B8942E, #D4AF37, #C8A84E);
     color: #1a1a0a;
@@ -406,10 +441,11 @@ const styles = `
 
   /* ===== FOOTER ===== */
   .se-footer {
-    color: rgba(255,255,255,0.3);
-    font-size: 0.7rem;
+    color: rgba(255,255,255,0.25);
+    font-size: 0.68rem;
     text-align: center;
     margin-top: 30px;
+    padding-bottom: 20px;
     position: relative;
     z-index: 1;
   }
