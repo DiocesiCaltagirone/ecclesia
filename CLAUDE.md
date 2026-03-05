@@ -675,8 +675,14 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 **Hotfix** (commit a193eb6):
 - Corrette 17 occorrenze current_user["id"] → current_user["user_id"] in main.py e contabilita.py
 
+**Blocco 4+5** (commit 387d773):
+- get_current_user unificata: esiste solo in auth.py, eliminate tutte le versioni duplicate
+- persone.py: 6 endpoint migrati da X-User-ID a JWT (Depends(get_current_user))
+- certificati.py: 4 endpoint migrati da X-User-ID a JWT (Depends(get_current_user))
+- middleware.py: eliminate get_current_user, get_current_parrocchia, require_economo (65 righe)
+- middleware.log_operation ora riceve user_id e parrocchia_id dal JWT
+
 **Da fare (Fase 2)**:
-- 2.3: Migrare persone.py e certificati.py da X-User-ID a JWT
 - 2.4: Riscrivere sacramenti.py e stampe.py con pattern DB compatibile (asyncpg → sincrono)
 
 ---
