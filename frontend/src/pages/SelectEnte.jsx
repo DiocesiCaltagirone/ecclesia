@@ -60,146 +60,369 @@ function SelectEnte() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-200 border-t-green-600 mx-auto mb-4"></div>
-          <p className="text-green-700 font-medium">Caricamento...</p>
+      <div className="se-page">
+        <div className="se-loading">
+          <svg className="se-spinner" width="40" height="40" fill="none" viewBox="0 0 24 24">
+            <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <p>Caricamento...</p>
         </div>
+        <style>{styles}</style>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100">
-      {/* Header bar */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img src={chiesaImg} alt="EcclesiaWeb" className="w-10 h-10 object-contain" />
-            <span className="text-lg font-bold text-gray-800">EcclesiaWeb</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Utente</p>
-              <p className="text-sm font-semibold text-gray-700">{nomeUtente}</p>
-            </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200 font-medium"
+    <div className="se-page">
+      <div className="se-circle" />
+
+      {/* Header: logo + titolo */}
+      <div className="se-header">
+        <img src="/logo-diocesi.png" alt="Diocesi di Caltagirone" className="se-logo" />
+        <h1 className="se-title">EcclesiaWeb</h1>
+        <p className="se-subtitle">Seleziona Parrocchia</p>
+      </div>
+
+      {/* Utente + Esci */}
+      <div className="se-user-bar">
+        <span className="se-user-name">{nomeUtente}</span>
+        <button onClick={logout} className="se-logout">Esci</button>
+      </div>
+
+      {/* Errore */}
+      {error && (
+        <div className="se-error">{error}</div>
+      )}
+
+      {/* Lista enti */}
+      {enti.length === 0 ? (
+        <div className="se-empty">
+          <p>Nessuna parrocchia disponibile</p>
+        </div>
+      ) : (
+        <div className="se-grid">
+          {enti.map((ente, index) => (
+            <div
+              key={ente.id}
+              className="se-card"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Esci
-            </button>
-          </div>
-        </div>
-      </div>
+              {/* Parte alta — bianca con immagine chiesa */}
+              <div className="se-card-top">
+                <img src={chiesaImg} alt="" className="se-chiesa-img" />
+                <h3 className="se-card-nome">{ente.denominazione}</h3>
+                <p className="se-card-luogo">
+                  {ente.comune} {ente.provincia && `(${ente.provincia})`}
+                </p>
+              </div>
 
-      {/* Contenuto principale */}
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        {/* Titolo */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Seleziona Parrocchia
-          </h1>
-          <p className="text-gray-500">
-            Scegli l'ente su cui lavorare
-          </p>
-        </div>
+              {/* Parte bassa — scura con badge e bottone */}
+              <div className="se-card-bottom">
+                {/* Ruolo */}
+                <div className="se-badge-row">
+                  <span className="se-badge se-badge-ruolo">{ente.ruolo}</span>
+                </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl mb-8 flex items-center gap-3">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            {error}
-          </div>
-        )}
+                {/* Moduli */}
+                <div className="se-badge-row">
+                  {ente.permessi?.anagrafica && (
+                    <span className="se-badge se-badge-modulo">Anagrafica</span>
+                  )}
+                  {ente.permessi?.contabilita && (
+                    <span className="se-badge se-badge-modulo">Contabilità</span>
+                  )}
+                  {ente.permessi?.inventario && (
+                    <span className="se-badge se-badge-modulo">Inventario</span>
+                  )}
+                </div>
 
-        {enti.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
+                <button
+                  onClick={() => selectEnte(ente)}
+                  className="se-btn"
+                >
+                  Accedi
+                </button>
+              </div>
             </div>
-            <p className="text-gray-400 text-lg">Nessuna parrocchia disponibile</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {enti.map((ente) => (
-              <button
-                key={ente.id}
-                onClick={() => selectEnte(ente)}
-                className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 hover:border-green-300 transition-all duration-300 text-left overflow-hidden transform hover:-translate-y-1"
-              >
-                {/* Icona chiesa decorativa sullo sfondo */}
-                <div className="absolute top-4 right-4">
-                  <img src={chiesaImg} alt="" className="w-20 h-20 object-contain opacity-20" />
-                </div>
+          ))}
+        </div>
+      )}
 
-                <div className="p-6 relative">
-                  {/* Nome parrocchia */}
-                  <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-700 transition-colors duration-200 mb-1 pr-12">
-                    {ente.denominazione}
-                  </h3>
-                  <p className="text-sm text-gray-400 flex items-center gap-1 mb-5">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {ente.comune} {ente.provincia && `(${ente.provincia})`}
-                  </p>
+      {/* Footer */}
+      <p className="se-footer">&copy; 2025 Diocesi di Caltagirone</p>
 
-                  {/* Ruolo */}
-                  <div className="mb-4">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      {ente.ruolo}
-                    </span>
-                  </div>
-
-                  {/* Moduli attivi */}
-                  <div className="flex gap-2 flex-wrap">
-                    {ente.permessi?.anagrafica && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-lg">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Anagrafica
-                      </span>
-                    )}
-                    {ente.permessi?.contabilita && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-600 text-xs font-medium rounded-lg">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Contabilità
-                      </span>
-                    )}
-                    {ente.permessi?.inventario && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 text-xs font-medium rounded-lg">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        Inventario
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Barra inferiore verde al hover */}
-                <div className="h-1 bg-gradient-to-r from-green-400 to-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <style>{styles}</style>
     </div>
   );
 }
+
+const styles = `
+  .se-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #1a365d 0%, #2c5282 40%, #2b6cb0 70%, #1a365d 100%);
+    position: relative;
+    overflow-x: hidden;
+    padding: 30px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .se-circle {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+    filter: blur(60px);
+    top: -200px; right: -200px;
+    pointer-events: none;
+  }
+
+  /* ===== LOADING ===== */
+  .se-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+  }
+  .se-spinner {
+    color: #C8A84E;
+    animation: se-spin 1s linear infinite;
+    margin-bottom: 12px;
+  }
+
+  /* ===== HEADER ===== */
+  .se-header {
+    text-align: center;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+    animation: se-fadeSlideUp 0.5s ease-out both;
+  }
+
+  .se-logo {
+    width: 160px;
+    height: auto;
+    display: block;
+    margin: 0 auto 12px;
+  }
+
+  .se-title {
+    font-size: 1.5rem;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin: 0 0 2px;
+  }
+
+  .se-subtitle {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  /* ===== USER BAR ===== */
+  .se-user-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 16px 0 24px;
+    position: relative;
+    z-index: 1;
+    animation: se-fadeSlideUp 0.6s ease-out both;
+  }
+
+  .se-user-name {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+  }
+
+  .se-logout {
+    background: rgba(255,100,100,0.15);
+    border: 1px solid rgba(255,100,100,0.25);
+    color: #ff8a8a;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .se-logout:hover {
+    background: rgba(255,100,100,0.25);
+    border-color: rgba(255,100,100,0.4);
+  }
+
+  /* ===== ERRORE ===== */
+  .se-error {
+    background: rgba(255,100,100,0.15);
+    border: 1px solid rgba(255,100,100,0.3);
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    color: #ff8a8a;
+    font-size: 0.85rem;
+    max-width: 700px;
+    width: 90%;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== EMPTY ===== */
+  .se-empty {
+    color: rgba(255,255,255,0.4);
+    font-size: 1rem;
+    text-align: center;
+    padding: 60px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== GRID ===== */
+  .se-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    max-width: 700px;
+    width: 90%;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== CARD ===== */
+  .se-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    animation: se-fadeSlideUp 0.7s ease-out both;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .se-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 70px rgba(0,0,0,0.4);
+  }
+
+  /* ===== CARD PARTE ALTA ===== */
+  .se-card-top {
+    background: #ffffff;
+    padding: 28px 28px 18px;
+    text-align: center;
+  }
+
+  .se-chiesa-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 14px;
+    opacity: 0.85;
+  }
+
+  .se-card-nome {
+    font-size: 1.1rem;
+    color: #1a365d;
+    font-weight: 700;
+    margin: 0 0 4px;
+    line-height: 1.3;
+  }
+
+  .se-card-luogo {
+    font-size: 0.8rem;
+    color: #718096;
+    margin: 0;
+  }
+
+  /* ===== CARD PARTE BASSA ===== */
+  .se-card-bottom {
+    background: linear-gradient(180deg, #1a365d 0%, #1e3a5f 100%);
+    padding: 18px 28px 24px;
+  }
+
+  /* ===== BADGE ===== */
+  .se-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .se-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .se-badge-ruolo {
+    background: rgba(200,168,78,0.2);
+    border: 1px solid rgba(200,168,78,0.35);
+    color: #C8A84E;
+  }
+
+  .se-badge-modulo {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.55);
+  }
+
+  /* ===== BOTTONE ORO ===== */
+  .se-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border: none;
+    background: linear-gradient(135deg, #B8942E, #D4AF37, #C8A84E);
+    color: #1a1a0a;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(200,168,78,0.3);
+  }
+  .se-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(200,168,78,0.4);
+    filter: brightness(1.1);
+  }
+  .se-btn:active {
+    transform: translateY(0);
+  }
+
+  /* ===== FOOTER ===== */
+  .se-footer {
+    color: rgba(255,255,255,0.3);
+    font-size: 0.7rem;
+    text-align: center;
+    margin-top: 30px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== ANIMAZIONI ===== */
+  @keyframes se-fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes se-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
 
 export default SelectEnte;
