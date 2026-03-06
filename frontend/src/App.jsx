@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import SelectEnte from './pages/SelectEnte';
@@ -29,10 +30,49 @@ import EconomatoContabilita from './pages/EconomatoContabilita';
 // Componente per proteggere le rotte
 function PrivateRoute({ children }) {
   const token = sessionStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Verifica se il token JWT è scaduto
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      sessionStorage.clear();
+      return <Navigate to="/login" replace />;
+    }
+  } catch {
+    sessionStorage.clear();
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }
 
 function App() {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const token = sessionStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const now = Math.floor(Date.now() / 1000);
+          if (payload.exp && payload.exp < now) {
+            sessionStorage.clear();
+            window.location.href = '/login';
+          }
+        } catch {
+          sessionStorage.clear();
+          window.location.href = '/login';
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <DataProvider>
       <BrowserRouter>
