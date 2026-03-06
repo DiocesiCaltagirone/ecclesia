@@ -739,3 +739,34 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
   - persone.py (prefix /api/persone/) → NON usato dal frontend, da eliminare quando si riscrive anagrafica
   - DELETE /api/anagrafica/persone/{id} → chiamato da Registro.jsx ma non esiste in nessun file backend — BUG da fixare nell'anagrafica
   - Root / e health /api/health → restano in main.py per sempre
+
+---
+
+## SESSIONE 07/03/2026 - FUNZIONALITA COMPLETATE
+
+### Giroconto - Cancellazione a cascata
+- Aggiunta colonna `giroconto_collegato_id` su `movimenti_contabili`
+- Eliminando un movimento giroconto → cancella automaticamente anche il gemello
+- Giroconti esclusi dal rendiconto PDF (movimento interno neutro)
+
+### Stampa PDF Piano dei Conti
+- Endpoint `GET /api/contabilita/categorie/stampa-pdf?livelli=1,2,3`
+- Pulsante "Stampa PDF" in Categorie.jsx con pannello checkbox livelli
+- PDF con intestazione parrocchia + data, indentazione per livello
+
+### Validazione duplicati categorie
+- Controllo nome duplicato per livello e contesto (case-insensitive, trim)
+- Blocca creazione se esiste gia una voce con lo stesso nome nella stessa posizione
+
+### Rinomina categoria con movimenti
+- Alert se si rinomina una categoria con movimenti abbinati
+- Opzione "Rinomina comunque" per procedere consapevolmente
+
+### Elimina categoria con movimenti
+- Tre opzioni: Annulla, Riassegna movimenti, Elimina tutto
+- Modale riassegnazione con dropdown a cascata L1→L2→L3
+- Box "Categoria attuale" → "Nuova categoria" con percorso completo
+- Barra progresso movimenti riassegnati
+- Card verde + checkmark quando riassegnato
+- Data in formato italiano (gg/mm/aaaa)
+- Endpoint: DELETE /categorie/{id}, GET /categorie/{id}/movimenti-abbinati, POST /categorie/{id}/elimina-con-riassegnazione, POST /categorie/{id}/elimina-con-movimenti
