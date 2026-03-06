@@ -198,7 +198,7 @@ const styles = `
   /* ===== HEADER ===== */
   .se-header {
     background: #ffffff;
-    padding: 16px 40px 14px;
+    padding: 8px 40px 6px;
     position: relative;
     z-index: 2;
   }
@@ -278,7 +278,7 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 40px 20px 40px 60px;
+    padding: 10px 20px 40px 60px;
     position: relative;
     z-index: 1;
     flex: 1;
@@ -320,10 +320,10 @@ const styles = `
 
   /* ===== GRID ===== */
   .se-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
-    max-width: 360px;
+    max-width: 900px;
     width: 100%;
     margin-left: 0;
     margin-right: auto;
@@ -331,6 +331,8 @@ const styles = `
 
   /* ===== CARD ===== */
   .se-card {
+    width: 320px;
+    flex-shrink: 0;
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 16px 50px rgba(0,0,0,0.25);
@@ -345,7 +347,7 @@ const styles = `
 
   /* ===== CARD PARTE ALTA ===== */
   .se-card-top {
-    padding: 3px 20px 4px;
+    padding: 8px 20px 4px;
     text-align: center;
     border-bottom: 1px solid #e2e8f0;
   }
@@ -355,12 +357,12 @@ const styles = `
     height: 170px;
     object-fit: contain;
     display: block;
-    margin: 0 auto 2px;
+    margin: 0 auto 4px;
     opacity: 0.85;
   }
 
   .se-card-nome {
-    font-size: 1.05rem;
+    font-size: 0.85rem;
     color: #1a365d;
     font-weight: 700;
     margin: 0 0 4px;
