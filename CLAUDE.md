@@ -728,6 +728,7 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
   - HeaderAmministrazione.jsx → pagina Amministrazione
   Funzionalita comuni (es. CambioPasswordModal) vanno importate in TUTTI e 3.
 - LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (SVG placeholder, deprecato).
+- SELECT ENTE PAGE: completamente ridisegnato con stile coerente al Login. Header bianco con onda SVG, logo diocesi + "EcclesiaWeb". Nome utente + Esci a destra. Titolo "SELEZIONA ENTE" centrato. Grid card allineata a sinistra (max-width 360px). Card: chiesa.png grande (170px), padding minimo, click su tutta la card (no bottone Accedi). Badge ruolo oro + moduli in unica riga. CSS inline con prefisso `se-`. Immagine chiesa in frontend/src/assets/chiesa.png.
 - RESET PASSWORD: il frontend ha il modal ma l'endpoint backend /api/auth/reset-password NON ESISTE ancora. Il vecchio codice era in main_OLD.py. Nessun servizio email (SMTP/SendGrid) configurato.
 - CURRENT_USER: get_current_user (auth.py) restituisce un dict con chiave "user_id" (NON "id"). Usare SEMPRE current_user["user_id"] o current_user.get("user_id"). La vecchia chiave "id" NON esiste piu.
 - X-USER-ID ELIMINATO: header X-User-ID completamente rimosso dal backend. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT. NON reintrodurre mai X-User-ID.

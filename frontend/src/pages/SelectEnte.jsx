@@ -81,7 +81,7 @@ function SelectEnte() {
       <div className="se-header">
         <div className="se-header-inner">
           <div className="se-header-left">
-            <img src="/logo-diocesi.png" alt="Diocesi" className="se-logo" />
+            <img src="/logo-diocesi.png" alt="Diocesi" className="se-logo" style={{verticalAlign:'middle'}} />
             <div className="se-brand">
               <span className="se-brand-title">EcclesiaWeb</span>
               <span className="se-brand-sub">Sistema Gestionale Parrocchiale</span>
@@ -113,7 +113,8 @@ function SelectEnte() {
           <div className="se-grid">
             {enti.map((ente, index) => (
               <div key={ente.id} className="se-card"
-                style={{animationDelay:`${index*0.1}s`}}>
+                onClick={() => selectEnte(ente)}
+                style={{animationDelay:`${index*0.1}s`, cursor:'pointer'}}>
 
               {/* Parte bianca */}
               <div className="se-card-top">
@@ -140,9 +141,7 @@ function SelectEnte() {
                     <span className="se-badge se-badge-modulo">Inventario</span>
                   )}
                 </div>
-                <button onClick={() => selectEnte(ente)} className="se-btn">
-                  Accedi
-                </button>
+
               </div>
 
             </div>
@@ -214,12 +213,12 @@ const styles = `
 
   .se-header-left {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 16px;
   }
 
   .se-logo {
-    width: 80px;
+    width: 150px;
     height: auto;
   }
 
@@ -229,7 +228,7 @@ const styles = `
   }
 
   .se-brand-title {
-    font-size: 1.6rem;
+    font-size: 2rem;
     font-weight: 700;
     color: #1a365d;
     letter-spacing: 2px;
@@ -278,8 +277,8 @@ const styles = `
   .se-content {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
+    align-items: flex-start;
+    padding: 40px 20px 40px 60px;
     position: relative;
     z-index: 1;
     flex: 1;
@@ -293,6 +292,7 @@ const styles = `
     letter-spacing: 3px;
     margin: 0 0 30px;
     text-align: center;
+    align-self: center;
     animation: se-fadeSlideUp 0.5s ease-out both;
   }
 
@@ -323,8 +323,10 @@ const styles = `
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
-    max-width: 700px;
+    max-width: 360px;
     width: 100%;
+    margin-left: 0;
+    margin-right: auto;
   }
 
   /* ===== CARD ===== */
@@ -343,17 +345,17 @@ const styles = `
 
   /* ===== CARD PARTE ALTA ===== */
   .se-card-top {
-    padding: 28px 24px 20px;
+    padding: 3px 20px 4px;
     text-align: center;
     border-bottom: 1px solid #e2e8f0;
   }
 
   .se-chiesa {
-    width: 80px;
-    height: 80px;
+    width: 170px;
+    height: 170px;
     object-fit: contain;
     display: block;
-    margin: 0 auto 14px;
+    margin: 0 auto 2px;
     opacity: 0.85;
   }
 
@@ -374,7 +376,7 @@ const styles = `
   /* ===== CARD PARTE BASSA ===== */
   .se-card-bottom {
     background: linear-gradient(180deg, #1a365d 0%, #1e3a5f 100%);
-    padding: 16px 24px 22px;
+    padding: 12px 20px 16px;
   }
 
   /* ===== BADGE ===== */
@@ -411,32 +413,6 @@ const styles = `
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.15);
     color: rgba(255,255,255,0.55);
-  }
-
-  /* ===== BOTTONE ORO ===== */
-  .se-btn {
-    width: 100%;
-    padding: 12px;
-    margin-top: 4px;
-    border: none;
-    background: linear-gradient(135deg, #B8942E, #D4AF37, #C8A84E);
-    color: #1a1a0a;
-    font-weight: 700;
-    font-size: 0.78rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(200,168,78,0.3);
-  }
-  .se-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(200,168,78,0.4);
-    filter: brightness(1.1);
-  }
-  .se-btn:active {
-    transform: translateY(0);
   }
 
   /* ===== FOOTER ===== */
