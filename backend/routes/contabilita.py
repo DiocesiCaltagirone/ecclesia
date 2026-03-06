@@ -618,6 +618,140 @@ def get_categorie(
         "categorie": result
     }
 
+@router.get("/categorie/stampa-pdf")
+def stampa_piano_conti_pdf(
+    livelli: str = "1,2,3",
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    """
+    Genera PDF del piano dei conti filtrato per livelli.
+    livelli: stringa con livelli da includere es. "1" o "1,2" o "1,2,3"
+    """
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER
+    from reportlab.lib import colors
+    from io import BytesIO
+    from fastapi.responses import StreamingResponse
+    import datetime
+
+    ente_id = current_user.get('ente_id') or x_ente_id
+
+    # Parsing livelli richiesti
+    try:
+        livelli_lista = [int(l.strip()) for l in livelli.split(",")]
+    except:
+        livelli_lista = [1, 2, 3]
+
+    # Recupera nome parrocchia
+    ente_row = db.execute(
+        text("SELECT denominazione FROM enti WHERE id = :id"),
+        {"id": ente_id}
+    ).fetchone()
+    nome_ente = ente_row[0] if ente_row else "Parrocchia"
+
+    # Recupera categorie filtrate per livello
+    placeholders = ",".join([str(l) for l in livelli_lista])
+    query = text(f"""
+        SELECT codice, descrizione, livello,
+               COALESCE(categoria_padre_id, conto_padre_id) as parent_id
+        FROM piano_conti
+        WHERE ente_id = :ente_id
+          AND livello IN ({placeholders})
+          AND (is_sistema = FALSE OR is_sistema IS NULL)
+          AND attivo = TRUE
+        ORDER BY CAST(NULLIF(REGEXP_REPLACE(codice, '[^0-9.]', '', 'g'), '') AS FLOAT) NULLS LAST, codice
+    """)
+    categorie = db.execute(query, {"ente_id": ente_id}).fetchall()
+
+    # Genera PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=2*cm,
+        leftMargin=2*cm,
+        topMargin=2*cm,
+        bottomMargin=2*cm
+    )
+
+    styles = getSampleStyleSheet()
+
+    # Stili personalizzati
+    style_titolo = ParagraphStyle(
+        'Titolo',
+        parent=styles['Title'],
+        fontSize=16,
+        spaceAfter=4,
+        alignment=TA_CENTER
+    )
+    style_sottotitolo = ParagraphStyle(
+        'Sottotitolo',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=12,
+        textColor=colors.grey,
+        alignment=TA_CENTER
+    )
+    style_l1 = ParagraphStyle(
+        'L1',
+        parent=styles['Normal'],
+        fontSize=11,
+        fontName='Helvetica-Bold',
+        spaceAfter=3,
+        leftIndent=0
+    )
+    style_l2 = ParagraphStyle(
+        'L2',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=2,
+        leftIndent=1*cm
+    )
+    style_l3 = ParagraphStyle(
+        'L3',
+        parent=styles['Normal'],
+        fontSize=9,
+        spaceAfter=2,
+        textColor=colors.HexColor('#444444'),
+        leftIndent=2*cm
+    )
+
+    stili = {1: style_l1, 2: style_l2, 3: style_l3}
+
+    # Costruisci documento
+    elements = []
+    elements.append(Paragraph(nome_ente, style_titolo))
+    elements.append(Paragraph("Piano dei Conti", style_titolo))
+    elements.append(Paragraph(
+        f"Stampato il {datetime.date.today().strftime('%d/%m/%Y')}",
+        style_sottotitolo
+    ))
+    elements.append(Spacer(1, 0.5*cm))
+
+    for cat in categorie:
+        codice = cat[0] or ""
+        descrizione = cat[1] or ""
+        livello = cat[2] or 1
+        testo = f"{codice} — {descrizione}" if codice else descrizione
+        style = stili.get(livello, style_l1)
+        elements.append(Paragraph(testo, style))
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "attachment; filename=piano_conti.pdf"
+        }
+    )
+
 @router.post("/categorie")
 def create_categoria(
     data: dict,

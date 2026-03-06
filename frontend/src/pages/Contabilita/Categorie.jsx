@@ -9,6 +9,8 @@ const Categorie = () => {
   const [editing, setEditing] = useState(null);
   const [selectedCategoria, setSelectedCategoria] = useState(null);
   const [collapsed, setCollapsed] = useState(new Set());
+  const [showStampaPanel, setShowStampaPanel] = useState(false);
+  const [livelloStampa, setLivelloStampa] = useState({ l1: true, l2: true, l3: true });
   const [formData, setFormData] = useState({
     nome: '',
     parent_id: null,
@@ -167,6 +169,28 @@ const Categorie = () => {
     }
   };
 
+  const stampaPDF = async () => {
+    const livelli = [
+      livelloStampa.l1 && '1',
+      livelloStampa.l2 && '2',
+      livelloStampa.l3 && '3'
+    ].filter(Boolean).join(',');
+
+    if (!livelli) return;
+
+    const url = `/api/contabilita/categorie/stampa-pdf?livelli=${livelli}`;
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const blob = await res.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'piano_conti.pdf';
+      link.click();
+    } else {
+      alert('Errore nella generazione del PDF');
+    }
+  };
+
   if (loading) return (
     <div className="flex justify-center items-center h-screen">
       <div className="text-center">
@@ -187,6 +211,49 @@ const Categorie = () => {
               {selectedCategoria ? `Selezionata: ${selectedCategoria.nome}` : 'Seleziona una categoria'}
             </p>
           </div>
+          {/* STAMPA PDF */}
+          <div className="relative">
+            <button
+              onClick={() => setShowStampaPanel(!showStampaPanel)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-semibold flex items-center gap-2 border"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Stampa PDF
+            </button>
+
+            {showStampaPanel && (
+              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg p-4 z-50 w-52">
+                <p className="text-xs font-bold text-gray-700 mb-3">Livelli da includere:</p>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={livelloStampa.l1}
+                      onChange={(e) => setLivelloStampa({...livelloStampa, l1: e.target.checked})} />
+                    Categorie (L1)
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={livelloStampa.l2}
+                      onChange={(e) => setLivelloStampa({...livelloStampa, l2: e.target.checked})} />
+                    Sottocategorie (L2)
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={livelloStampa.l3}
+                      onChange={(e) => setLivelloStampa({...livelloStampa, l3: e.target.checked})} />
+                    Microcategorie (L3)
+                  </label>
+                </div>
+                <button
+                  onClick={stampaPDF}
+                  disabled={!livelloStampa.l1 && !livelloStampa.l2 && !livelloStampa.l3}
+                  className="mt-3 w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Genera PDF
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => openModal()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center gap-2"
