@@ -918,39 +918,70 @@ def delete_categoria(
     current_user: dict = Depends(get_current_user),
     x_ente_id: str = Header(None, alias="X-Ente-Id")
 ):
-    """
-    Elimina categoria del piano dei conti.
-    
-    Verifica che non ci siano movimenti associati e che non sia
-    una categoria di sistema prima di procedere.
-    """
     ente_id = current_user.get('ente_id') or x_ente_id
 
     # Verifica se è categoria di sistema
     check_sistema = db.execute(text("""
         SELECT is_sistema FROM piano_conti WHERE id = :id
     """), {"id": categoria_id}).fetchone()
-    
     if check_sistema and check_sistema[0]:
         raise HTTPException(403, detail="Impossibile eliminare categoria di sistema")
-    
-    # Verifica movimenti associati
-    check = db.execute(text("""
-        SELECT COUNT(*) FROM movimenti_contabili WHERE conto_id = :id
+
+    # Raccogli tutti gli id da controllare (categoria + figli + nipoti)
+    ids_da_controllare = [categoria_id]
+
+    cat_info = db.execute(text("""
+        SELECT livello FROM piano_conti WHERE id = :id
     """), {"id": categoria_id}).fetchone()
-    
+
+    if cat_info:
+        if cat_info[0] == 1:
+            figli_l2 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_l2 = [str(r[0]) for r in figli_l2]
+            ids_da_controllare.extend(ids_l2)
+            if ids_l2:
+                ids_l2_str = ", ".join([f"'{i}'" for i in ids_l2])
+                figli_l3 = db.execute(text(f"""
+                    SELECT id FROM piano_conti WHERE categoria_padre_id IN ({ids_l2_str})
+                """)).fetchall()
+            else:
+                figli_l3 = []
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+        elif cat_info[0] == 2:
+            figli_l3 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+
+    # Conta movimenti abbinati a tutti i livelli
+    placeholders = ", ".join([f"'{i}'" for i in ids_da_controllare])
+    check = db.execute(text(f"""
+        SELECT COUNT(*) FROM movimenti_contabili
+        WHERE categoria_id IN ({placeholders})
+    """)).fetchone()
+
     if check[0] > 0:
-        raise HTTPException(400, detail=f"Impossibile eliminare: {check[0]} movimenti associati")
-    
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "tipo": "categoria_con_movimenti",
+                "messaggio": f"Questa categoria ha {check[0]} movimenti abbinati",
+                "movimenti_count": check[0]
+            }
+        )
+
     dati_precedenti = get_record_data(db, "piano_conti", categoria_id)
-    
-    # Elimina associazioni e categoria
+    # Elimina in ordine: associazioni registri, figli, categoria
+    if len(ids_da_controllare) > 1:
+        for id_figlio in reversed(ids_da_controllare[1:]):
+            db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": id_figlio})
+            db.execute(text("DELETE FROM piano_conti WHERE id = :id"), {"id": id_figlio})
     db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": categoria_id})
     db.execute(text("DELETE FROM piano_conti WHERE id = :id AND ente_id = :ente_id"), {
-        "id": categoria_id, 
-        "ente_id": ente_id
+        "id": categoria_id, "ente_id": ente_id
     })
-    
     registra_audit(
         db=db,
         azione="DELETE",
@@ -962,9 +993,244 @@ def delete_categoria(
         dati_precedenti=dati_precedenti,
         descrizione="Eliminazione categoria"
     )
-    
     db.commit()
     return {"message": "Categoria eliminata"}
+
+@router.get("/categorie/{categoria_id}/movimenti-abbinati")
+def get_movimenti_abbinati(
+    categoria_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = current_user.get('ente_id') or x_ente_id
+
+    # Raccogli tutti gli id (categoria + figli + nipoti)
+    ids_da_controllare = [categoria_id]
+
+    cat_info = db.execute(text("""
+        SELECT livello FROM piano_conti WHERE id = :id
+    """), {"id": categoria_id}).fetchone()
+
+    if cat_info:
+        if cat_info[0] == 1:
+            figli_l2 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_l2 = [str(r[0]) for r in figli_l2]
+            ids_da_controllare.extend(ids_l2)
+            if ids_l2:
+                ids_l2_str = ", ".join([f"'{i}'" for i in ids_l2])
+                figli_l3 = db.execute(text(f"""
+                    SELECT id FROM piano_conti WHERE categoria_padre_id IN ({ids_l2_str})
+                """)).fetchall()
+            else:
+                figli_l3 = []
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+        elif cat_info[0] == 2:
+            figli_l3 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+
+    placeholders = ", ".join([f"'{i}'" for i in ids_da_controllare])
+    movimenti = db.execute(text(f"""
+        SELECT m.id, m.data_movimento, m.importo, m.tipo_movimento,
+               m.descrizione, m.causale, r.nome as registro_nome, m.categoria_id
+        FROM movimenti_contabili m
+        LEFT JOIN registri_contabili r ON m.registro_id = r.id
+        WHERE m.categoria_id IN ({placeholders})
+        ORDER BY m.data_movimento DESC
+    """)).fetchall()
+
+    return {
+        "count": len(movimenti),
+        "movimenti": [
+            {
+                "id": str(m[0]),
+                "data_movimento": str(m[1]),
+                "importo": float(m[2]),
+                "tipo_movimento": m[3],
+                "descrizione": m[4] or m[5] or "",
+                "registro_nome": m[6] or "",
+                "categoria_id": str(m[7]) if m[7] else None
+            }
+            for m in movimenti
+        ]
+    }
+
+@router.post("/categorie/{categoria_id}/elimina-con-riassegnazione")
+def elimina_categoria_con_riassegnazione(
+    categoria_id: str,
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = current_user.get('ente_id') or x_ente_id
+    riassegnazioni = data.get("riassegnazioni", [])
+
+    # Verifica sistema
+    check_sistema = db.execute(text("""
+        SELECT is_sistema FROM piano_conti WHERE id = :id
+    """), {"id": categoria_id}).fetchone()
+    if check_sistema and check_sistema[0]:
+        raise HTTPException(403, detail="Impossibile eliminare categoria di sistema")
+
+    # Raccogli tutti gli id figli
+    ids_da_controllare = [categoria_id]
+    cat_info = db.execute(text("""
+        SELECT livello FROM piano_conti WHERE id = :id
+    """), {"id": categoria_id}).fetchone()
+
+    if cat_info:
+        if cat_info[0] == 1:
+            figli_l2 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_l2 = [str(r[0]) for r in figli_l2]
+            ids_da_controllare.extend(ids_l2)
+            if ids_l2:
+                ids_l2_str = ", ".join([f"'{i}'" for i in ids_l2])
+                figli_l3 = db.execute(text(f"""
+                    SELECT id FROM piano_conti WHERE categoria_padre_id IN ({ids_l2_str})
+                """)).fetchall()
+            else:
+                figli_l3 = []
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+        elif cat_info[0] == 2:
+            figli_l3 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+
+    # Verifica che tutte le riassegnazioni siano valide
+    placeholders = ", ".join([f"'{i}'" for i in ids_da_controllare])
+    movimenti_da_riassegnare = db.execute(text(f"""
+        SELECT id FROM movimenti_contabili WHERE categoria_id IN ({placeholders})
+    """)).fetchall()
+
+    ids_movimenti = {str(m[0]) for m in movimenti_da_riassegnare}
+    ids_riassegnati = {r["movimento_id"] for r in riassegnazioni}
+
+    if ids_movimenti != ids_riassegnati:
+        raise HTTPException(400, detail="Non tutti i movimenti sono stati riassegnati")
+
+    try:
+        # Riassegna movimenti
+        for r in riassegnazioni:
+            db.execute(text("""
+                UPDATE movimenti_contabili
+                SET categoria_id = :nuova_cat
+                WHERE id = :mov_id
+            """), {"nuova_cat": r["nuova_categoria_id"], "mov_id": r["movimento_id"]})
+
+        # Elimina figli poi categoria
+        dati_precedenti = get_record_data(db, "piano_conti", categoria_id)
+        if len(ids_da_controllare) > 1:
+            for id_figlio in reversed(ids_da_controllare[1:]):
+                db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": id_figlio})
+                db.execute(text("DELETE FROM piano_conti WHERE id = :id"), {"id": id_figlio})
+        db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": categoria_id})
+        db.execute(text("DELETE FROM piano_conti WHERE id = :id AND ente_id = :ente_id"), {
+            "id": categoria_id, "ente_id": ente_id
+        })
+        registra_audit(
+            db=db,
+            azione="DELETE",
+            tabella="piano_conti",
+            record_id=categoria_id,
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_precedenti=dati_precedenti,
+            descrizione=f"Eliminazione categoria con riassegnazione di {len(riassegnazioni)} movimenti"
+        )
+        db.commit()
+        return {"message": "Categoria eliminata e movimenti riassegnati"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/categorie/{categoria_id}/elimina-con-movimenti")
+def elimina_categoria_con_movimenti(
+    categoria_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = current_user.get('ente_id') or x_ente_id
+
+    # Verifica sistema
+    check_sistema = db.execute(text("""
+        SELECT is_sistema FROM piano_conti WHERE id = :id
+    """), {"id": categoria_id}).fetchone()
+    if check_sistema and check_sistema[0]:
+        raise HTTPException(403, detail="Impossibile eliminare categoria di sistema")
+
+    # Raccogli tutti gli id (categoria + figli + nipoti)
+    ids_da_controllare = [categoria_id]
+    cat_info = db.execute(text("""
+        SELECT livello FROM piano_conti WHERE id = :id
+    """), {"id": categoria_id}).fetchone()
+
+    if cat_info:
+        if cat_info[0] == 1:
+            figli_l2 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_l2 = [str(r[0]) for r in figli_l2]
+            ids_da_controllare.extend(ids_l2)
+            if ids_l2:
+                ids_l2_str = ", ".join([f"'{i}'" for i in ids_l2])
+                figli_l3 = db.execute(text(f"""
+                    SELECT id FROM piano_conti WHERE categoria_padre_id IN ({ids_l2_str})
+                """)).fetchall()
+                ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+        elif cat_info[0] == 2:
+            figli_l3 = db.execute(text("""
+                SELECT id FROM piano_conti WHERE categoria_padre_id = :id
+            """), {"id": categoria_id}).fetchall()
+            ids_da_controllare.extend([str(r[0]) for r in figli_l3])
+
+    try:
+        placeholders = ", ".join([f"'{i}'" for i in ids_da_controllare])
+
+        # Elimina tutti i movimenti abbinati
+        db.execute(text(f"""
+            DELETE FROM movimenti_contabili WHERE categoria_id IN ({placeholders})
+        """))
+
+        # Elimina figli poi categoria
+        dati_precedenti = get_record_data(db, "piano_conti", categoria_id)
+        if len(ids_da_controllare) > 1:
+            for id_figlio in reversed(ids_da_controllare[1:]):
+                db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": id_figlio})
+                db.execute(text("DELETE FROM piano_conti WHERE id = :id"), {"id": id_figlio})
+        db.execute(text("DELETE FROM categorie_registri WHERE categoria_id = :id"), {"id": categoria_id})
+        db.execute(text("DELETE FROM piano_conti WHERE id = :id AND ente_id = :ente_id"), {
+            "id": categoria_id, "ente_id": ente_id
+        })
+        registra_audit(
+            db=db,
+            azione="DELETE",
+            tabella="piano_conti",
+            record_id=categoria_id,
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_precedenti=dati_precedenti,
+            descrizione="Eliminazione categoria con tutti i movimenti abbinati"
+        )
+        db.commit()
+        return {"message": "Categoria e movimenti eliminati"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/categorie/{categoria_id}/toggle-registro")
 def toggle_registro(

@@ -12,6 +12,9 @@ const Categorie = () => {
   const [dialogRinomina, setDialogRinomina] = useState({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null });
   const [showStampaPanel, setShowStampaPanel] = useState(false);
   const [livelloStampa, setLivelloStampa] = useState({ l1: true, l2: true, l3: true });
+  const [dialogRiassegna, setDialogRiassegna] = useState({ visibile: false, movimenti: [], categoriaId: null });
+  const [riassegnazioni, setRiassegnazioni] = useState({});
+  const [haMovimenti, setHaMovimenti] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     parent_id: null,
@@ -138,29 +141,61 @@ const Categorie = () => {
     }
   };
 
-  const openDeleteModal = (cat) => {
+  const openDeleteModal = async (cat) => {
     setDeletingCategoria(cat);
     setShowDeleteModal(true);
+    // Controlla in background se ha movimenti
+    try {
+      const res = await fetch(`/api/contabilita/categorie/${cat.id}/movimenti-abbinati`, { headers });
+      const data = await res.json();
+      setHaMovimenti(data.count > 0);
+    } catch {
+      setHaMovimenti(false);
+    }
   };
 
   const closeDeleteModal = () => {
     setShowDeleteModal(false);
     setDeletingCategoria(null);
+    setHaMovimenti(false);
   };
 
   const confirmDelete = async () => {
     if (!deletingCategoria) return;
-
     try {
-      const res = await fetch(`/api/contabilita/categorie/${deletingCategoria.id}`, {
-        method: 'DELETE',
+      const res = await fetch(`/api/contabilita/categorie/${deletingCategoria.id}/elimina-con-movimenti`, {
+        method: 'POST',
         headers
       });
-
       if (res.ok) {
         if (selectedCategoria?.id === deletingCategoria.id) setSelectedCategoria(null);
         await fetchData();
         closeDeleteModal();
+      } else {
+        const error = await res.json();
+        alert(`Errore: ${error.detail || 'Impossibile eliminare'}`);
+      }
+    } catch (error) {
+      alert('Errore durante eliminazione');
+    }
+  };
+
+  const eseguiEliminaConRiassegnazione = async () => {
+    const riassegnazioniList = Object.entries(riassegnazioni).map(([mov_id, sel]) => ({
+      movimento_id: mov_id,
+      nuova_categoria_id: sel.l3 || sel.l2 || sel.l1
+    }));
+    try {
+      const res = await fetch(`/api/contabilita/categorie/${dialogRiassegna.categoriaId}/elimina-con-riassegnazione`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ riassegnazioni: riassegnazioniList })
+      });
+      if (res.ok) {
+        setDialogRiassegna({ visibile: false, movimenti: [], categoriaId: null });
+        setRiassegnazioni({});
+        if (selectedCategoria?.id === dialogRiassegna.categoriaId) setSelectedCategoria(null);
+        await fetchData();
       } else {
         const error = await res.json();
         alert(`Errore: ${error.detail || 'Impossibile eliminare'}`);
@@ -443,6 +478,167 @@ const Categorie = () => {
         <div>Totale categorie: <strong>{categorie.length}</strong></div>
       </div>
 
+      {/* MODALE RIASSEGNAZIONE MOVIMENTI */}
+      {dialogRiassegna.visibile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="px-4 py-3 border-b bg-red-50 flex items-center gap-3 flex-shrink-0">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <h3 className="font-bold text-base text-red-900">Categoria con movimenti abbinati</h3>
+                <p className="text-xs text-red-700">Riassegna tutti i movimenti prima di procedere</p>
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="px-4 py-2 bg-gray-50 border-b flex-shrink-0">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Movimenti riassegnati</span>
+                <span className="font-bold">{Object.keys(riassegnazioni).length} / {dialogRiassegna.movimenti.length}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(Object.keys(riassegnazioni).length / dialogRiassegna.movimenti.length) * 100}%`,
+                    backgroundColor: Object.keys(riassegnazioni).length === dialogRiassegna.movimenti.length ? '#22c55e' : '#3b82f6'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Lista movimenti */}
+            <div className="overflow-y-auto flex-1 p-4 space-y-3">
+              {dialogRiassegna.movimenti.map((mov) => {
+                const catCorrente = categorie.find(c => c.id === mov.categoria_id);
+                const catCorrentePadre = catCorrente?.parent_id ? categorie.find(c => c.id === catCorrente.parent_id) : null;
+                const catCorrenteNonno = catCorrentePadre?.parent_id ? categorie.find(c => c.id === catCorrentePadre.parent_id) : null;
+                const catCorrenteLabel = [catCorrenteNonno?.nome, catCorrentePadre?.nome, catCorrente?.nome].filter(Boolean).join(' → ');
+
+                // Stato riassegnazione per questo movimento
+                const selL1 = riassegnazioni[mov.id]?.l1 || '';
+                const selL2 = riassegnazioni[mov.id]?.l2 || '';
+                const selL3 = riassegnazioni[mov.id]?.l3 || '';
+
+                // Calcola categoria finale selezionata (la più profonda)
+                const catFinale = selL3 || selL2 || selL1;
+                const riassegnato = !!catFinale;
+
+                // Dropdown a cascata
+                const categorieL1 = categorie.filter(c => !c.parent_id && c.id !== dialogRiassegna.categoriaId);
+                const categorieL2 = selL1 ? categorie.filter(c => c.parent_id === selL1) : [];
+                const categorieL3 = selL2 ? categorie.filter(c => c.parent_id === selL2) : [];
+
+                return (
+                  <div key={mov.id} className={`border rounded-lg p-3 transition-colors ${riassegnato ? 'bg-green-50 border-green-300' : 'bg-gray-50'}`}>
+                    {/* Info movimento */}
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <span className="text-xs text-gray-500">
+                          {mov.data_movimento ? mov.data_movimento.substring(0,10).split('-').reverse().join('/') : '—'} — {mov.registro_nome}
+                          {mov.descrizione && <span className="ml-2 text-gray-400">· {mov.descrizione}</span>}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${mov.tipo_movimento === 'entrata' ? 'text-green-600' : 'text-red-600'}`}>
+                          {mov.tipo_movimento === 'entrata' ? '+' : '-'}€{parseFloat(mov.importo).toFixed(2)}
+                        </span>
+                        {riassegnato && <span className="text-green-600 text-lg">✅</span>}
+                      </div>
+                    </div>
+
+                    {/* Prima → Dopo */}
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <div className="bg-red-50 border border-red-200 rounded p-2">
+                        <p className="text-xs font-bold text-red-700 mb-1">📌 Categoria attuale</p>
+                        <p className="text-xs text-red-800">{catCorrenteLabel || '—'}</p>
+                      </div>
+                      <div className={`border rounded p-2 ${riassegnato ? 'bg-green-50 border-green-200' : 'bg-gray-100 border-gray-200'}`}>
+                        <p className={`text-xs font-bold mb-1 ${riassegnato ? 'text-green-700' : 'text-gray-500'}`}>🎯 Nuova categoria</p>
+                        <p className="text-xs text-gray-700">
+                          {riassegnato
+                            ? [
+                                categorie.find(c => c.id === selL1)?.nome,
+                                selL2 && categorie.find(c => c.id === selL2)?.nome,
+                                selL3 && categorie.find(c => c.id === selL3)?.nome,
+                              ].filter(Boolean).join(' → ')
+                            : '—'
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dropdown a cascata */}
+                    <div className="space-y-1">
+                      <select
+                        className="w-full text-xs border rounded px-2 py-1.5"
+                        value={selL1}
+                        onChange={(e) => {
+                          const newRiass = { ...riassegnazioni };
+                          newRiass[mov.id] = { l1: e.target.value, l2: '', l3: '' };
+                          setRiassegnazioni(newRiass);
+                        }}
+                      >
+                        <option value="">Seleziona categoria...</option>
+                        {categorieL1.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                      </select>
+
+                      {categorieL2.length > 0 && (
+                        <select
+                          className="w-full text-xs border rounded px-2 py-1.5 ml-2"
+                          value={selL2}
+                          onChange={(e) => {
+                            const newRiass = { ...riassegnazioni };
+                            newRiass[mov.id] = { ...newRiass[mov.id], l2: e.target.value, l3: '' };
+                            setRiassegnazioni(newRiass);
+                          }}
+                        >
+                          <option value="">Sottocategoria (opzionale)...</option>
+                          {categorieL2.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                        </select>
+                      )}
+
+                      {categorieL3.length > 0 && (
+                        <select
+                          className="w-full text-xs border rounded px-2 py-1.5 ml-4"
+                          value={selL3}
+                          onChange={(e) => {
+                            const newRiass = { ...riassegnazioni };
+                            newRiass[mov.id] = { ...newRiass[mov.id], l3: e.target.value };
+                            setRiassegnazioni(newRiass);
+                          }}
+                        >
+                          <option value="">Microcategoria (opzionale)...</option>
+                          {categorieL3.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t flex gap-3 flex-shrink-0">
+              <button
+                onClick={() => { setDialogRiassegna({ visibile: false, movimenti: [], categoriaId: null }); setRiassegnazioni({}); }}
+                className="flex-1 px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={eseguiEliminaConRiassegnazione}
+                disabled={dialogRiassegna.movimenti.some(m => !(riassegnazioni[m.id]?.l1))}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Riassegna ed Elimina
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DIALOG CONFERMA RINOMINA */}
       {dialogRinomina.visibile && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -541,6 +737,22 @@ const Categorie = () => {
               </div>
               <div className="flex gap-3">
                 <button onClick={closeDeleteModal} className="flex-1 px-5 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50">❌ Annulla</button>
+                {haMovimenti && (
+                  <button
+                    onClick={() => {
+                      closeDeleteModal();
+                      fetch(`/api/contabilita/categorie/${deletingCategoria.id}/movimenti-abbinati`, { headers })
+                        .then(r => r.json())
+                        .then(data => {
+                          setRiassegnazioni({});
+                          setDialogRiassegna({ visibile: true, movimenti: data.movimenti, categoriaId: deletingCategoria.id });
+                        });
+                    }}
+                    className="flex-1 px-5 py-2.5 bg-yellow-500 text-white rounded-lg text-sm font-bold hover:bg-yellow-600"
+                  >
+                    Riassegna movimenti
+                  </button>
+                )}
                 <button onClick={confirmDelete} className="flex-1 px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700">⚠️ SÌ, ELIMINA TUTTO</button>
               </div>
             </div>
