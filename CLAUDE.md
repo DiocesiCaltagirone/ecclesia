@@ -770,3 +770,9 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Card verde + checkmark quando riassegnato
 - Data in formato italiano (gg/mm/aaaa)
 - Endpoint: DELETE /categorie/{id}, GET /categorie/{id}/movimenti-abbinati, POST /categorie/{id}/elimina-con-riassegnazione, POST /categorie/{id}/elimina-con-movimenti
+
+### Fix Sessione Scaduta (Problema 9)
+- PrivateRoute ora verifica scadenza token JWT (non solo presenza)
+- Navigate usa `replace` — tasto indietro non torna a pagine protette
+- useEffect in App.jsx controlla token ogni 30 secondi → redirect login se scaduto
+- sessionStorage.clear() pulisce tutto alla scadenza
