@@ -1443,9 +1443,34 @@ def delete_movimento(
             detail="Impossibile eliminare: movimento incluso in un rendiconto in revisione"
         )
     
+    # Controlla se è un giroconto con movimento collegato
+    check_collegato = """
+        SELECT giroconto_collegato_id FROM movimenti_contabili
+        WHERE id = :id AND ente_id = :ente_id
+    """
+    res_collegato = db.execute(text(check_collegato), {"id": movimento_id, "ente_id": ente_id}).fetchone()
+    collegato_id = str(res_collegato[0]) if res_collegato and res_collegato[0] else None
+
+    # Se ha un movimento collegato (giroconto), elimina anche quello
+    if collegato_id:
+        dati_precedenti_collegato = get_record_data(db, "movimenti_contabili", collegato_id)
+        db.execute(text("DELETE FROM movimenti_contabili WHERE id = :id AND ente_id = :ente_id"),
+                   {"id": collegato_id, "ente_id": ente_id})
+        registra_audit(
+            db=db,
+            azione="DELETE",
+            tabella="movimenti_contabili",
+            record_id=collegato_id,
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=ente_id,
+            dati_precedenti=dati_precedenti_collegato,
+            descrizione="Eliminazione giroconto collegato"
+        )
+
     # Registra audit PRIMA di eliminare
     dati_precedenti = get_record_data(db, "movimenti_contabili", movimento_id)
-    
+
     query = "DELETE FROM movimenti_contabili WHERE id = :id AND ente_id = :ente_id"
     db.execute(text(query), {"id": movimento_id, "ente_id": ente_id})
 
