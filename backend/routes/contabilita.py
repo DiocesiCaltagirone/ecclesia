@@ -858,11 +858,34 @@ def update_categoria(
     
     if check_sistema and check_sistema[0]:
         raise HTTPException(403, detail="Impossibile modificare categoria di sistema")
-    
+
+    # Se il nome cambia, verifica movimenti abbinati
+    nuovo_nome = data.get("nome", "").strip()
+    cat_attuale = db.execute(text("""
+        SELECT descrizione FROM piano_conti WHERE id = :id AND ente_id = :ente_id
+    """), {"id": categoria_id, "ente_id": ente_id}).fetchone()
+
+    if cat_attuale and cat_attuale[0].strip().lower() != nuovo_nome.lower():
+        if not data.get("conferma_rinomina", False):
+            mov_count = db.execute(text("""
+                SELECT COUNT(*) FROM movimenti_contabili
+                WHERE categoria_id = :id
+            """), {"id": categoria_id}).scalar()
+
+            if mov_count > 0:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "tipo": "rinomina_con_movimenti",
+                        "messaggio": f"Questa categoria ha {mov_count} movimenti abbinati che erediteranno il nuovo nome.",
+                        "movimenti": mov_count
+                    }
+                )
+
     dati_precedenti = get_record_data(db, "piano_conti", categoria_id)
-    
+
     db.execute(text("""
-        UPDATE piano_conti 
+        UPDATE piano_conti
         SET descrizione = :nome, categoria_padre_id = :parent_id
         WHERE id = :id AND ente_id = :ente_id
     """), {

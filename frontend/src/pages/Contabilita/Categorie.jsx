@@ -9,6 +9,7 @@ const Categorie = () => {
   const [editing, setEditing] = useState(null);
   const [selectedCategoria, setSelectedCategoria] = useState(null);
   const [collapsed, setCollapsed] = useState(new Set());
+  const [dialogRinomina, setDialogRinomina] = useState({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null });
   const [showStampaPanel, setShowStampaPanel] = useState(false);
   const [livelloStampa, setLivelloStampa] = useState({ l1: true, l2: true, l3: true });
   const [formData, setFormData] = useState({
@@ -83,42 +84,54 @@ const Categorie = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditing(null);
+    setDialogRinomina({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async (e, forzaRinomina = false) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!formData.nome.trim()) {
       alert('Il nome della categoria è obbligatorio');
       return;
     }
-
     const url = editing
       ? `/api/contabilita/categorie/${editing.id}`
       : '/api/contabilita/categorie';
-
     const payload = {
       nome: formData.nome.trim(),
       parent_id: formData.parent_id
     };
-
     if (!formData.parent_id && formData.tipo) {
       payload.tipo = formData.tipo;
     }
-
+    if (forzaRinomina) {
+      payload.conferma_rinomina = true;
+    }
     try {
       const res = await fetch(url, {
         method: editing ? 'PUT' : 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
       if (res.ok) {
         await fetchData();
         closeModal();
+        setDialogRinomina({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null });
       } else {
         const error = await res.json();
-        alert(`Errore: ${error.detail || JSON.stringify(error)}`);
+        if (res.status === 409 && error.detail?.tipo === 'rinomina_con_movimenti') {
+          setShowModal(false);
+          setDialogRinomina({
+            visibile: true,
+            messaggio: error.detail.messaggio,
+            movimenti: error.detail.movimenti,
+            payload,
+            url
+          });
+        } else if (res.status === 400 && typeof error.detail === 'string' && error.detail.includes('Esiste già')) {
+          alert(`⚠️ ${error.detail}`);
+        } else {
+          alert(`Errore: ${error.detail || JSON.stringify(error)}`);
+        }
       }
     } catch (error) {
       alert(`Errore: ${error.message}`);
@@ -429,6 +442,36 @@ const Categorie = () => {
       <div className="bg-gray-100 border-t px-4 py-2 text-xs">
         <div>Totale categorie: <strong>{categorie.length}</strong></div>
       </div>
+
+      {/* DIALOG CONFERMA RINOMINA */}
+      {dialogRinomina.visibile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="px-4 py-3 border-b bg-yellow-50 flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <h3 className="font-bold text-base text-yellow-900">Attenzione</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-700">{dialogRinomina.messaggio}</p>
+              <p className="text-sm text-gray-500">I movimenti già inseriti erediteranno automaticamente il nuovo nome.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDialogRinomina({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null })}
+                  className="flex-1 px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={() => handleSubmit(null, true)}
+                  className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm font-semibold hover:bg-yellow-600"
+                >
+                  Rinomina comunque
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL FORM */}
       {showModal && (
