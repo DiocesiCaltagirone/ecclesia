@@ -785,11 +785,37 @@ def create_categoria(
         if parent_result:
             livello = parent_result[0] + 1
     
+    # Controllo duplicati per nome (case-insensitive, senza spazi extra)
+    nome_pulito = data["nome"].strip().lower()
+    if livello == 1:
+        dup_query = """
+            SELECT id, codice FROM piano_conti
+            WHERE ente_id = :ente_id AND livello = 1
+              AND LOWER(TRIM(descrizione)) = :nome
+              AND (is_sistema = FALSE OR is_sistema IS NULL)
+              AND attivo = TRUE
+        """
+        dup_params = {"ente_id": ente_id, "nome": nome_pulito}
+    else:
+        dup_query = """
+            SELECT id, codice FROM piano_conti
+            WHERE ente_id = :ente_id AND livello = :livello
+              AND categoria_padre_id = :parent_id
+              AND LOWER(TRIM(descrizione)) = :nome
+              AND (is_sistema = FALSE OR is_sistema IS NULL)
+              AND attivo = TRUE
+        """
+        dup_params = {"ente_id": ente_id, "livello": livello, "parent_id": data.get("parent_id"), "nome": nome_pulito}
+
+    dup_result = db.execute(text(dup_query), dup_params).fetchone()
+    if dup_result:
+        raise HTTPException(status_code=400, detail=f"Esiste già una categoria con questo nome (codice {dup_result[1]})")
+
     query = """
         INSERT INTO piano_conti (id, ente_id, codice, descrizione, tipo, categoria_padre_id, livello)
         VALUES (:id, :ente_id, :codice, :nome, 'economico', :parent_id, :livello)
     """
-    
+
     db.execute(text(query), {
         "id": categoria_id,
         "ente_id": ente_id,
