@@ -771,6 +771,13 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Data in formato italiano (gg/mm/aaaa)
 - Endpoint: DELETE /categorie/{id}, GET /categorie/{id}/movimenti-abbinati, POST /categorie/{id}/elimina-con-riassegnazione, POST /categorie/{id}/elimina-con-movimenti
 
+### Refactoring routes/enti.py
+- Creato backend/routes/enti.py con 3 endpoint migrati da main.py
+- GET /api/enti/my-enti
+- GET /api/enti/{ente_id}
+- PUT /api/enti/{ente_id}
+- main.py ora ha solo anagrafica persone + root + health
+
 ### Fix Sessione Scaduta (Problema 9)
 - PrivateRoute ora verifica scadenza token JWT (non solo presenza)
 - Navigate usa `replace` — tasto indietro non torna a pagine protette
