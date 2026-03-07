@@ -719,15 +719,16 @@ def get_utenti(
         
         # Query per ottenere enti abbinati a questo utente
         query_enti = """
-            SELECT 
+            SELECT
                 e.id,
                 e.denominazione,
+                e.comune,
                 ue.ruolo,
                 ue.permessi
             FROM utenti_enti ue
             JOIN enti e ON ue.ente_id = e.id
             WHERE ue.utente_id = :utente_id
-            ORDER BY e.denominazione
+            ORDER BY e.comune, e.denominazione
         """
         
         result_enti = db.execute(text(query_enti), {"utente_id": utente_id})
@@ -738,8 +739,9 @@ def get_utenti(
             enti.append({
                 "id": str(ente_row[0]),
                 "denominazione": ente_row[1],
-                "ruolo": ente_row[2],
-                "permessi": ente_row[3]
+                "comune": ente_row[2],
+                "ruolo": ente_row[3],
+                "permessi": ente_row[4]
             })
         
         utenti.append({
