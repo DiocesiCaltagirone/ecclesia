@@ -107,13 +107,7 @@ const GestioneUtenti = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Ordina per comune del primo ente
-        const utentiOrdinati = (data || []).sort((a, b) => {
-          const comuneA = (a.enti?.[0]?.comune || 'zzz').toLowerCase();
-          const comuneB = (b.enti?.[0]?.comune || 'zzz').toLowerCase();
-          return comuneA.localeCompare(comuneB, 'it');
-        });
-        setUtenti(utentiOrdinati);
+        setUtenti(data);
       }
     } catch (error) {
     } finally {
