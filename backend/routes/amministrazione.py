@@ -701,10 +701,14 @@ def get_utenti(
     verifica_economo(current_user)
 
     query_utenti = """
-    SELECT id, username, email, titolo, nome, cognome, attivo, is_economo
-    FROM utenti
-    WHERE attivo = TRUE
-    ORDER BY cognome, nome
+    SELECT DISTINCT u.id, u.username, u.email, u.titolo, u.nome, u.cognome, u.attivo, u.is_economo,
+           MIN(e.comune) as primo_comune
+    FROM utenti u
+    LEFT JOIN utenti_enti ue ON u.id = ue.utente_id
+    LEFT JOIN enti e ON ue.ente_id = e.id
+    WHERE u.attivo = TRUE
+    GROUP BY u.id, u.username, u.email, u.titolo, u.nome, u.cognome, u.attivo, u.is_economo
+    ORDER BY MIN(e.comune) NULLS LAST, u.cognome, u.nome
     """
     result = db.execute(text(query_utenti))
     utenti_rows = result.fetchall()
