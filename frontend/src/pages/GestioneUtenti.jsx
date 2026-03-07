@@ -136,10 +136,10 @@ const GestioneUtenti = () => {
       if (aIsEconomo && !bIsEconomo) return -1;
       if (!aIsEconomo && bIsEconomo) return 1;
 
-      const aParrocchia = a.enti?.[0]?.denominazione || 'zzz';
-      const bParrocchia = b.enti?.[0]?.denominazione || 'zzz';
-      const parrocchiaCompare = aParrocchia.localeCompare(bParrocchia);
-      if (parrocchiaCompare !== 0) return parrocchiaCompare;
+      const aComune = a.enti?.[0]?.comune || 'zzz';
+      const bComune = b.enti?.[0]?.comune || 'zzz';
+      const comuneCompare = aComune.localeCompare(bComune, 'it');
+      if (comuneCompare !== 0) return comuneCompare;
 
       return (a.cognome || '').localeCompare(b.cognome || '');
     });
