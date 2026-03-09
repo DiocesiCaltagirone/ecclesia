@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import FormMovimentoGlobale from './FormMovimentoGlobale';
 import CambioPasswordModal from '../../components/CambioPasswordModal';
 import api from '../../services/api';
+import { logout } from '../../utils/auth';
 
 const ContabilitaLayout = () => {
   const navigate = useNavigate();
@@ -123,10 +124,7 @@ const ContabilitaLayout = () => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  const handleLogout = () => {
-    sessionStorage.clear();
-    navigate('/login');
-  };
+  const handleLogout = () => logout(navigate);
 
   const handleSubmitConto = async (e) => {
     e.preventDefault();

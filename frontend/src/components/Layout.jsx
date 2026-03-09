@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import api from '../services/api';
+import { logout } from '../utils/auth';
 import CambioPasswordModal from './CambioPasswordModal';
 
 function Layout() {
@@ -110,10 +111,7 @@ function Layout() {
     window.location.reload();
   };
 
-  const handleLogout = () => {
-    sessionStorage.clear();
-    navigate('/login');
-  };
+  const handleLogout = () => logout(navigate);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

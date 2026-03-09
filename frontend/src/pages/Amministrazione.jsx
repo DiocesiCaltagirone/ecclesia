@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { logout } from '../utils/auth';
 
 const Amministrazione = () => {
   const navigate = useNavigate();
@@ -59,12 +60,7 @@ const Amministrazione = () => {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('ente_id');
-    navigate('/login');
-  };
+  const handleLogout = () => logout(navigate);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();

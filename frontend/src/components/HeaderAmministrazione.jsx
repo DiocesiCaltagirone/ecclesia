@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CambioPasswordModal from './CambioPasswordModal';
+import { logout } from '../utils/auth';
 
 const HeaderAmministrazione = () => {
   const navigate = useNavigate();
@@ -10,12 +11,7 @@ const HeaderAmministrazione = () => {
   
   const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('ente_id');
-    navigate('/login');
-  };
+  const handleLogout = () => logout(navigate);
 
   return (
     <div className="bg-white shadow">
