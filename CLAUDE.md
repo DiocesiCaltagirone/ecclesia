@@ -783,3 +783,13 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Navigate usa `replace` — tasto indietro non torna a pagine protette
 - useEffect in App.jsx controlla token ogni 30 secondi → redirect login se scaduto
 - sessionStorage.clear() pulisce tutto alla scadenza
+
+### Fase 4 — Refactoring frontend (IN CORSO)
+
+**Blocco 4.1** (commit 4c5cc96):
+- Migrati 19 file da fetch()/axios diretto a api.js
+- 91 chiamate API unificate attraverso l'interceptor
+- Rimossi tutti i const token, const headers manuali
+- Ora il redirect su 401 (sessione scaduta) funziona in TUTTI i file, non più solo in 7 su 41
+- Rapporti.jsx: rimosso import axios diretto
+- File sacramenti NON toccati (sospesi)

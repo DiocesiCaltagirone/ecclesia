@@ -110,7 +110,7 @@ rendiconti_crud.py, rendiconti_documenti.py, persone.py, certificati.py, imposta
 
 ## FASE 4 — Refactoring frontend ⬜ DA FARE
 
-### Blocco 4.1 — PRIORITÀ ALTA ⬜
+### ✅ Blocco 4.1 — PRIORITÀ ALTA (commit 4c5cc96)
 Migrare 36 file da fetch()/axios diretto a api.js.
 
 | Metodo attuale | N. file | Problema |
