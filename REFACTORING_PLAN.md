@@ -122,7 +122,7 @@ Migrare 36 file da fetch()/axios diretto a api.js.
 **Impatto**: se il token scade, solo 7 file su 41 fanno redirect a /login.
 - **Tempo stimato**: 3-4 ore
 
-### Blocco 4.2 ⬜ DA FARE
+### ✅ Blocco 4.2 (commit dd27e5e)
 Creare `frontend/src/utils/auth.js` con funzione `logout(navigate)`.
 4 implementazioni diverse da unificare: Layout.jsx, ContabilitaLayout.jsx, HeaderAmministrazione.jsx, Amministrazione.jsx
 - **Tempo stimato**: 1 ora

@@ -793,3 +793,8 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Ora il redirect su 401 (sessione scaduta) funziona in TUTTI i file, non più solo in 7 su 41
 - Rapporti.jsx: rimosso import axios diretto
 - File sacramenti NON toccati (sospesi)
+
+**Blocco 4.2** (commit dd27e5e):
+- Creato utils/auth.js con funzione logout(navigate)
+- 4 file aggiornati: Layout, ContabilitaLayout, HeaderAmministrazione, Amministrazione
+- Variante incompleta (removeItem x3) sostituita con sessionStorage.clear() ovunque
