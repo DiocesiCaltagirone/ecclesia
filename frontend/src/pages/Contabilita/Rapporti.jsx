@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 
 // ⭐ AGGIUNGI QUESTO CSS PER LA STAMPA
@@ -153,14 +153,7 @@ const Rapporti = () => {
 
   const caricaConti = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
-      const response = await axios.get('/api/contabilita/registri', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'X-Ente-Id': enteId
-        }
-      });
+      const response = await api.get('/api/contabilita/registri');
       setConti(response.data);
     } catch (error) {
     }
@@ -168,17 +161,7 @@ const Rapporti = () => {
 
   const caricaCategorie = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
-
-
-      const response = await axios.get('/api/contabilita/categorie', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'X-Ente-Id': enteId
-        }
-      });
-
+      const response = await api.get('/api/contabilita/categorie');
       const data = response.data.categorie || [];
       setCategorie(data);
     } catch (error) {
@@ -328,25 +311,15 @@ const Rapporti = () => {
   const generaReport = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('token');
       const enteId = sessionStorage.getItem('ente_id');
 
-      const response = await axios.post(
-        '/api/contabilita/report',
-        {
-          tipo: tipoReport,
-          ...filtri,
-          contiSelezionati,
-          categorieSelezionate,
-          ente_id: enteId
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'X-Ente-Id': enteId
-          }
-        }
-      );
+      const response = await api.post('/api/contabilita/report', {
+        tipo: tipoReport,
+        ...filtri,
+        contiSelezionati,
+        categorieSelezionate,
+        ente_id: enteId
+      });
 
       setDatiReport(response.data);
       setMostraAnteprima(true);

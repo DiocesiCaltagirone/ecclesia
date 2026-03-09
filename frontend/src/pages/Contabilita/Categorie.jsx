@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 
 const Categorie = () => {
   const [categorie, setCategorie] = useState([]);
@@ -21,10 +22,6 @@ const Categorie = () => {
     livello: 1,
   });
 
-  const token = sessionStorage.getItem('token');
-  const enteId = sessionStorage.getItem('ente_id');
-  const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
-
   const toggleCollapse = (catId) => {
     const newCollapsed = new Set(collapsed);
     if (newCollapsed.has(catId)) {
@@ -41,14 +38,12 @@ const Categorie = () => {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/contabilita/categorie', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setCategorie(data.categorie || []);
-      } else {
-      }
+      const res = await api.get('/api/contabilita/categorie');
+      setCategorie(res.data.categorie || []);
     } catch (error) {
-      alert('❌ Backend non raggiungibile!\n\nAssicurati che il server sia avviato:\ncd backend\nuvicorn main:app --reload --host 0.0.0.0 --port 8000');
+      if (error.response && error.response.status !== 401) {
+        alert('Backend non raggiungibile!\n\nAssicurati che il server sia avviato.');
+      }
     } finally {
       setLoading(false);
     }
@@ -110,34 +105,29 @@ const Categorie = () => {
       payload.conferma_rinomina = true;
     }
     try {
-      const res = await fetch(url, {
-        method: editing ? 'PUT' : 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        await fetchData();
-        closeModal();
-        setDialogRinomina({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null });
+      if (editing) {
+        await api.put(url, payload);
       } else {
-        const error = await res.json();
-        if (res.status === 409 && error.detail?.tipo === 'rinomina_con_movimenti') {
-          setShowModal(false);
-          setDialogRinomina({
-            visibile: true,
-            messaggio: error.detail.messaggio,
-            movimenti: error.detail.movimenti,
-            payload,
-            url
-          });
-        } else if (res.status === 400 && typeof error.detail === 'string' && error.detail.includes('Esiste già')) {
-          alert(`⚠️ ${error.detail}`);
-        } else {
-          alert(`Errore: ${error.detail || JSON.stringify(error)}`);
-        }
+        await api.post(url, payload);
       }
+      await fetchData();
+      closeModal();
+      setDialogRinomina({ visibile: false, messaggio: '', movimenti: 0, payload: null, url: null });
     } catch (error) {
-      alert(`Errore: ${error.message}`);
+      if (error.response && error.response.status === 409 && error.response.data?.detail?.tipo === 'rinomina_con_movimenti') {
+        setShowModal(false);
+        setDialogRinomina({
+          visibile: true,
+          messaggio: error.response.data.detail.messaggio,
+          movimenti: error.response.data.detail.movimenti,
+          payload,
+          url
+        });
+      } else if (error.response && error.response.status === 400 && typeof error.response.data?.detail === 'string' && error.response.data.detail.includes('Esiste già')) {
+        alert(`${error.response.data.detail}`);
+      } else if (error.response && error.response.status !== 401) {
+        alert(`Errore: ${error.response?.data?.detail || error.message}`);
+      }
     }
   };
 
@@ -146,9 +136,8 @@ const Categorie = () => {
     setShowDeleteModal(true);
     // Controlla in background se ha movimenti
     try {
-      const res = await fetch(`/api/contabilita/categorie/${cat.id}/movimenti-abbinati`, { headers });
-      const data = await res.json();
-      setHaMovimenti(data.count > 0);
+      const res = await api.get(`/api/contabilita/categorie/${cat.id}/movimenti-abbinati`);
+      setHaMovimenti(res.data.count > 0);
     } catch {
       setHaMovimenti(false);
     }
@@ -163,20 +152,14 @@ const Categorie = () => {
   const confirmDelete = async () => {
     if (!deletingCategoria) return;
     try {
-      const res = await fetch(`/api/contabilita/categorie/${deletingCategoria.id}/elimina-con-movimenti`, {
-        method: 'POST',
-        headers
-      });
-      if (res.ok) {
-        if (selectedCategoria?.id === deletingCategoria.id) setSelectedCategoria(null);
-        await fetchData();
-        closeDeleteModal();
-      } else {
-        const error = await res.json();
-        alert(`Errore: ${error.detail || 'Impossibile eliminare'}`);
-      }
+      await api.post(`/api/contabilita/categorie/${deletingCategoria.id}/elimina-con-movimenti`);
+      if (selectedCategoria?.id === deletingCategoria.id) setSelectedCategoria(null);
+      await fetchData();
+      closeDeleteModal();
     } catch (error) {
-      alert('Errore durante eliminazione');
+      if (error.response && error.response.status !== 401) {
+        alert(`Errore: ${error.response?.data?.detail || 'Impossibile eliminare'}`);
+      }
     }
   };
 
@@ -186,22 +169,17 @@ const Categorie = () => {
       nuova_categoria_id: sel.l3 || sel.l2 || sel.l1
     }));
     try {
-      const res = await fetch(`/api/contabilita/categorie/${dialogRiassegna.categoriaId}/elimina-con-riassegnazione`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ riassegnazioni: riassegnazioniList })
+      await api.post(`/api/contabilita/categorie/${dialogRiassegna.categoriaId}/elimina-con-riassegnazione`, {
+        riassegnazioni: riassegnazioniList
       });
-      if (res.ok) {
-        setDialogRiassegna({ visibile: false, movimenti: [], categoriaId: null });
-        setRiassegnazioni({});
-        if (selectedCategoria?.id === dialogRiassegna.categoriaId) setSelectedCategoria(null);
-        await fetchData();
-      } else {
-        const error = await res.json();
-        alert(`Errore: ${error.detail || 'Impossibile eliminare'}`);
-      }
+      setDialogRiassegna({ visibile: false, movimenti: [], categoriaId: null });
+      setRiassegnazioni({});
+      if (selectedCategoria?.id === dialogRiassegna.categoriaId) setSelectedCategoria(null);
+      await fetchData();
     } catch (error) {
-      alert('Errore durante eliminazione');
+      if (error.response && error.response.status !== 401) {
+        alert(`Errore: ${error.response?.data?.detail || 'Impossibile eliminare'}`);
+      }
     }
   };
 
@@ -226,16 +204,18 @@ const Categorie = () => {
 
     if (!livelli) return;
 
-    const url = `/api/contabilita/categorie/stampa-pdf?livelli=${livelli}`;
-    const res = await fetch(url, { headers });
-    if (res.ok) {
-      const blob = await res.blob();
+    try {
+      const res = await api.get(`/api/contabilita/categorie/stampa-pdf?livelli=${livelli}`, {
+        responseType: 'blob'
+      });
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
+      link.href = URL.createObjectURL(res.data);
       link.download = 'piano_conti.pdf';
       link.click();
-    } else {
-      alert('Errore nella generazione del PDF');
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
+        alert('Errore nella generazione del PDF');
+      }
     }
   };
 
@@ -741,11 +721,10 @@ const Categorie = () => {
                   <button
                     onClick={() => {
                       closeDeleteModal();
-                      fetch(`/api/contabilita/categorie/${deletingCategoria.id}/movimenti-abbinati`, { headers })
-                        .then(r => r.json())
-                        .then(data => {
+                      api.get(`/api/contabilita/categorie/${deletingCategoria.id}/movimenti-abbinati`)
+                        .then(res => {
                           setRiassegnazioni({});
-                          setDialogRiassegna({ visibile: true, movimenti: data.movimenti, categoriaId: deletingCategoria.id });
+                          setDialogRiassegna({ visibile: true, movimenti: res.data.movimenti, categoriaId: deletingCategoria.id });
                         });
                     }}
                     className="flex-1 px-5 py-2.5 bg-yellow-500 text-white rounded-lg text-sm font-bold hover:bg-yellow-600"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 
 const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
   const [conti, setConti] = useState([]);
@@ -27,10 +28,6 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
   const [sottocategorie, setSottocategorie] = useState([]);
   const [microcategorie, setMicrocategorie] = useState([]);
 
-  const token = sessionStorage.getItem('token');
-  const enteId = sessionStorage.getItem('ente_id');
-  const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
-
   // Carica lista conti
   useEffect(() => {
     fetchConti();
@@ -38,11 +35,8 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
 
   const fetchConti = async () => {
     try {
-      const res = await fetch('/api/contabilita/registri', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setConti(data || []);
-      }
+      const res = await api.get('/api/contabilita/registri');
+      setConti(res.data || []);
     } catch (error) {
     } finally {
       setLoadingConti(false);
@@ -220,20 +214,9 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
           note: formData.note.trim()
         };
 
-        const res = await fetch('/api/contabilita/movimenti/giroconto', {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-          onClose();
-          // Forza refresh della pagina per ricaricare i movimenti
-          window.location.reload();
-        } else {
-          const errorData = await res.json();
-          alert(errorData.detail || 'Errore creazione giroconto');
-        }
+        await api.post('/api/contabilita/movimenti/giroconto', payload);
+        onClose();
+        window.location.reload();
       } else {
         // Movimento normale
         const categoriaFinale = formData.microcategoria_id || formData.sottocategoria_id || formData.categoria_id;
@@ -251,7 +234,9 @@ const FormMovimentoGlobale = ({ movimento, onClose, onSave, categorie }) => {
         onClose();
       }
     } catch (error) {
-      alert('Errore durante il salvataggio');
+      if (error.response && error.response.status !== 401) {
+        alert(error.response?.data?.detail || 'Errore durante il salvataggio');
+      }
     } finally {
       setSaving(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
+import api from '../services/api';
 
 const TemplateCategorieAdmin = () => {
   const navigate = useNavigate();
@@ -39,15 +40,9 @@ const TemplateCategorieAdmin = () => {
 
   const loadCategorie = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/template-categorie', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await api.get('/api/template-categorie');
+      const data = response.data;
 
-      if (!response.ok) throw new Error('Errore nel caricamento');
-
-      const data = await response.json();
-      
       // Costruisci albero manualmente
       const tree = buildTree(data);
       setCategorie(tree);
@@ -118,31 +113,19 @@ const TemplateCategorieAdmin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = sessionStorage.getItem('token');
-      
       // Genera codice automatico progressivo
       const codice = generaCodiceAutomatico(formData.categoria_padre_id);
-      
-      const response = await fetch('/api/template-categorie', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...formData,
-          codice
-        })
-      });
 
-      if (!response.ok) throw new Error('Errore nel salvataggio');
+      await api.post('/api/template-categorie', { ...formData, codice });
 
       await loadCategorie();
       setFormData({ descrizione: '', categoria_padre_id: null, livello: 1, ordine: 0 });
       setShowAddForm(false);
       alert('Categoria aggiunta con successo!');
     } catch (err) {
-      alert('Errore nel salvataggio della categoria');
+      if (err.response && err.response.status !== 401) {
+        alert('Errore nel salvataggio della categoria');
+      }
     }
   };
 
@@ -179,18 +162,13 @@ const TemplateCategorieAdmin = () => {
     if (!window.confirm(`Sei sicuro di voler eliminare "${descrizione}"?\n\n⚠️ Verranno eliminate anche tutte le sottocategorie!`)) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/template-categorie/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error('Errore nell\'eliminazione');
-
+      await api.delete(`/api/template-categorie/${id}`);
       await loadCategorie();
       alert('Categoria eliminata con successo!');
     } catch (err) {
-      alert('Errore nell\'eliminazione della categoria');
+      if (err.response && err.response.status !== 401) {
+        alert('Errore nell\'eliminazione della categoria');
+      }
     }
   };
 
@@ -206,24 +184,15 @@ const TemplateCategorieAdmin = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/template-categorie/${editingCategoria.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(editFormData)
-      });
-
-      if (!response.ok) throw new Error('Errore nell\'aggiornamento');
-
+      await api.put(`/api/template-categorie/${editingCategoria.id}`, editFormData);
       await loadCategorie();
       setShowEditModal(false);
       setEditingCategoria(null);
       alert('Categoria aggiornata con successo!');
     } catch (err) {
-      alert('Errore nell\'aggiornamento della categoria');
+      if (err.response && err.response.status !== 401) {
+        alert('Errore nell\'aggiornamento della categoria');
+      }
     }
   };
 

@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import FormMovimentoGlobale from './FormMovimentoGlobale';
 import ModalAllegati from "../../components/ModalAllegati.jsx";
 import { formatCurrency } from '../../utils/formatters';
+import api from '../../services/api';
 
 const MovimentiConto = () => {
   const { registroId } = useParams();
@@ -42,10 +43,6 @@ const MovimentiConto = () => {
     cerca: ''
   });
 
-  const token = sessionStorage.getItem('token');
-  const enteId = sessionStorage.getItem('ente_id');
-  const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
-
   useEffect(() => {
     fetchMovimenti();
     fetchCategorie();
@@ -80,19 +77,16 @@ const MovimentiConto = () => {
   const fetchMovimenti = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/contabilita/movimenti/conto/${registroId}`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setContoNome(data.conto_nome);
-        setMovimenti(data.movimenti || []);
-        setMovimentiFiltrati(data.movimenti || []);
-        // Usa i totali dal backend
-        setStats({
-          totaleEntrate: data.totale_entrate || 0,
-          totaleUscite: data.totale_uscite || 0,
-          saldo: data.saldo || 0
-        });
-      }
+      const res = await api.get(`/api/contabilita/movimenti/conto/${registroId}`);
+      const data = res.data;
+      setContoNome(data.conto_nome);
+      setMovimenti(data.movimenti || []);
+      setMovimentiFiltrati(data.movimenti || []);
+      setStats({
+        totaleEntrate: data.totale_entrate || 0,
+        totaleUscite: data.totale_uscite || 0,
+        saldo: data.saldo || 0
+      });
     } catch (error) {
     } finally {
       setLoading(false);
@@ -101,11 +95,8 @@ const MovimentiConto = () => {
 
   const fetchCategorie = async () => {
     try {
-      const res = await fetch('/api/contabilita/categorie', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setCategorie(data.categorie || []);
-      }
+      const res = await api.get('/api/contabilita/categorie');
+      setCategorie(res.data.categorie || []);
     } catch (error) {
     }
   };
@@ -232,23 +223,17 @@ const MovimentiConto = () => {
         ? `/api/contabilita/movimenti/${movimentoId}`
         : '/api/contabilita/movimenti';
 
-      const method = movimentoId ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        await fetchMovimenti();
-        closeModal();
+      if (movimentoId) {
+        await api.put(url, payload);
       } else {
-        const errorData = await res.json();
-        alert(errorData.detail || 'Errore salvataggio movimento');
+        await api.post(url, payload);
       }
+      await fetchMovimenti();
+      closeModal();
     } catch (error) {
-      alert('Errore salvataggio movimento');
+      if (error.response && error.response.status !== 401) {
+        alert(error.response?.data?.detail || 'Errore salvataggio movimento');
+      }
     }
   };
 
@@ -293,19 +278,13 @@ const MovimentiConto = () => {
     }
 
     try {
-      const res = await fetch(`/api/contabilita/movimenti/${movimento.id}`, {
-        method: 'DELETE',
-        headers
-      });
-
-      if (res.ok) {
-        await fetchMovimenti();
-        setContextMenu({ show: false, x: 0, y: 0, movimento: null });
-      } else {
+      await api.delete(`/api/contabilita/movimenti/${movimento.id}`);
+      await fetchMovimenti();
+      setContextMenu({ show: false, x: 0, y: 0, movimento: null });
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore eliminazione movimento');
       }
-    } catch (error) {
-      alert('Errore eliminazione movimento');
     }
   };
 

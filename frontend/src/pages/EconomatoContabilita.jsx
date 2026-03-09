@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
 import { formatCurrency } from '../utils/formatters';
+import api from '../services/api';
 
 const EconomatoContabilita = () => {
   const [rendiconti, setRendiconti] = useState([]);
@@ -20,9 +21,6 @@ const EconomatoContabilita = () => {
   const [allegatoRespingimento, setAllegatoRespingimento] = useState(null);
 
 
-  const token = sessionStorage.getItem('token');
-  const headers = { 'Authorization': `Bearer ${token}` };
-
   useEffect(() => {
     caricaRendiconti();
   }, [filtroStato, filtroComune, filtroRicerca]);
@@ -34,11 +32,8 @@ const EconomatoContabilita = () => {
       if (filtroComune) url += `comune=${filtroComune}`;
       if (filtroRicerca) url += `comune=${filtroRicerca}`;
 
-      const res = await fetch(url, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setRendiconti(data.rendiconti || []);
-      }
+      const res = await api.get(url);
+      setRendiconti(res.data.rendiconti || []);
     } catch (error) {
     } finally {
       setLoading(false);
@@ -50,20 +45,10 @@ const EconomatoContabilita = () => {
 
     try {
       if (tipo === 'approva') {
-        // APPROVA
-        const url = `/api/contabilita/economo/rendiconti/${rendicontoId}/approva`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers
-        });
-
-        if (res.ok) {
-          alert('Rendiconto approvato!');
-          setModalOsservazioni(null);
-          await caricaRendiconti();
-        } else {
-          alert('Errore durante l\'approvazione');
-        }
+        await api.post(`/api/contabilita/economo/rendiconti/${rendicontoId}/approva`);
+        alert('Rendiconto approvato!');
+        setModalOsservazioni(null);
+        await caricaRendiconti();
       } else {
         // RESPINGI (CON MOTIVO + ALLEGATO)
         if (!motivoRespingimento.trim()) {
@@ -79,30 +64,23 @@ const EconomatoContabilita = () => {
           formData.append('allegato', allegatoRespingimento);
         }
 
-        const res = await fetch(
+        await api.post(
           `/api/contabilita/economo/rendiconti/${rendicontoId}/respingi`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-            body: formData
-          }
+          formData,
+          { headers: { 'Content-Type': 'multipart/form-data' } }
         );
 
-        if (res.ok) {
-          alert('Rendiconto respinto con successo');
-          setModalOsservazioni(null);
-          setOsservazioni('');
-          setMotivoRespingimento('');
-          setAllegatoRespingimento(null);
-          await caricaRendiconti();
-        } else {
-          alert('Errore durante il respingimento');
-        }
+        alert('Rendiconto respinto con successo');
+        setModalOsservazioni(null);
+        setOsservazioni('');
+        setMotivoRespingimento('');
+        setAllegatoRespingimento(null);
+        await caricaRendiconti();
       }
     } catch (error) {
-      alert('Errore di connessione');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore di connessione');
+      }
     } finally {
       setAzione(null);
     }
@@ -110,18 +88,17 @@ const EconomatoContabilita = () => {
 
   const downloadPdf = async (rendicontoId) => {
     try {
-      const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `rendiconto_${rendicontoId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      const res = await api.get(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rendiconto_${rendicontoId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
     }
   };

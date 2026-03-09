@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 
 const ModalAllegati = ({ movimento, onClose }) => {
   const [allegati, setAllegati] = useState([]);
@@ -13,20 +14,12 @@ const ModalAllegati = ({ movimento, onClose }) => {
   const caricaAllegati = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(
-        `/api/contabilita/movimenti/${movimento.id}/allegati`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setAllegati(data);
-      }
+      const response = await api.get(`/api/contabilita/movimenti/${movimento.id}/allegati`);
+      setAllegati(response.data);
     } catch (error) {
-      setError('Impossibile caricare gli allegati');
+      if (error.response && error.response.status !== 401) {
+        setError('Impossibile caricare gli allegati');
+      }
     } finally {
       setLoading(false);
     }
@@ -41,31 +34,23 @@ const ModalAllegati = ({ movimento, onClose }) => {
     setError(null);
 
     try {
-      const token = sessionStorage.getItem('token');
-
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(
+        await api.post(
           `/api/contabilita/movimenti/${movimento.id}/allegati`,
-          {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData
-          }
+          formData,
+          { headers: { 'Content-Type': 'multipart/form-data' } }
         );
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.detail || 'Errore upload');
-        }
       }
 
       await caricaAllegati();
 
     } catch (error) {
-      setError(error.message);
+      if (error.response && error.response.status !== 401) {
+        setError(error.response?.data?.detail || 'Errore upload');
+      }
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -74,27 +59,21 @@ const ModalAllegati = ({ movimento, onClose }) => {
 
   const handleDownload = async (allegato) => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(
-        `/api/contabilita/allegati/${allegato.id}/download`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = allegato.nome_originale;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      const response = await api.get(`/api/contabilita/allegati/${allegato.id}/download`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = allegato.nome_originale;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      alert('Errore durante il download del file');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore durante il download del file');
+      }
     }
   };
 
@@ -102,20 +81,12 @@ const ModalAllegati = ({ movimento, onClose }) => {
     if (!window.confirm(`Eliminare "${allegato.nome_originale}"?`)) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(
-        `/api/contabilita/allegati/${allegato.id}`,
-        {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        await caricaAllegati();
-      }
+      await api.delete(`/api/contabilita/allegati/${allegato.id}`);
+      await caricaAllegati();
     } catch (error) {
-      alert('Errore durante l\'eliminazione del file');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore durante l\'eliminazione del file');
+      }
     }
   };
 

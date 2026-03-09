@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -17,36 +18,23 @@ function Dashboard() {
 
   const caricaPermessi = async () => {
     try {
-      const token = sessionStorage.getItem('token');
       const enteId = sessionStorage.getItem('ente_id');
-
 
       if (!enteId) {
         setLoading(false);
         return;
       }
 
-      // USA L'API CHE FUNZIONA (quella di SelectEnte)
-      const response = await fetch('/api/enti/my-enti', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get('/api/enti/my-enti');
+      const data = response.data;
 
-      if (response.ok) {
-        const data = await response.json();
+      // Trova l'ente corrente
+      const entiUtente = data.enti || [];
+      const enteCorrente = entiUtente.find(e => e.id === enteId);
 
-        // Trova l'ente corrente
-        const entiUtente = data.enti || [];
-        const enteCorrente = entiUtente.find(e => e.id === enteId);
-
-
-        if (enteCorrente && enteCorrente.permessi) {
-          setPermessi(enteCorrente.permessi);
-          setEnteCorrente(enteCorrente);
-        } else {
-        }
-      } else {
+      if (enteCorrente && enteCorrente.permessi) {
+        setPermessi(enteCorrente.permessi);
+        setEnteCorrente(enteCorrente);
       }
     } catch (error) {
     } finally {

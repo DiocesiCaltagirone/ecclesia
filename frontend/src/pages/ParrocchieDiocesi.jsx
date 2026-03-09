@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
+import api from '../services/api';
 
 const ParrocchieDiocesi = () => {
   const navigate = useNavigate();
@@ -42,17 +43,12 @@ const ParrocchieDiocesi = () => {
 
   const loadParrocchie = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/amministrazione/parrocchie-diocesi', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error('Errore nel caricamento');
-
-      const data = await response.json();
-      setParrocchie(data);
+      const response = await api.get('/api/amministrazione/parrocchie-diocesi');
+      setParrocchie(response.data);
     } catch (err) {
-      setError('Errore nel caricamento delle parrocchie');
+      if (err.response && err.response.status !== 401) {
+        setError('Errore nel caricamento delle parrocchie');
+      }
     } finally {
       setLoading(false);
     }
@@ -61,23 +57,14 @@ const ParrocchieDiocesi = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/amministrazione/parrocchie-diocesi', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) throw new Error('Errore nel salvataggio');
-
+      await api.post('/api/amministrazione/parrocchie-diocesi', formData);
       await loadParrocchie();
       setFormData({ comune: '', denominazione: '', provincia: '', diocesi: '', cap: '' });
       alert('Parrocchia aggiunta con successo!');
     } catch (err) {
-      alert('Errore nel salvataggio della parrocchia');
+      if (err.response && err.response.status !== 401) {
+        alert('Errore nel salvataggio della parrocchia');
+      }
     }
   };
 
@@ -85,18 +72,13 @@ const ParrocchieDiocesi = () => {
     if (!confirm('Sei sicuro di voler eliminare questa parrocchia?')) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/parrocchie-diocesi/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error('Errore nell\'eliminazione');
-
+      await api.delete(`/api/amministrazione/parrocchie-diocesi/${id}`);
       await loadParrocchie();
       alert('Parrocchia eliminata con successo!');
     } catch (err) {
-      alert('Errore nell\'eliminazione della parrocchia');
+      if (err.response && err.response.status !== 401) {
+        alert('Errore nell\'eliminazione della parrocchia');
+      }
     }
   };
 
@@ -115,24 +97,15 @@ const ParrocchieDiocesi = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/parrocchie-diocesi/${editingParrocchia.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(editFormData)
-      });
-
-      if (!response.ok) throw new Error('Errore nell\'aggiornamento');
-
+      await api.put(`/api/amministrazione/parrocchie-diocesi/${editingParrocchia.id}`, editFormData);
       await loadParrocchie();
       setShowEditModal(false);
       setEditingParrocchia(null);
       alert('Parrocchia aggiornata con successo!');
     } catch (err) {
-      alert('Errore nell\'aggiornamento della parrocchia');
+      if (err.response && err.response.status !== 401) {
+        alert('Errore nell\'aggiornamento della parrocchia');
+      }
     }
   };
 
@@ -149,24 +122,8 @@ const ParrocchieDiocesi = () => {
     if (!confirm(messaggio)) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(
-        `/api/template-categorie/applica-a-ente/${parrocchia.id}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Errore nell\'applicazione del template');
-      }
-
-      const data = await response.json();
+      const response = await api.post(`/api/template-categorie/applica-a-ente/${parrocchia.id}`);
+      const data = response.data;
 
       const risultato = `✅ Template Applicato con Successo!\n\n` +
         `Parrocchia: ${data.ente_denominazione}\n\n` +
@@ -178,7 +135,10 @@ const ParrocchieDiocesi = () => {
 
       alert(risultato);
     } catch (err) {
-      alert(`❌ Errore nell'applicazione del template:\n\n${err.message}`);
+      if (err.response && err.response.status !== 401) {
+        const msg = err.response?.data?.detail || err.message;
+        alert(`Errore nell'applicazione del template:\n\n${msg}`);
+      }
     }
   };
 
@@ -198,15 +158,7 @@ const ParrocchieDiocesi = () => {
 
         if (comune && denominazione) {
           try {
-            const token = sessionStorage.getItem('token');
-            await fetch('/api/amministrazione/parrocchie-diocesi', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ diocesi, comune, denominazione, provincia, cap })
-            });
+            await api.post('/api/amministrazione/parrocchie-diocesi', { diocesi, comune, denominazione, provincia, cap });
           } catch (err) {
           }
         }

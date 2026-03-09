@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
+import api from '../services/api';
 
 const GestioneUtenti = () => {
   const navigate = useNavigate();
@@ -81,34 +82,16 @@ const GestioneUtenti = () => {
 
   const fetchEnti = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/amministrazione/enti', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEnti(data);
-      }
+      const response = await api.get('/api/amministrazione/enti');
+      setEnti(response.data);
     } catch (error) {
     }
   };
 
   const fetchUtenti = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/amministrazione/utenti', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUtenti(data);
-      }
+      const response = await api.get('/api/amministrazione/utenti');
+      setUtenti(response.data);
     } catch (error) {
     } finally {
       setLoading(false);
@@ -176,64 +159,43 @@ const GestioneUtenti = () => {
     setSaving(true);
 
     try {
-      const token = sessionStorage.getItem('token');
-
-      const response = await fetch(`/api/amministrazione/utenti/${utenteSelezionato.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: formData.email,
-          email: formData.email,
-          nome: formData.nome,
-          cognome: formData.cognome,
-          titolo: formData.titolo
-        })
+      await api.put(`/api/amministrazione/utenti/${utenteSelezionato.id}`, {
+        username: formData.email,
+        email: formData.email,
+        nome: formData.nome,
+        cognome: formData.cognome,
+        titolo: formData.titolo
       });
 
-      if (response.ok) {
-        if (utenteSelezionato.enti && utenteSelezionato.enti.length > 0) {
-          for (const ente of utenteSelezionato.enti) {
-            await fetch(`/api/amministrazione/utenti-enti/${utenteSelezionato.id}/${ente.id}`, {
-              method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-          }
+      if (utenteSelezionato.enti && utenteSelezionato.enti.length > 0) {
+        for (const ente of utenteSelezionato.enti) {
+          await api.delete(`/api/amministrazione/utenti-enti/${utenteSelezionato.id}/${ente.id}`);
         }
+      }
 
-        for (const ente of entiSelezionati) {
-          if (ente.ente_id && ente.ruolo) {
-            await fetch('/api/amministrazione/utenti-enti', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                utente_id: utenteSelezionato.id,
-                ente_id: ente.ente_id,
-                ruolo: ente.ruolo,
-                permessi: {
-                  anagrafica: false,
-                  contabilita: false,
-                  inventario: false
-                }
-              })
-            });
-          }
+      for (const ente of entiSelezionati) {
+        if (ente.ente_id && ente.ruolo) {
+          await api.post('/api/amministrazione/utenti-enti', {
+            utente_id: utenteSelezionato.id,
+            ente_id: ente.ente_id,
+            ruolo: ente.ruolo,
+            permessi: {
+              anagrafica: false,
+              contabilita: false,
+              inventario: false
+            }
+          });
         }
+      }
 
-        fetchUtenti();
-        setShowModalModifica(false);
-        setUtenteSelezionato(null);
-        alert('Utente aggiornato con successo!');
-      } else {
+      fetchUtenti();
+      setShowModalModifica(false);
+      setUtenteSelezionato(null);
+      alert('Utente aggiornato con successo!');
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante il salvataggio');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     } finally {
       setSaving(false);
     }
@@ -244,8 +206,6 @@ const GestioneUtenti = () => {
     setSaving(true);
 
     try {
-      const token = sessionStorage.getItem('token');
-
       const utenteData = {
         username: formData.email,
         email: formData.email,
@@ -256,39 +216,23 @@ const GestioneUtenti = () => {
         attivo: true
       };
 
-      const response = await fetch('/api/amministrazione/utenti', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(utenteData)
-      });
+      const response = await api.post('/api/amministrazione/utenti', utenteData);
+      const nuovoUtente = response.data;
 
-      if (response.ok) {
-        const nuovoUtente = await response.json();
-
-        for (const ente of entiSelezionati) {
-          if (ente.ente_id && ente.ruolo) {
-            await fetch('/api/amministrazione/utenti-enti', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                utente_id: nuovoUtente.id,
-                ente_id: ente.ente_id,
-                ruolo: ente.ruolo,
-                permessi: {
-                  anagrafica: false,
-                  contabilita: false,
-                  inventario: false
-                }
-              })
-            });
-          }
+      for (const ente of entiSelezionati) {
+        if (ente.ente_id && ente.ruolo) {
+          await api.post('/api/amministrazione/utenti-enti', {
+            utente_id: nuovoUtente.id,
+            ente_id: ente.ente_id,
+            ruolo: ente.ruolo,
+            permessi: {
+              anagrafica: false,
+              contabilita: false,
+              inventario: false
+            }
+          });
         }
+      }
 
         fetchUtenti();
         setShowModalNuovo(false);
@@ -315,23 +259,14 @@ const GestioneUtenti = () => {
 
   const handleResetPassword = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/utenti/${utenteSelezionato.id}/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setShowModalReset(false);
-        setUtenteSelezionato(null);
-        alert('Password ripristinata con successo! Password predefinita: Parrocchia2024!');
-      } else {
+      await api.post(`/api/amministrazione/utenti/${utenteSelezionato.id}/reset-password`);
+      setShowModalReset(false);
+      setUtenteSelezionato(null);
+      alert('Password ripristinata con successo! Password predefinita: Parrocchia2024!');
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante il reset');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     }
   };
 
@@ -339,30 +274,19 @@ const GestioneUtenti = () => {
     if (!confirm(`Sei sicuro di voler eliminare "${nomeCompleto}"?\n\nQuesta azione disattiverà l'utente.`)) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/utenti/${utenteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        fetchUtenti();
-        refreshEnti();
-        alert('Utente eliminato con successo');
-      } else {
+      await api.delete(`/api/amministrazione/utenti/${utenteId}`);
+      fetchUtenti();
+      refreshEnti();
+      alert('Utente eliminato con successo');
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante l\'eliminazione');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     }
   };
 
   const togglePermesso = async (utenteId, enteId, permesso, valoreAttuale) => {
     try {
-      const token = sessionStorage.getItem('token');
-
       const utente = utenti.find(u => u.id === utenteId);
       const ente = utente?.enti.find(e => e.id === enteId);
 
@@ -373,23 +297,12 @@ const GestioneUtenti = () => {
         [permesso]: !valoreAttuale
       };
 
-      const response = await fetch(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}/permessi`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(nuoviPermessi)
-      });
-
-      if (response.ok) {
-        fetchUtenti();
-      } else {
-        const errorData = await response.json();
+      await api.put(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}/permessi`, nuoviPermessi);
+      fetchUtenti();
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante l\'aggiornamento dei permessi');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     }
   };
 

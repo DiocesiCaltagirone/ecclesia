@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const Amministrazione = () => {
   const navigate = useNavigate();
@@ -39,19 +40,13 @@ const Amministrazione = () => {
 
   const loadStats = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-
       // Carica numero Enti
-      const entiRes = await fetch('/api/amministrazione/enti', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const enti = await entiRes.json();
+      const entiRes = await api.get('/api/amministrazione/enti');
+      const enti = entiRes.data;
 
       // Carica numero Utenti (escluso economo)
-      const utentiRes = await fetch('/api/amministrazione/utenti', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const utenti = await utentiRes.json();
+      const utentiRes = await api.get('/api/amministrazione/utenti');
+      const utenti = utentiRes.data;
       const utentiNonEconomi = utenti.filter(u => !u.is_economo);
 
       setStats({
@@ -82,25 +77,21 @@ const Amministrazione = () => {
     }
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ old_password: passwordData.vecchia, new_password: passwordData.nuova })
+      await api.post('/api/auth/change-password', {
+        old_password: passwordData.vecchia,
+        new_password: passwordData.nuova
       });
 
-      if (response.ok) {
-        setSuccess('Password cambiata!');
-        setTimeout(() => {
-          setShowPasswordModal(false);
-          setPasswordData({ vecchia: '', nuova: '', conferma: '' });
-          setSuccess('');
-        }, 1500);
-      } else {
+      setSuccess('Password cambiata!');
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPasswordData({ vecchia: '', nuova: '', conferma: '' });
+        setSuccess('');
+      }, 1500);
+    } catch (err) {
+      if (err.response && err.response.status !== 401) {
         setError('Password errata');
       }
-    } catch (err) {
-      setError('Errore di connessione');
     }
   };
 
@@ -110,27 +101,19 @@ const Amministrazione = () => {
     setSuccess('');
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/auth/update-profile', {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(settingsData)
-      });
-
-      if (response.ok) {
-        const updated = await response.json();
-        sessionStorage.setItem('user', JSON.stringify(updated));
-        setUser(updated);
-        setSuccess('Dati aggiornati!');
-        setTimeout(() => {
-          setShowSettingsModal(false);
-          setSuccess('');
-        }, 1500);
-      } else {
+      const response = await api.put('/api/auth/update-profile', settingsData);
+      const updated = response.data;
+      sessionStorage.setItem('user', JSON.stringify(updated));
+      setUser(updated);
+      setSuccess('Dati aggiornati!');
+      setTimeout(() => {
+        setShowSettingsModal(false);
+        setSuccess('');
+      }, 1500);
+    } catch (err) {
+      if (err.response && err.response.status !== 401) {
         setError('Errore aggiornamento');
       }
-    } catch (err) {
-      setError('Errore di connessione');
     }
   };
 

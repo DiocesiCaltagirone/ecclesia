@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
+import api from '../services/api';
 
 const GestioneEnti = () => {
   const navigate = useNavigate();
@@ -44,17 +45,8 @@ const GestioneEnti = () => {
 
   const fetchEnti = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/amministrazione/enti', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEnti(data);
-      }
+      const response = await api.get('/api/amministrazione/enti');
+      setEnti(response.data);
     } catch (error) {
     } finally {
       setLoading(false);
@@ -66,35 +58,24 @@ const GestioneEnti = () => {
     setSaving(true);
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch('/api/amministrazione/enti', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+      const response = await api.post('/api/amministrazione/enti', formData);
+      const newEnte = response.data;
+      setEnti([newEnte, ...enti]);
+      setShowModal(false);
+      setFormData({
+        denominazione: '',
+        comune: '',
+        provincia: '',
+        codice_fiscale: '',
+        indirizzo: '',
+        cap: '',
+        telefono: '',
+        email: ''
       });
-
-      if (response.ok) {
-        const newEnte = await response.json();
-        setEnti([newEnte, ...enti]);
-        setShowModal(false);
-        setFormData({
-          denominazione: '',
-          comune: '',
-          provincia: '',
-          codice_fiscale: '',
-          indirizzo: '',
-          cap: '',
-          telefono: '',
-          email: ''
-        });
-      } else {
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante il salvataggio');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     } finally {
       setSaving(false);
     }
@@ -104,29 +85,20 @@ const GestioneEnti = () => {
     if (!confirm('Rimuovere questo operatore dall\'ente?')) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
+      await api.delete(`/api/amministrazione/utenti-enti/${utenteId}/${enteId}`);
+      setEnti(enti.map(e => {
+        if (e.id === enteId) {
+          return {
+            ...e,
+            operatori: e.operatori.filter(op => op.id !== utenteId)
+          };
         }
-      });
-
-      if (response.ok) {
-        setEnti(enti.map(e => {
-          if (e.id === enteId) {
-            return {
-              ...e,
-              operatori: e.operatori.filter(op => op.id !== utenteId)
-            };
-          }
-          return e;
-        }));
-      } else {
+        return e;
+      }));
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante la rimozione');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     }
   };
 
@@ -150,26 +122,15 @@ const GestioneEnti = () => {
     setSaving(true);
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/enti/${enteSelezionato.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        const enteAggiornato = await response.json();
-        setEnti(enti.map(e => e.id === enteSelezionato.id ? enteAggiornato : e));
-        setShowModalModifica(false);
-        setEnteSelezionato(null);
-      } else {
+      const response = await api.put(`/api/amministrazione/enti/${enteSelezionato.id}`, formData);
+      const enteAggiornato = response.data;
+      setEnti(enti.map(e => e.id === enteSelezionato.id ? enteAggiornato : e));
+      setShowModalModifica(false);
+      setEnteSelezionato(null);
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante il salvataggio');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     } finally {
       setSaving(false);
     }
@@ -179,22 +140,13 @@ const GestioneEnti = () => {
     if (!confirm(`Sei sicuro di voler eliminare "${denominazione}"?\n\nQuesta azione disattiverà l'ente.`)) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/amministrazione/enti/${enteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setEnti(enti.filter(e => e.id !== enteId));
-        alert('Ente eliminato con successo');
-      } else {
+      await api.delete(`/api/amministrazione/enti/${enteId}`);
+      setEnti(enti.filter(e => e.id !== enteId));
+      alert('Ente eliminato con successo');
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore durante l\'eliminazione');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     }
   };
 
@@ -211,24 +163,8 @@ const GestioneEnti = () => {
     if (!confirm(messaggio)) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const response = await fetch(
-        `/api/template-categorie/applica-a-ente/${ente.id}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Errore applicazione template');
-      }
-
-      const data = await response.json();
+      const response = await api.post(`/api/template-categorie/applica-a-ente/${ente.id}`);
+      const data = response.data;
 
       const risultato = `✅ Template Applicato!\n\n` +
         `Ente: ${data.ente_denominazione}\n\n` +
@@ -239,7 +175,10 @@ const GestioneEnti = () => {
 
       alert(risultato);
     } catch (err) {
-      alert(`❌ Errore:\n\n${err.message}`);
+      if (err.response && err.response.status !== 401) {
+        const msg = err.response?.data?.detail || err.message;
+        alert(`Errore:\n\n${msg}`);
+      }
     }
   };
 

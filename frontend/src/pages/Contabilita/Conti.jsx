@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
+import api from '../../services/api';
 
 const Conti = () => {
   const navigate = useNavigate();
@@ -39,20 +40,8 @@ const Conti = () => {
   const fetchConti = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
-
-      const response = await fetch('/api/contabilita/registri', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Ente-Id': enteId
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setConti(data);
-      }
+      const response = await api.get('/api/contabilita/registri');
+      setConti(response.data);
     } catch (error) {
     } finally {
       setLoading(false);
@@ -61,21 +50,12 @@ const Conti = () => {
 
   const fetchUltimoRendiconto = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
-      const response = await fetch('/api/contabilita/ultimo-rendiconto', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Ente-Id': enteId
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.periodo_fine) {
-          const chiusura = new Date(data.periodo_fine);
-          chiusura.setDate(chiusura.getDate() + 1);
-          setDataMinima(chiusura.toISOString().split('T')[0]);
-        }
+      const response = await api.get('/api/contabilita/ultimo-rendiconto');
+      const data = response.data;
+      if (data.periodo_fine) {
+        const chiusura = new Date(data.periodo_fine);
+        chiusura.setDate(chiusura.getDate() + 1);
+        setDataMinima(chiusura.toISOString().split('T')[0]);
       }
     } catch (error) {
     }
@@ -84,13 +64,9 @@ const Conti = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
       const url = editingConto
         ? `/api/contabilita/registri/${editingConto.id}`
         : '/api/contabilita/registri';
-
-      const method = editingConto ? 'PUT' : 'POST';
 
       const saldoStr = String(formData.saldo_iniziale).replace(',', '.');
       const payload = {
@@ -101,24 +77,17 @@ const Conti = () => {
         data_inizio: formData.data_inizio
       };
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Ente-Id': enteId,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        fetchConti();
-        closeModal();
+      if (editingConto) {
+        await api.put(url, payload);
       } else {
-        const errorData = await response.json();
-        alert(errorData.detail || 'Errore nel salvataggio del conto');
+        await api.post(url, payload);
       }
+      fetchConti();
+      closeModal();
     } catch (error) {
+      if (error.response && error.response.status !== 401) {
+        alert(error.response?.data?.detail || 'Errore nel salvataggio del conto');
+      }
     }
   };
 
@@ -126,19 +95,8 @@ const Conti = () => {
     if (!confirm('Sei sicuro di voler eliminare questo conto?')) return;
 
     try {
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
-      const response = await fetch(`/api/contabilita/registri/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Ente-Id': enteId
-        }
-      });
-
-      if (response.ok) {
-        fetchConti();
-      }
+      await api.delete(`/api/contabilita/registri/${id}`);
+      fetchConti();
     } catch (error) {
     }
   };

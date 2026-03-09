@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
+import api from '../../services/api';
 
 const NuovoRendiconto = () => {
   const navigate = useNavigate();
@@ -12,10 +13,6 @@ const NuovoRendiconto = () => {
   const [infoRendiconto, setInfoRendiconto] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [creando, setCreando] = useState(false);
-
-  const token = sessionStorage.getItem('token');
-  const enteId = sessionStorage.getItem('ente_id');
-  const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
 
   const tipiDocumento = [
     {
@@ -82,17 +79,16 @@ const NuovoRendiconto = () => {
 
   const caricaRendiconto = async (id) => {
     try {
-      const res = await fetch(`/api/contabilita/rendiconti/${id}`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setRendicontoId(data.id);
-        setInfoRendiconto(data);
-        await caricaDocumenti(data.id);
-      } else {
+      const res = await api.get(`/api/contabilita/rendiconti/${id}`);
+      const data = res.data;
+      setRendicontoId(data.id);
+      setInfoRendiconto(data);
+      await caricaDocumenti(data.id);
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Rendiconto non trovato');
         navigate('/contabilita/rendiconto/lista');
       }
-    } catch (error) {
     } finally {
       setLoading(false);
     }
@@ -100,13 +96,10 @@ const NuovoRendiconto = () => {
 
   const verificaRendicontoPrecedente = async () => {
     try {
-      const res = await fetch('/api/contabilita/rendiconti?stato=parrocchia', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        const attivi = data.rendiconti || [];
-        if (attivi.length > 0) {
-          setRendicontoPrecedente(attivi[0]);
-        }
+      const res = await api.get('/api/contabilita/rendiconti?stato=parrocchia');
+      const attivi = res.data.rendiconti || [];
+      if (attivi.length > 0) {
+        setRendicontoPrecedente(attivi[0]);
       }
     } catch (error) {
     } finally {
@@ -116,14 +109,8 @@ const NuovoRendiconto = () => {
 
   const caricaDocumenti = async (id) => {
     try {
-      const res = await fetch(
-        `/api/contabilita/rendiconti/${id}/documenti`,
-        { headers }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setDocumenti(data.documenti || []);
-      }
+      const res = await api.get(`/api/contabilita/rendiconti/${id}/documenti`);
+      setDocumenti(res.data.documenti || []);
     } catch (error) {
     }
   };
@@ -156,27 +143,19 @@ const NuovoRendiconto = () => {
 
     try {
       setCreando(true);
-      const res = await fetch('/api/contabilita/rendiconti', {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          periodo_inizio: periodo.inizio,
-          periodo_fine: periodo.fine
-        })
+      const res = await api.post('/api/contabilita/rendiconti', {
+        periodo_inizio: periodo.inizio,
+        periodo_fine: periodo.fine
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setRendicontoId(data.id);
-        setInfoRendiconto(data);
-        setRendicontoPrecedente(null); // Reset
-        alert('✅ Rendiconto creato con successo!');
-      } else {
-        const error = await res.json();
-        alert('Errore: ' + error.detail);
-      }
+      const data = res.data;
+      setRendicontoId(data.id);
+      setInfoRendiconto(data);
+      setRendicontoPrecedente(null);
+      alert('Rendiconto creato con successo!');
     } catch (error) {
-      alert('Errore di connessione');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore: ' + (error.response?.data?.detail || 'Errore di connessione'));
+      }
     } finally {
       setCreando(false);
     }
@@ -189,23 +168,14 @@ const NuovoRendiconto = () => {
 
     try {
       setUploading(true);
-      const res = await fetch(
-        `/api/contabilita/rendiconti/${rendicontoId}/documenti`,
-        {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId },
-          body: formData
-        }
-      );
-
-      if (res.ok) {
-        await caricaDocumenti(rendicontoId);
-      } else {
-        const error = await res.json();
-        alert('Errore: ' + error.detail);
-      }
+      await api.post(`/api/contabilita/rendiconti/${rendicontoId}/documenti`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      await caricaDocumenti(rendicontoId);
     } catch (error) {
-      alert('Errore upload documento');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore: ' + (error.response?.data?.detail || 'Errore upload documento'));
+      }
     } finally {
       setUploading(false);
     }
@@ -217,22 +187,16 @@ const NuovoRendiconto = () => {
     }
 
     try {
-      const res = await fetch(
-        `/api/contabilita/rendiconti/${rendicontoId}`,
-        { method: 'DELETE', headers }
-      );
-
-      if (res.ok) {
-        alert('Rendiconto eliminato. I movimenti sono stati sbloccati.');
-        setRendicontoId(null);
-        setInfoRendiconto(null);
-        setDocumenti([]);
-        setPeriodo({ inizio: '', fine: '' });
-      } else {
+      await api.delete(`/api/contabilita/rendiconti/${rendicontoId}`);
+      alert('Rendiconto eliminato. I movimenti sono stati sbloccati.');
+      setRendicontoId(null);
+      setInfoRendiconto(null);
+      setDocumenti([]);
+      setPeriodo({ inizio: '', fine: '' });
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
         alert('Errore eliminazione bozza');
       }
-    } catch (error) {
-      alert('Errore di connessione');
     }
   };
 
@@ -242,37 +206,29 @@ const NuovoRendiconto = () => {
     }
 
     try {
-      const res = await fetch(
-        `/api/contabilita/rendiconti/${rendicontoId}/invia`,
-        { method: 'POST', headers }
-      );
-
-      if (res.ok) {
-        alert('✅ Rendiconto inviato con successo alla Diocesi!');
-        navigate('/contabilita/rendiconto/lista');
-      } else {
-        const error = await res.json();
-        alert('Errore: ' + error.detail);
-      }
+      await api.post(`/api/contabilita/rendiconti/${rendicontoId}/invia`);
+      alert('Rendiconto inviato con successo alla Diocesi!');
+      navigate('/contabilita/rendiconto/lista');
     } catch (error) {
-      alert('Errore di connessione');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore: ' + (error.response?.data?.detail || 'Errore di connessione'));
+      }
     }
   };
 
   const downloadPdf = async () => {
     try {
-      const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `rendiconto_${rendicontoId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      const res = await api.get(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rendiconto_${rendicontoId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
     }
   };

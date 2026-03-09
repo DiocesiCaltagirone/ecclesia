@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import FormMovimentoGlobale from './FormMovimentoGlobale';
 import CambioPasswordModal from '../../components/CambioPasswordModal';
+import api from '../../services/api';
 
 const ContabilitaLayout = () => {
   const navigate = useNavigate();
@@ -54,67 +55,44 @@ const ContabilitaLayout = () => {
     const caricaDati = async () => {
       try {
         const enteId = sessionStorage.getItem('ente_id');
-        const token = sessionStorage.getItem('token');
 
-        const response = await fetch(`/api/enti/${enteId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-Ente-Id': enteId
-          }
-        });
+        const response = await api.get(`/api/enti/${enteId}`);
+        const ente = response.data;
+        const userStored = sessionStorage.getItem('user');
+        let displayName = 'Utente';
 
-        if (response.ok) {
-          const ente = await response.json();
-          const userStored = sessionStorage.getItem('user');
-          let displayName = 'Utente';
-
-          if (userStored) {
-            const user = JSON.parse(userStored);
-            displayName = '';
-            if (user.titolo) displayName += user.titolo + ' ';
-            if (user.nome) displayName += user.nome + ' ';
-            if (user.cognome) displayName += user.cognome;
-            displayName = displayName.trim() || 'Utente';
-          }
-
-          setEnteCorrente({
-            id: ente.id,
-            comune: ente.comune,
-            denominazione: ente.denominazione,
-            indirizzo: ente.indirizzo,
-            cap: ente.cap,
-            provincia: ente.provincia,
-            userName: displayName
-          });
+        if (userStored) {
+          const user = JSON.parse(userStored);
+          displayName = '';
+          if (user.titolo) displayName += user.titolo + ' ';
+          if (user.nome) displayName += user.nome + ' ';
+          if (user.cognome) displayName += user.cognome;
+          displayName = displayName.trim() || 'Utente';
         }
 
-        const entiResponse = await fetch('/api/enti/my-enti', {
-          headers: { 'Authorization': `Bearer ${token}` }
+        setEnteCorrente({
+          id: ente.id,
+          comune: ente.comune,
+          denominazione: ente.denominazione,
+          indirizzo: ente.indirizzo,
+          cap: ente.cap,
+          provincia: ente.provincia,
+          userName: displayName
         });
 
-        if (entiResponse.ok) {
-          const entiData = await entiResponse.json();
-          setEntiList(entiData.enti || []);
+        const entiResponse = await api.get('/api/enti/my-enti');
+        const entiData = entiResponse.data;
+        setEntiList(entiData.enti || []);
 
-          // Carica permessi dell'ente corrente
-          const enteCorrente = (entiData.enti || []).find(e => e.id === enteId);
-          if (enteCorrente && enteCorrente.permessi) {
-            setPermessi(enteCorrente.permessi);
-          }
+        // Carica permessi dell'ente corrente
+        const enteCorrenteData = (entiData.enti || []).find(e => e.id === enteId);
+        if (enteCorrenteData && enteCorrenteData.permessi) {
+          setPermessi(enteCorrenteData.permessi);
         }
 
         // Carica categorie per il form transazione
-        const categorieResponse = await fetch('/api/contabilita/categorie', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-Ente-Id': enteId
-          }
-        });
-
-        if (categorieResponse.ok) {
-          const categorieData = await categorieResponse.json();
-          setCategorie(categorieData.categorie || []);
-        }
+        const categorieResponse = await api.get('/api/contabilita/categorie');
+        setCategorie(categorieResponse.data.categorie || []);
 
       } catch (error) {
       }
@@ -153,9 +131,6 @@ const ContabilitaLayout = () => {
   const handleSubmitConto = async (e) => {
     e.preventDefault();
 
-    const token = sessionStorage.getItem('token');
-    const enteId = sessionStorage.getItem('ente_id');
-
     const saldoStr = String(formConto.saldo_iniziale).replace(',', '.');
     const payload = {
       tipo: formConto.tipo,
@@ -164,56 +139,26 @@ const ContabilitaLayout = () => {
       data_inizio: formConto.data_inizio
     };
 
-
-
     try {
-      const response = await fetch('/api/contabilita/registri', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Ente-Id': enteId,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-
-      if (response.ok) {
-        setShowModalConto(false);
-        setFormConto({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
-        window.location.reload();
-      } else {
-        const errorData = await response.json();
-        alert('Errore: ' + JSON.stringify(errorData));
-      }
+      await api.post('/api/contabilita/registri', payload);
+      setShowModalConto(false);
+      setFormConto({ tipo: 'banca', nome: '', numero: '', saldo_iniziale: 0, data_inizio: new Date().toISOString().split('T')[0] });
+      window.location.reload();
     } catch (error) {
-      alert('Errore: ' + error.message);
+      if (error.response && error.response.status !== 401) {
+        alert('Errore: ' + JSON.stringify(error.response?.data || error.message));
+      }
     }
   };
 
   const handleSaveTransazione = async (payload) => {
     try {
-      const token = sessionStorage.getItem('token');
-      const enteId = sessionStorage.getItem('ente_id');
-
-      const response = await fetch('/api/contabilita/movimenti', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Ente-Id': enteId,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        window.location.reload(); // ✅ Ricarica direttamente senza alert
-      } else {
-        const errorData = await response.json();
-        alert('Errore: ' + JSON.stringify(errorData));
-      }
+      await api.post('/api/contabilita/movimenti', payload);
+      window.location.reload();
     } catch (error) {
-      alert('Errore di connessione');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore: ' + JSON.stringify(error.response?.data || error.message));
+      }
     }
   };
 

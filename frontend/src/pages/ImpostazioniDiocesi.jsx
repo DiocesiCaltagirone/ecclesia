@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderAmministrazione from '../components/HeaderAmministrazione';
+import api from '../services/api';
 
 const ImpostazioniDiocesi = () => {
   const navigate = useNavigate();
@@ -21,20 +22,14 @@ const ImpostazioniDiocesi = () => {
     firma_dimensione: null
   });
 
-  const token = sessionStorage.getItem('token');
-  const headers = { 'Authorization': `Bearer ${token}` };
-
   useEffect(() => {
     fetchImpostazioni();
   }, []);
 
   const fetchImpostazioni = async () => {
     try {
-      const res = await fetch('/api/admin/impostazioni-diocesi', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setImpostazioni(prev => ({ ...prev, ...data }));
-      }
+      const res = await api.get('/api/admin/impostazioni-diocesi');
+      setImpostazioni(prev => ({ ...prev, ...res.data }));
     } catch (error) {
     } finally {
       setLoading(false);
@@ -44,20 +39,16 @@ const ImpostazioniDiocesi = () => {
   const salvaImpostazioni = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/impostazioni-diocesi', {
-        method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome_diocesi: impostazioni.nome_diocesi,
-          vescovo_nome: impostazioni.vescovo_nome,
-          vescovo_titolo: impostazioni.vescovo_titolo
-        })
+      await api.put('/api/admin/impostazioni-diocesi', {
+        nome_diocesi: impostazioni.nome_diocesi,
+        vescovo_nome: impostazioni.vescovo_nome,
+        vescovo_titolo: impostazioni.vescovo_titolo
       });
-      if (res.ok) {
-        alert('✅ Impostazioni salvate!');
-      }
+      alert('Impostazioni salvate!');
     } catch (error) {
-      alert('❌ Errore nel salvataggio');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore nel salvataggio');
+      }
     } finally {
       setSaving(false);
     }
@@ -67,33 +58,26 @@ const ImpostazioniDiocesi = () => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch(`/api/admin/impostazioni-diocesi/upload/${tipo}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+      await api.post(`/api/admin/impostazioni-diocesi/upload/${tipo}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-      if (res.ok) {
-        await fetchImpostazioni();
-      } else {
-        alert('❌ Errore upload');
-      }
+      await fetchImpostazioni();
     } catch (error) {
-      alert('❌ Errore: ' + error.message);
+      if (error.response && error.response.status !== 401) {
+        alert('Errore upload');
+      }
     }
   };
 
   const eliminaFile = async (tipo) => {
     if (!confirm('Eliminare questo file?')) return;
     try {
-      const res = await fetch(`/api/admin/impostazioni-diocesi/file/${tipo}`, {
-        method: 'DELETE',
-        headers
-      });
-      if (res.ok) {
-        await fetchImpostazioni();
-      }
+      await api.delete(`/api/admin/impostazioni-diocesi/file/${tipo}`);
+      await fetchImpostazioni();
     } catch (error) {
-      alert('❌ Errore eliminazione');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore eliminazione');
+      }
     }
   };
 

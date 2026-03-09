@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
+import api from '../../services/api';
 
 const ListaRendiconti = () => {
   const navigate = useNavigate();
@@ -9,21 +10,14 @@ const ListaRendiconti = () => {
   const [motivoDettaglio, setMotivoDettaglio] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = sessionStorage.getItem('token');
-  const enteId = sessionStorage.getItem('ente_id');
-  const headers = { 'Authorization': `Bearer ${token}`, 'X-Ente-Id': enteId };
-
   useEffect(() => {
     caricaRendiconti();
   }, []);
 
   const caricaRendiconti = async () => {
     try {
-      const res = await fetch('/api/contabilita/rendiconti', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setRendiconti(data.rendiconti || []);
-      }
+      const res = await api.get('/api/contabilita/rendiconti');
+      setRendiconti(res.data.rendiconti || []);
     } catch (error) {
     } finally {
       setLoading(false);
@@ -32,17 +26,8 @@ const ListaRendiconti = () => {
 
   const visualizzaMotivo = async (rendiconto) => {
     try {
-      const response = await fetch(
-        `/api/contabilita/rendiconti/${rendiconto.id}`,
-        { headers }
-      );
-
-      if (!response.ok) {
-        throw new Error('Errore caricamento dettagli');
-      }
-
-      const data = await response.json();
-      setMotivoDettaglio(data);
+      const response = await api.get(`/api/contabilita/rendiconti/${rendiconto.id}`);
+      setMotivoDettaglio(response.data);
       setShowMotivoModal(true);
     } catch (error) {
       alert('Errore nel caricamento dei dettagli');
@@ -55,40 +40,30 @@ const ListaRendiconti = () => {
     }
 
     try {
-      const response = await fetch(
-        `/api/contabilita/rendiconti/${rendicontoId}`,
-        {
-          method: 'DELETE',
-          headers
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Errore eliminazione');
-      }
-
+      await api.delete(`/api/contabilita/rendiconti/${rendicontoId}`);
       alert('Rendiconto eliminato con successo');
       setShowMotivoModal(false);
       caricaRendiconti();
     } catch (error) {
-      alert('Errore nell\'eliminazione del rendiconto');
+      if (error.response && error.response.status !== 401) {
+        alert('Errore nell\'eliminazione del rendiconto');
+      }
     }
   };
 
   const downloadPdf = async (rendicontoId) => {
     try {
-      const res = await fetch(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, { headers });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `rendiconto_${rendicontoId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      const res = await api.get(`/api/contabilita/rendiconti/${rendicontoId}/pdf`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rendiconto_${rendicontoId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
     }
   };
