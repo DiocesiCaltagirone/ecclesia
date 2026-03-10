@@ -804,13 +804,40 @@ def create_categoria(
     categoria_id = str(uuid.uuid4())
     
     # Genera codice automatico progressivo
-    codice_query = """
-        SELECT COALESCE(MAX(CAST(NULLIF(codice, '') AS INTEGER)), 0) + 1 as next_code
-        FROM piano_conti
-        WHERE ente_id = :ente_id AND codice ~ '^[0-9]+$'
-    """
-    result = db.execute(text(codice_query), {"ente_id": ente_id}).fetchone()
-    next_code = str(result[0]).zfill(3) if result else '001'
+    if not data.get("parent_id"):
+        # Categoria radice: prossimo intero disponibile
+        codice_query = """
+            SELECT COALESCE(MAX(CAST(codice AS INTEGER)), 0) + 1
+            FROM piano_conti
+            WHERE ente_id = :ente_id AND codice ~ '^[0-9]+$'
+        """
+        result = db.execute(text(codice_query), {"ente_id": ente_id}).fetchone()
+        next_code = str(result[0]) if result else '1'
+    else:
+        # Sottocategoria: codice_padre.N
+        padre_query = "SELECT codice FROM piano_conti WHERE id = :parent_id"
+        padre_result = db.execute(text(padre_query), {"parent_id": data["parent_id"]}).fetchone()
+        codice_padre = padre_result[0] if padre_result else '0'
+
+        import re
+        figli_query = """
+            SELECT codice FROM piano_conti
+            WHERE ente_id = :ente_id
+              AND (categoria_padre_id = :parent_id OR conto_padre_id = :parent_id)
+              AND codice ~ :pattern
+        """
+        pattern = '^' + re.escape(codice_padre) + r'\.[0-9]+$'
+        figli = db.execute(text(figli_query), {
+            "ente_id": ente_id,
+            "parent_id": data["parent_id"],
+            "pattern": pattern
+        }).fetchall()
+
+        if figli:
+            max_figlio = max(int(f[0].split('.')[-1]) for f in figli)
+            next_code = codice_padre + '.' + str(max_figlio + 1)
+        else:
+            next_code = codice_padre + '.1'
     
     # Calcola livello gerarchico
     livello = 1
