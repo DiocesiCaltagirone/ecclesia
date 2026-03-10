@@ -654,19 +654,54 @@ def stampa_piano_conti_pdf(
     ).fetchone()
     nome_ente = ente_row[0] if ente_row else "Parrocchia"
 
-    # Recupera categorie filtrate per livello
-    placeholders = ",".join([str(l) for l in livelli_lista])
-    query = text(f"""
-        SELECT codice, descrizione, livello,
+    # Recupera TUTTE le categorie (l'albero viene costruito in Python)
+    query = text("""
+        SELECT id, codice, descrizione, livello,
                COALESCE(categoria_padre_id, conto_padre_id) as parent_id
         FROM piano_conti
         WHERE ente_id = :ente_id
-          AND livello IN ({placeholders})
           AND (is_sistema = FALSE OR is_sistema IS NULL)
           AND attivo = TRUE
-        ORDER BY CAST(NULLIF(REGEXP_REPLACE(codice, '[^0-9.]', '', 'g'), '') AS FLOAT) NULLS LAST, codice
+        ORDER BY codice
     """)
-    categorie = db.execute(query, {"ente_id": ente_id}).fetchall()
+    righe = db.execute(query, {"ente_id": ente_id}).fetchall()
+
+    # Costruisci albero gerarchico in Python
+    from collections import defaultdict
+
+    nodi = {}
+    figli = defaultdict(list)
+    for row in righe:
+        cat_id = str(row[0])
+        nodi[cat_id] = {
+            "id": cat_id,
+            "codice": row[1] or "",
+            "descrizione": row[2] or "",
+            "livello": row[3] or 1,
+            "parent_id": str(row[4]) if row[4] else None
+        }
+
+    for cat_id, cat in nodi.items():
+        figli[cat.get("parent_id")].append(cat)
+
+    # Ordinamento naturale: splitta per "." e confronta ogni segmento come intero
+    def sort_key(cat):
+        codice = cat["codice"]
+        try:
+            return [int(p) for p in codice.split(".")]
+        except (ValueError, AttributeError):
+            return [999999]
+
+    # Visita ricorsiva dell'albero: padre → figli ordinati
+    def walk(parent_id=None):
+        risultato = []
+        for cat in sorted(figli.get(parent_id, []), key=sort_key):
+            if cat["livello"] in livelli_lista:
+                risultato.append(cat)
+            risultato.extend(walk(cat["id"]))
+        return risultato
+
+    categorie_ordinate = walk(None)
 
     # Genera PDF
     buffer = BytesIO()
@@ -733,10 +768,10 @@ def stampa_piano_conti_pdf(
     ))
     elements.append(Spacer(1, 0.5*cm))
 
-    for cat in categorie:
-        codice = cat[0] or ""
-        descrizione = cat[1] or ""
-        livello = cat[2] or 1
+    for cat in categorie_ordinate:
+        codice = cat["codice"]
+        descrizione = cat["descrizione"]
+        livello = cat["livello"]
         testo = f"{codice} — {descrizione}" if codice else descrizione
         style = stili.get(livello, style_l1)
         elements.append(Paragraph(testo, style))
