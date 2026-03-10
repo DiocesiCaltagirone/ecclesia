@@ -137,6 +137,10 @@ Creare `frontend/src/utils/auth.js` con funzione `logout(navigate)`.
 - Bug: POST categorie generava codici globali zfill(3) (020, 021...) ignorando parent_id
 - Fix: radici → intero puro (21, 22...); sottocategorie → codice_padre.N (1.9, 13.8...)
 
+### ✅ Fix allegati nome_originale (commit 7321643)
+- Bug: colonna nome_originale mancante in produzione su movimenti_allegati
+- Fix: migration add_nome_originale_allegati.sql
+
 ### Blocco 4.3 ⬜ DA FARE
 Completare `frontend/src/utils/formatters.js` aggiungendo formatDate() e formatDateTime().
 7 implementazioni sparse: CardBattesimo/Cresima/PrimaComunione/Matrimonio.jsx, ContabilitaLayout.jsx, MovimentiConto.jsx, MovimentiGenerale.jsx

@@ -809,3 +809,7 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 **Fix codice automatico categorie** (commit e834c31):
 - Bug: POST /api/contabilita/categorie generava codici globali zfill(3) (020, 021...) ignorando parent_id
 - Fix: radici → prossimo intero puro (21, 22...); sottocategorie → codice_padre.N (1.9, 13.8...)
+
+**Fix allegati nome_originale** (commit 7321643):
+- Bug: in produzione mancava colonna nome_originale su movimenti_allegati
+- Fix: migration add_nome_originale_allegati.sql (ADD COLUMN IF NOT EXISTS + UPDATE da nome_file)
