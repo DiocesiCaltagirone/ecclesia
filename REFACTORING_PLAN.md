@@ -254,3 +254,26 @@ Dopo ogni blocco di lavoro con Claude Code:
 
 **Mai dare a Claude Code più di un blocco alla volta.**
 **Sempre leggere entrambi i file prima di iniziare una sessione.**
+
+---
+
+## MODULO RENDICONTI — Migliorie UI/UX (DA FARE)
+
+### Blocco R.1 — Badge e modal respingimento
+- Badge "Respinto" → aggiungere sotto "Clicca per vedere le osservazioni"
+- Sostituire "Elimina Rendiconto" con "Correggi Rendiconto"
+- Correggi → riporta stato a "parrocchia", documenti intatti
+- Tempo stimato: 1 ora
+
+### Blocco R.2 — Gestione eliminazione
+- Stato "Parrocchia": "Elimina solo rendiconto" (documenti rimangono, conti tornano attivi)
+- "Elimina tutto" → elimina rendiconto + documenti + file su disco
+- Tempo stimato: 1 ora
+
+### Blocco R.3 — Gestione allegati
+- Visualizza lista documenti caricati
+- Scarica singolo allegato
+- Elimina singolo allegato
+- Tempo stimato: 2 ore
+
+**Totale stimato: 4-5 ore — da fare in una sessione**
