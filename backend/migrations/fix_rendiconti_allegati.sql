@@ -9,3 +9,7 @@ UPDATE rendiconti_allegati SET file_size = dimensione_kb WHERE file_size IS NULL
 
 ALTER TABLE rendiconti_allegati ALTER COLUMN path_file DROP NOT NULL;
 ALTER TABLE rendiconti_allegati ALTER COLUMN nome_file DROP NOT NULL;
+
+-- Fix tabella rendiconti_documenti
+ALTER TABLE rendiconti_documenti ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+UPDATE rendiconti_documenti SET created_at = uploaded_at WHERE created_at IS NULL;
