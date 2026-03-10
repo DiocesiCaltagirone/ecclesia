@@ -229,9 +229,16 @@ async def download_pdf_rendiconto(
         cur.execute("""
             SELECT r.pdf_path, r.periodo_inizio, r.periodo_fine
             FROM rendiconti r
-            JOIN utenti_enti ue ON r.ente_id = ue.ente_id
-            WHERE r.id = %s AND ue.utente_id = %s
-        """, (str(rendiconto_id), current_user['user_id']))
+            WHERE r.id = %s
+            AND (
+                EXISTS (
+                    SELECT 1 FROM utenti_enti ue
+                    WHERE ue.ente_id = r.ente_id
+                    AND ue.utente_id = %s
+                )
+                OR %s = TRUE
+            )
+        """, (str(rendiconto_id), current_user['user_id'], current_user.get('is_economo', False)))
         
         row = cur.fetchone()
         if not row:
