@@ -798,3 +798,10 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Creato utils/auth.js con funzione logout(navigate)
 - 4 file aggiornati: Layout, ContabilitaLayout, HeaderAmministrazione, Amministrazione
 - Variante incompleta (removeItem x3) sostituita con sessionStorage.clear() ovunque
+
+**Fix stampa PDF piano dei conti** (commit b4f5e37):
+- Bug: categorie con codici 020-055 finivano fuori posto nel PDF
+- Causa: ORDER BY CAST AS FLOAT trattava "020" come 20.0 invece di raggrupparlo col suo padre tramite parent_id
+- Fix: albero gerarchico costruito in Python con walk() ricorsivo
+- Ordinamento naturale: split per "." → confronto per segmenti interi
+- Query semplificata: rimosso filtro livello IN (...) e CAST AS FLOAT

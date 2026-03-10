@@ -127,6 +127,12 @@ Creare `frontend/src/utils/auth.js` con funzione `logout(navigate)`.
 4 implementazioni diverse da unificare: Layout.jsx, ContabilitaLayout.jsx, HeaderAmministrazione.jsx, Amministrazione.jsx
 - **Tempo stimato**: 1 ora
 
+### ✅ Fix stampa PDF piano dei conti (commit b4f5e37)
+- Bug: categorie con codici 020-055 fuori posto nel PDF
+- Causa: ORDER BY CAST AS FLOAT trattava "020" come 20.0
+- Fix: albero gerarchico in Python con walk() ricorsivo
+- Query semplificata: rimosso filtro livello IN (...) e CAST AS FLOAT
+
 ### Blocco 4.3 ⬜ DA FARE
 Completare `frontend/src/utils/formatters.js` aggiungendo formatDate() e formatDateTime().
 7 implementazioni sparse: CardBattesimo/Cresima/PrimaComunione/Matrimonio.jsx, ContabilitaLayout.jsx, MovimentiConto.jsx, MovimentiGenerale.jsx
