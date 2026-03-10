@@ -810,6 +810,21 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Bug: POST /api/contabilita/categorie generava codici globali zfill(3) (020, 021...) ignorando parent_id
 - Fix: radici → prossimo intero puro (21, 22...); sottocategorie → codice_padre.N (1.9, 13.8...)
 
-**Fix allegati nome_originale** (commit 7321643):
-- Bug: in produzione mancava colonna nome_originale su movimenti_allegati
-- Fix: migration add_nome_originale_allegati.sql (ADD COLUMN IF NOT EXISTS + UPDATE da nome_file)
+**Fix allegati movimenti** (commit 693d78a):
+- Aggiunte colonne mancanti in movimenti_allegati: nome_originale, percorso, path_file NOT NULL rimosso
+
+**Fix allegati rendiconti** (commit 72f281f + hotfix):
+- Aggiunte colonne mancanti in rendiconti_allegati: filename, filepath, mime_type, file_size
+- Aggiunta created_at in rendiconti_documenti
+- Upload documenti rendiconto ora funzionante
+
+**Fix download PDF rendiconto economo** (commit d9438b7):
+- Economo diocesano bypassava controllo utenti_enti
+- Fix: OR is_economo = TRUE nella query permessi
+
+**DA FARE — Modulo Rendiconti migliorie UI/UX:**
+- Badge Respinto migliorato
+- Flusso Correggi/Reinvia
+- Elimina solo rendiconto vs Elimina tutto
+- Gestione allegati (visualizza/scarica/elimina)
+- Vedi REFACTORING_PLAN.md sezione "MODULO RENDICONTI"
