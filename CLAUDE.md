@@ -805,3 +805,7 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Fix: albero gerarchico costruito in Python con walk() ricorsivo
 - Ordinamento naturale: split per "." → confronto per segmenti interi
 - Query semplificata: rimosso filtro livello IN (...) e CAST AS FLOAT
+
+**Fix codice automatico categorie** (commit e834c31):
+- Bug: POST /api/contabilita/categorie generava codici globali zfill(3) (020, 021...) ignorando parent_id
+- Fix: radici → prossimo intero puro (21, 22...); sottocategorie → codice_padre.N (1.9, 13.8...)

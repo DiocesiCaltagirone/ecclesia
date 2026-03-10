@@ -133,6 +133,10 @@ Creare `frontend/src/utils/auth.js` con funzione `logout(navigate)`.
 - Fix: albero gerarchico in Python con walk() ricorsivo
 - Query semplificata: rimosso filtro livello IN (...) e CAST AS FLOAT
 
+### ✅ Fix codice automatico categorie (commit e834c31)
+- Bug: POST categorie generava codici globali zfill(3) (020, 021...) ignorando parent_id
+- Fix: radici → intero puro (21, 22...); sottocategorie → codice_padre.N (1.9, 13.8...)
+
 ### Blocco 4.3 ⬜ DA FARE
 Completare `frontend/src/utils/formatters.js` aggiungendo formatDate() e formatDateTime().
 7 implementazioni sparse: CardBattesimo/Cresima/PrimaComunione/Matrimonio.jsx, ContabilitaLayout.jsx, MovimentiConto.jsx, MovimentiGenerale.jsx
