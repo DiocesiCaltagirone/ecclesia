@@ -50,14 +50,29 @@ const ListaRendiconti = () => {
     }
   };
 
-  const eliminaRendiconto = async (rendicontoId) => {
-    if (!confirm('Sei sicuro di voler eliminare questo rendiconto?')) {
+  const eliminaSoloRendiconto = async (rendicontoId) => {
+    if (!confirm('Vuoi eliminare solo il rendiconto?\n\nI movimenti verranno sbloccati.\nI documenti allegati resteranno sul server.')) {
       return;
     }
-
     try {
-      await api.delete(`/api/contabilita/rendiconti/${rendicontoId}`);
-      alert('Rendiconto eliminato con successo');
+      await api.delete(`/api/contabilita/rendiconti/${rendicontoId}?elimina_documenti=false`);
+      alert('Rendiconto eliminato. I documenti sono stati mantenuti.');
+      setShowMotivoModal(false);
+      caricaRendiconti();
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
+        alert('Errore nell\'eliminazione del rendiconto');
+      }
+    }
+  };
+
+  const eliminaTutto = async (rendicontoId) => {
+    if (!confirm('Vuoi eliminare il rendiconto E tutti i documenti allegati?\n\nQuesta azione è irreversibile.')) {
+      return;
+    }
+    try {
+      await api.delete(`/api/contabilita/rendiconti/${rendicontoId}?elimina_documenti=true`);
+      alert('Rendiconto e documenti eliminati con successo.');
       setShowMotivoModal(false);
       caricaRendiconti();
     } catch (error) {
@@ -207,14 +222,25 @@ const ListaRendiconti = () => {
                         </svg>
                       </button>
 
-                      {/* Elimina solo se PARROCCHIA o RESPINTO */}
+                      {/* Elimina solo rendiconto (solo PARROCCHIA) */}
+                      {rend.stato === 'parrocchia' && (
+                        <button
+                          onClick={() => eliminaSoloRendiconto(rend.id)}
+                          className="text-orange-600 hover:text-orange-800 text-sm font-semibold"
+                          title="Elimina solo il rendiconto, i documenti restano"
+                        >
+                          📄 Elimina rendiconto
+                        </button>
+                      )}
+
+                      {/* Elimina tutto (PARROCCHIA o RESPINTO) */}
                       {(rend.stato === 'parrocchia' || rend.stato === 'respinto') && (
                         <button
-                          onClick={() => eliminaRendiconto(rend.id)}
-                          className="text-red-600 hover:text-red-800 text-xl"
-                          title={`Elimina rendiconto (sblocca movimenti)`}
+                          onClick={() => eliminaTutto(rend.id)}
+                          className="text-red-600 hover:text-red-800 text-sm font-semibold"
+                          title="Elimina rendiconto e tutti i documenti allegati"
                         >
-                          🗑️
+                          🗑️ Elimina tutto
                         </button>
                       )}
 

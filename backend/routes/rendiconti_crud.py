@@ -478,11 +478,14 @@ async def get_rendiconto(
 @router.delete("/rendiconti/{rendiconto_id}")
 async def elimina_rendiconto(
     rendiconto_id: UUID,
+    elimina_documenti: bool = True,
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Elimina un rendiconto (solo se in stato 'bozza' o 'respinto')
-    🆕 SBLOCCA movimenti e ELIMINA saldi iniziali
+    Elimina un rendiconto (solo se in stato 'parrocchia' o 'respinto')
+    - elimina_documenti=True: elimina anche file fisici dal disco
+    - elimina_documenti=False: elimina rendiconto ma lascia file su disco
+    SBLOCCA movimenti e ELIMINA saldi iniziali in entrambi i casi
     """
     conn = get_db_connection()
     cur = conn.cursor()
@@ -529,16 +532,17 @@ async def elimina_rendiconto(
         
         saldi_eliminati = cur.rowcount
         
-        # Elimina documenti fisici
-        cur.execute("""
-            SELECT path_storage FROM rendiconti_documenti
-            WHERE rendiconto_id = %s
-        """, (str(rendiconto_id),))
-        
-        documenti = cur.fetchall()
-        for doc in documenti:
-            if os.path.exists(doc[0]):
-                os.remove(doc[0])
+        # Elimina documenti fisici (solo se richiesto)
+        if elimina_documenti:
+            cur.execute("""
+                SELECT path_storage FROM rendiconti_documenti
+                WHERE rendiconto_id = %s
+            """, (str(rendiconto_id),))
+
+            documenti = cur.fetchall()
+            for doc in documenti:
+                if doc[0] and os.path.exists(doc[0]):
+                    os.remove(doc[0])
         
         # Registra audit PRIMA di eliminare
         registra_audit_psycopg2(
@@ -550,7 +554,7 @@ async def elimina_rendiconto(
             utente_email=current_user.get('email'),
             ente_id=ente_id,
             dati_precedenti={"stato": stato},
-            descrizione=f"Eliminazione rendiconto"
+            descrizione=f"Eliminazione rendiconto (documenti: {'eliminati' if elimina_documenti else 'mantenuti'})"
         )
         
         # Elimina il rendiconto (CASCADE elimina documenti dal DB)
