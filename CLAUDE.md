@@ -833,6 +833,8 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Bottone "Elimina rendiconto" (arancione, solo parrocchia): mantiene documenti
 - Bottone "Elimina tutto" (rosso, parrocchia o respinto): elimina tutto
 
-**DA FARE — Modulo Rendiconti migliorie UI/UX:**
-- Gestione allegati (visualizza/scarica/elimina)
-- Vedi REFACTORING_PLAN.md sezione "MODULO RENDICONTI"
+**Blocco R.3 — Gestione allegati** (commit 76a7922):
+- Bottoni "Scarica" e "Elimina" per ogni documento in NuovoRendiconto.jsx
+- Endpoint backend già esistenti, zero modifiche backend
+
+**Modulo Rendiconti UI/UX: ✅ COMPLETATO (R.1 + R.2 + R.3)**

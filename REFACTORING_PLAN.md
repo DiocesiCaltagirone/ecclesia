@@ -270,10 +270,9 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ Bottone "Elimina rendiconto" (arancione, solo parrocchia): mantiene documenti su disco
 - ✅ Bottone "Elimina tutto" (rosso, parrocchia o respinto): elimina rendiconto + file
 
-### Blocco R.3 — Gestione allegati
-- Visualizza lista documenti caricati
-- Scarica singolo allegato
-- Elimina singolo allegato
-- Tempo stimato: 2 ore
+### Blocco R.3 — Gestione allegati ✅ (commit 76a7922)
+- ✅ Bottoni "Scarica" e "Elimina" per ogni documento caricato in NuovoRendiconto.jsx
+- ✅ Funzioni downloadDocumento e eliminaDocumento (endpoint backend già esistenti)
+- ✅ Dopo eliminazione, ricarica lista documenti e aggiorna contatore
 
-**Totale stimato: 4-5 ore — da fare in una sessione**
+**Modulo Rendiconti UI/UX: ✅ COMPLETATO (R.1 + R.2 + R.3)**
