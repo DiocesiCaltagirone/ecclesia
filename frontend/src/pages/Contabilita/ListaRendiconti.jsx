@@ -34,6 +34,22 @@ const ListaRendiconti = () => {
     }
   };
 
+  const correggiRendiconto = async (rendicontoId) => {
+    if (!confirm('Vuoi correggere il rendiconto? Lo stato tornerà a "Parrocchia" e potrai modificarlo.')) {
+      return;
+    }
+    try {
+      await api.post(`/api/contabilita/rendiconti/${rendicontoId}/correggi`);
+      alert('Rendiconto riportato in stato Parrocchia. Puoi ora modificarlo e reinviarlo.');
+      setShowMotivoModal(false);
+      caricaRendiconti();
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
+        alert('Errore nella correzione del rendiconto');
+      }
+    }
+  };
+
   const eliminaRendiconto = async (rendicontoId) => {
     if (!confirm('Sei sicuro di voler eliminare questo rendiconto?')) {
       return;
@@ -91,13 +107,21 @@ const ListaRendiconti = () => {
         </span>
       ),
       'respinto': (
-        <button
-          onClick={() => visualizzaMotivo(rendiconto)}
-          className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold hover:bg-red-200 cursor-pointer"
-          title="Clicca per vedere il motivo"
-        >
-          ❌ Respinto
-        </button>
+        <div className="flex flex-col items-start gap-1">
+          <button
+            onClick={() => visualizzaMotivo(rendiconto)}
+            className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold hover:bg-red-200 cursor-pointer"
+            title="Clicca per vedere il motivo"
+          >
+            ❌ Respinto
+          </button>
+          <button
+            onClick={() => visualizzaMotivo(rendiconto)}
+            className="text-xs text-red-500 hover:text-red-700 hover:underline cursor-pointer ml-1"
+          >
+            Clicca per vedere le osservazioni
+          </button>
+        </div>
       )
     };
 
@@ -274,10 +298,10 @@ const ListaRendiconti = () => {
                 Chiudi
               </button>
               <button
-                onClick={() => eliminaRendiconto(motivoDettaglio.id)}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={() => correggiRendiconto(motivoDettaglio.id)}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
               >
-                🗑️ Elimina Rendiconto
+                ✏️ Correggi Rendiconto
               </button>
             </div>
           </div>

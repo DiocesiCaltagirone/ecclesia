@@ -575,6 +575,79 @@ async def elimina_rendiconto(
         conn.close()
 
 # ============================================
+# CORREGGI RENDICONTO (respinto → parrocchia)
+# ============================================
+
+@router.post("/rendiconti/{rendiconto_id}/correggi")
+async def correggi_rendiconto(
+    rendiconto_id: UUID,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Riporta un rendiconto respinto allo stato 'parrocchia' per correzione.
+    I documenti e i movimenti bloccati restano intatti.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            SELECT r.id, r.stato, r.ente_id
+            FROM rendiconti r
+            JOIN utenti_enti ue ON r.ente_id = ue.ente_id
+            WHERE r.id = %s AND ue.utente_id = %s
+        """, (str(rendiconto_id), current_user['user_id']))
+
+        rendiconto = cur.fetchone()
+        if not rendiconto:
+            raise HTTPException(status_code=404, detail="Rendiconto non trovato")
+
+        if rendiconto[1] != StatoRendiconto.RESPINTO:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Solo i rendiconti respinti possono essere corretti. Stato attuale: {rendiconto[1]}"
+            )
+
+        registra_audit_psycopg2(
+            cur=cur,
+            azione="UPDATE",
+            tabella="rendiconti",
+            record_id=str(rendiconto_id),
+            utente_id=current_user.get('user_id'),
+            utente_email=current_user.get('email'),
+            ente_id=rendiconto[2],
+            dati_precedenti={"stato": StatoRendiconto.RESPINTO},
+            dati_nuovi={"stato": StatoRendiconto.PARROCCHIA},
+            descrizione="Correzione rendiconto respinto"
+        )
+
+        cur.execute("""
+            UPDATE rendiconti
+            SET stato = 'parrocchia',
+                updated_at = NOW()
+            WHERE id = %s
+        """, (str(rendiconto_id),))
+
+        conn.commit()
+
+        return {
+            "message": "Rendiconto riportato in stato Parrocchia. Puoi ora modificarlo e reinviarlo.",
+            "id": str(rendiconto_id),
+            "nuovo_stato": StatoRendiconto.PARROCCHIA
+        }
+
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Errore: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
 # ENDPOINT ECONOMO DIOCESANO
 # ============================================
 
