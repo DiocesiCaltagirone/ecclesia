@@ -257,13 +257,13 @@ Dopo ogni blocco di lavoro con Claude Code:
 
 ---
 
-## MODULO RENDICONTI — Migliorie UI/UX (DA FARE)
+## MODULO RENDICONTI — Migliorie UI/UX
 
-### Blocco R.1 — Badge e modal respingimento
-- Badge "Respinto" → aggiungere sotto "Clicca per vedere le osservazioni"
-- Sostituire "Elimina Rendiconto" con "Correggi Rendiconto"
-- Correggi → riporta stato a "parrocchia", documenti intatti
-- Tempo stimato: 1 ora
+### Blocco R.1 — Badge e modal respingimento ✅ (commits 446520b, e782fee)
+- ✅ Badge "Respinto" → aggiunto sotto "Clicca per vedere le osservazioni"
+- ✅ Sostituito "Elimina Rendiconto" con "Correggi Rendiconto" (bottone arancione)
+- ✅ Nuovo endpoint POST /rendiconti/{id}/correggi (respinto → parrocchia, documenti intatti)
+- ✅ Fix GestioneUtenti.jsx: if/else orfano da migrazione fetch→axios (blocco 4.1)
 
 ### Blocco R.2 — Gestione eliminazione
 - Stato "Parrocchia": "Elimina solo rendiconto" (documenti rimangono, conti tornano attivi)

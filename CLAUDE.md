@@ -822,9 +822,13 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Economo diocesano bypassava controllo utenti_enti
 - Fix: OR is_economo = TRUE nella query permessi
 
+**Blocco R.1 — Correggi rendiconto respinto** (commits 446520b, e782fee):
+- Badge Respinto: aggiunto testo "Clicca per vedere le osservazioni" sotto il badge
+- Modal: bottone "Elimina Rendiconto" sostituito con "Correggi Rendiconto" (arancione)
+- Nuovo endpoint POST /rendiconti/{id}/correggi (respinto → parrocchia, documenti intatti)
+- Fix GestioneUtenti.jsx: if/else orfano da migrazione fetch→axios (blocco 4.1)
+
 **DA FARE — Modulo Rendiconti migliorie UI/UX:**
-- Badge Respinto migliorato
-- Flusso Correggi/Reinvia
 - Elimina solo rendiconto vs Elimina tutto
 - Gestione allegati (visualizza/scarica/elimina)
 - Vedi REFACTORING_PLAN.md sezione "MODULO RENDICONTI"
