@@ -265,10 +265,10 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ Nuovo endpoint POST /rendiconti/{id}/correggi (respinto → parrocchia, documenti intatti)
 - ✅ Fix GestioneUtenti.jsx: if/else orfano da migrazione fetch→axios (blocco 4.1)
 
-### Blocco R.2 — Gestione eliminazione
-- Stato "Parrocchia": "Elimina solo rendiconto" (documenti rimangono, conti tornano attivi)
-- "Elimina tutto" → elimina rendiconto + documenti + file su disco
-- Tempo stimato: 1 ora
+### Blocco R.2 — Gestione eliminazione ✅ (commit b5a308c)
+- ✅ DELETE /rendiconti/{id} con parametro ?elimina_documenti=true/false
+- ✅ Bottone "Elimina rendiconto" (arancione, solo parrocchia): mantiene documenti su disco
+- ✅ Bottone "Elimina tutto" (rosso, parrocchia o respinto): elimina rendiconto + file
 
 ### Blocco R.3 — Gestione allegati
 - Visualizza lista documenti caricati

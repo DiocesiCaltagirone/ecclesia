@@ -828,7 +828,11 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Nuovo endpoint POST /rendiconti/{id}/correggi (respinto → parrocchia, documenti intatti)
 - Fix GestioneUtenti.jsx: if/else orfano da migrazione fetch→axios (blocco 4.1)
 
+**Blocco R.2 — Gestione eliminazione** (commit b5a308c):
+- DELETE /rendiconti/{id} con parametro ?elimina_documenti=true/false
+- Bottone "Elimina rendiconto" (arancione, solo parrocchia): mantiene documenti
+- Bottone "Elimina tutto" (rosso, parrocchia o respinto): elimina tutto
+
 **DA FARE — Modulo Rendiconti migliorie UI/UX:**
-- Elimina solo rendiconto vs Elimina tutto
 - Gestione allegati (visualizza/scarica/elimina)
 - Vedi REFACTORING_PLAN.md sezione "MODULO RENDICONTI"
