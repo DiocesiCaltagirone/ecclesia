@@ -234,24 +234,22 @@ const GestioneUtenti = () => {
         }
       }
 
-        fetchUtenti();
-        setShowModalNuovo(false);
-        setFormData({
-          username: '',
-          email: '',
-          password: '',
-          titolo: '',
-          nome: '',
-          cognome: ''
-        });
-        setEntiSelezionati([{ ruolo: '', citta: '', ente_id: '' }]);
-        alert('Utente creato con successo!');
-      } else {
-        const errorData = await response.json();
-        alert(`Errore: ${errorData.detail || 'Errore durante la creazione'}`);
-      }
+      fetchUtenti();
+      setShowModalNuovo(false);
+      setFormData({
+        username: '',
+        email: '',
+        password: '',
+        titolo: '',
+        nome: '',
+        cognome: ''
+      });
+      setEntiSelezionati([{ ruolo: '', citta: '', ente_id: '' }]);
+      alert('Utente creato con successo!');
     } catch (error) {
-      alert('Errore di connessione');
+      if (error.response && error.response.status !== 401) {
+        alert(`Errore: ${error.response?.data?.detail || 'Errore durante la creazione'}`);
+      }
     } finally {
       setSaving(false);
     }
