@@ -181,6 +181,38 @@ const NuovoRendiconto = () => {
     }
   };
 
+  const downloadDocumento = async (docId, nomeFile) => {
+    try {
+      const res = await api.get(`/api/contabilita/rendiconti/documenti/${docId}/download`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nomeFile;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
+        alert('Errore nel download del documento');
+      }
+    }
+  };
+
+  const eliminaDocumento = async (docId, nomeDoc) => {
+    if (!confirm(`Vuoi eliminare "${nomeDoc}"?`)) return;
+    try {
+      await api.delete(`/api/contabilita/rendiconti/documenti/${docId}`);
+      await caricaDocumenti(rendicontoId);
+    } catch (error) {
+      if (error.response && error.response.status !== 401) {
+        alert('Errore: ' + (error.response?.data?.detail || 'Impossibile eliminare'));
+      }
+    }
+  };
+
   const handleEliminaBozza = async () => {
     if (!window.confirm('Sei sicuro di voler eliminare questo rendiconto? I movimenti verranno sbloccati.')) {
       return;
@@ -412,7 +444,23 @@ const NuovoRendiconto = () => {
                       </h4>
                       <p className="text-xs text-gray-500 mb-1">{tipo.descrizione}</p>
                       {caricato ? (
-                        <p className="text-xs text-green-600 truncate">✓ {caricato.nome_file}</p>
+                        <div>
+                          <p className="text-xs text-green-600 truncate">✓ {caricato.nome_file}</p>
+                          <div className="flex gap-2 mt-1">
+                            <button
+                              onClick={() => downloadDocumento(caricato.id, caricato.nome_file)}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Scarica
+                            </button>
+                            <button
+                              onClick={() => eliminaDocumento(caricato.id, tipo.label)}
+                              className="text-xs text-red-600 hover:underline"
+                            >
+                              Elimina
+                            </button>
+                          </div>
+                        </div>
                       ) : (
                         <label className="inline-block mt-1">
                           <input
