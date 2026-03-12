@@ -838,3 +838,10 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Endpoint backend già esistenti, zero modifiche backend
 
 **Modulo Rendiconti UI/UX: ✅ COMPLETATO (R.1 + R.2 + R.3)**
+
+### Modulo Inventario (IN CORSO)
+
+**INV.1 — Migration DB** (commit 310d8fd):
+- 6 tabelle create: inventario_categorie, inventario_ubicazioni, beni_inventario, inventario_foto, inventario_registri, inventario_storico
+- Seed: 17 categorie predefinite + 9 ubicazioni per ogni ente
+- Specifica completa in INVENTARIO_SPEC.md

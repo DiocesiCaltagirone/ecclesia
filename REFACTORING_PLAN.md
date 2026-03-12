@@ -276,3 +276,23 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ Dopo eliminazione, ricarica lista documenti e aggiorna contatore
 
 **Modulo Rendiconti UI/UX: ✅ COMPLETATO (R.1 + R.2 + R.3)**
+
+---
+
+## MODULO INVENTARIO — Sviluppo (vedi INVENTARIO_SPEC.md)
+
+### INV.1 — Migration DB ✅ (commit 310d8fd)
+- ✅ 6 tabelle: inventario_categorie, inventario_ubicazioni, beni_inventario, inventario_foto, inventario_registri, inventario_storico
+- ✅ Seed 17 categorie predefinite (is_sistema) + 9 ubicazioni per ogni ente
+- ✅ CREATE TABLE IF NOT EXISTS migrations_history in testa al file
+- ✅ Droppata vecchia tabella beni_inventario (schema incompatibile, 0 righe)
+
+### INV.2 — Backend CRUD beni + categorie + ubicazioni ⬜ DA FARE
+### INV.3 — Backend upload foto (MinIO) ⬜ DA FARE
+### INV.4 — Backend registri + storico ⬜ DA FARE
+### INV.5 — Backend PDF ⬜ DA FARE
+### INV.6 — Frontend Layout + ListaBeni ⬜ DA FARE
+### INV.7 — Frontend SchedaBene + foto ⬜ DA FARE
+### INV.8 — Frontend Registri + Storico ⬜ DA FARE
+### INV.9 — Frontend Impostazioni ⬜ DA FARE
+### INV.10 — Test completo + fix ⬜ DA FARE
