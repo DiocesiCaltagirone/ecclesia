@@ -213,22 +213,6 @@ async def genera_registro(
 
 
 # ============================================
-# REGISTRI — PDF (placeholder)
-# ============================================
-
-@router.get("/registri/{registro_id}/pdf")
-async def get_registro_pdf(
-    registro_id: UUID,
-    current_user: dict = Depends(get_current_user),
-    x_ente_id: str = Header(None, alias="X-Ente-Id")
-):
-    raise HTTPException(
-        status_code=501,
-        detail="Generazione PDF disponibile con INV.5"
-    )
-
-
-# ============================================
 # STORICO — LISTA CON FILTRI
 # ============================================
 
@@ -294,16 +278,3 @@ async def get_storico(
         conn.close()
 
 
-# ============================================
-# STORICO — PDF (placeholder)
-# ============================================
-
-@router.get("/storico/pdf")
-async def get_storico_pdf(
-    current_user: dict = Depends(get_current_user),
-    x_ente_id: str = Header(None, alias="X-Ente-Id")
-):
-    raise HTTPException(
-        status_code=501,
-        detail="Generazione PDF disponibile con INV.5"
-    )

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: A4 landscape;
+        margin: 15mm 12mm 20mm 12mm;
+        @bottom-center {
+            content: "Pagina " counter(page) " di " counter(pages);
+            font-size: 7pt;
+            color: #888;
+        }
+    }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 8pt;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Intestazione */
+    .header {
+        text-align: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #1a365d;
+    }
+    .header img {
+        height: 45px;
+        margin-bottom: 4px;
+    }
+    .header .ente-nome {
+        font-size: 13pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin: 2px 0;
+    }
+    .header .titolo {
+        font-size: 14pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin-top: 6px;
+    }
+    .header .data-stampa {
+        font-size: 7.5pt;
+        color: #888;
+        margin-top: 2px;
+    }
+
+    /* Filtri applicati */
+    .filtri {
+        font-size: 8pt;
+        color: #666;
+        font-style: italic;
+        margin-bottom: 6px;
+    }
+
+    /* Tabella */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+    }
+    th {
+        background: #742a2a;
+        color: #fff;
+        padding: 5px 4px;
+        font-size: 7.5pt;
+        text-align: left;
+        font-weight: bold;
+    }
+    th.num { text-align: center; width: 35px; }
+    th.data { text-align: center; width: 65px; }
+    th.valore { text-align: right; width: 70px; }
+
+    td {
+        padding: 4px 4px;
+        border-bottom: 1px solid #ddd;
+        font-size: 7.5pt;
+        vertical-align: top;
+    }
+    td.num { text-align: center; }
+    td.data { text-align: center; }
+    td.valore { text-align: right; }
+
+    tr:nth-child(even) {
+        background: #fef5f5;
+    }
+
+    /* Riga totale */
+    .riga-totale td {
+        border-top: 2px solid #742a2a;
+        font-weight: bold;
+        font-size: 8pt;
+        padding-top: 6px;
+        background: none;
+    }
+
+    /* Nessun dato */
+    .no-dati {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 20px;
+        font-size: 10pt;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    {% if logo_base64 %}
+    <img src="{{ logo_base64 }}" alt="Logo">
+    {% endif %}
+    <div class="ente-nome">{{ ente.denominazione }}</div>
+    <div class="titolo">{{ titolo }}</div>
+    <div class="data-stampa">Stampato il {{ data_stampa }}</div>
+</div>
+
+{% if filtro_anno or filtro_motivo %}
+<div class="filtri">
+    Filtri applicati:
+    {% if filtro_anno %}Anno {{ filtro_anno }}{% endif %}
+    {% if filtro_anno and filtro_motivo %} — {% endif %}
+    {% if filtro_motivo %}Motivo: {{ filtro_motivo }}{% endif %}
+</div>
+{% endif %}
+
+{% if beni_rimossi %}
+<table>
+    <thead>
+        <tr>
+            <th class="num">N.</th>
+            <th>Descrizione</th>
+            <th>Categoria</th>
+            <th>Ubicazione</th>
+            <th class="valore">Valore €</th>
+            <th class="data">Data rim.</th>
+            <th>Motivo</th>
+            <th>Note</th>
+            <th>Rimosso da</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bene in beni_rimossi %}
+        <tr>
+            <td class="num">{{ bene.numero_progressivo }}</td>
+            <td>{{ bene.descrizione }}</td>
+            <td>{{ bene.categoria_nome }}</td>
+            <td>{{ bene.ubicazione_nome }}</td>
+            <td class="valore">{% if bene.valore_stimato %}{{ bene.valore_stimato|ita }}{% endif %}</td>
+            <td class="data">{{ bene.data_rimozione|data }}</td>
+            <td>{{ bene.motivo_rimozione }}</td>
+            <td>{{ bene.note_rimozione }}</td>
+            <td>{{ bene.rimosso_da }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="riga-totale">
+            <td colspan="9">Totale beni rimossi: {{ totale_rimossi }}</td>
+        </tr>
+    </tbody>
+</table>
+{% else %}
+<div class="no-dati">Nessun bene rimosso trovato{% if filtro_anno %} per l'anno {{ filtro_anno }}{% endif %}</div>
+{% endif %}
+
+</body>
+</html>

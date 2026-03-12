@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: A4 landscape;
+        margin: 15mm 12mm 20mm 12mm;
+        @bottom-center {
+            content: "Pagina " counter(page) " di " counter(pages);
+            font-size: 7pt;
+            color: #888;
+        }
+    }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 8pt;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Intestazione */
+    .header {
+        text-align: center;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #1a365d;
+    }
+    .header img {
+        height: 45px;
+        margin-bottom: 4px;
+    }
+    .header .ente-nome {
+        font-size: 13pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin: 2px 0;
+    }
+    .header .ente-indirizzo {
+        font-size: 7.5pt;
+        color: #666;
+    }
+    .header .titolo {
+        font-size: 14pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin-top: 6px;
+    }
+    .header .sottotitolo {
+        font-size: 9pt;
+        color: #888;
+        margin-top: 2px;
+    }
+
+    /* Badge bozza */
+    .badge-bozza {
+        display: inline-block;
+        background: #f6ad55;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 3px;
+        font-size: 8pt;
+        font-weight: bold;
+        margin-top: 4px;
+    }
+
+    .info-riga {
+        font-size: 8pt;
+        color: #555;
+        margin-top: 4px;
+    }
+
+    /* Tabella beni */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+    }
+    th {
+        background: #1a365d;
+        color: #fff;
+        padding: 5px 4px;
+        font-size: 7.5pt;
+        text-align: left;
+        font-weight: bold;
+    }
+    th.num { text-align: center; width: 35px; }
+    th.qta { text-align: center; width: 30px; }
+    th.valore { text-align: right; width: 75px; }
+    th.stato { text-align: center; width: 70px; }
+
+    td {
+        padding: 4px 4px;
+        border-bottom: 1px solid #ddd;
+        font-size: 7.5pt;
+        vertical-align: top;
+    }
+    td.num { text-align: center; }
+    td.qta { text-align: center; }
+    td.valore { text-align: right; }
+    td.stato { text-align: center; }
+
+    tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+
+    /* Riga totale */
+    .riga-totale td {
+        border-top: 2px solid #1a365d;
+        font-weight: bold;
+        font-size: 8pt;
+        padding-top: 6px;
+        background: none;
+    }
+
+    /* Riepilogo */
+    .riepilogo {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f0f4f8;
+        border: 1px solid #cbd5e0;
+        border-radius: 4px;
+    }
+    .riepilogo p {
+        margin: 3px 0;
+        font-size: 8.5pt;
+    }
+    .riepilogo .label {
+        font-weight: bold;
+        color: #1a365d;
+    }
+
+    /* Note */
+    .note {
+        margin-top: 10px;
+        font-size: 8pt;
+        color: #555;
+        font-style: italic;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    {% if logo_base64 %}
+    <img src="{{ logo_base64 }}" alt="Logo">
+    {% endif %}
+    <div class="ente-nome">{{ ente.denominazione }}</div>
+    <div class="ente-indirizzo">
+        {% if ente.indirizzo %}{{ ente.indirizzo }}{% endif %}
+        {% if ente.cap %} — {{ ente.cap }}{% endif %}
+        {% if ente.comune %} {{ ente.comune }}{% endif %}
+        {% if ente.provincia %} ({{ ente.provincia }}){% endif %}
+    </div>
+    <div class="titolo">{{ titolo }}</div>
+    {% if is_bozza %}
+    <span class="badge-bozza">BOZZA</span>
+    {% else %}
+    <div class="sottotitolo">{{ sottotitolo }}</div>
+    {% endif %}
+    <div class="info-riga">
+        {% if data_generazione %}Generato il {{ data_generazione }}{% endif %}
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th class="num">N.</th>
+            <th>Descrizione</th>
+            <th>Categoria</th>
+            <th>Ubicazione</th>
+            <th class="qta">Q.tà</th>
+            <th class="stato">Stato cons.</th>
+            <th class="valore">Valore €</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bene in beni %}
+        <tr>
+            <td class="num">{{ bene.numero_progressivo }}</td>
+            <td>{{ bene.descrizione }}</td>
+            <td>{{ bene.categoria_nome }}</td>
+            <td>{{ bene.ubicazione_nome }}</td>
+            <td class="qta">{{ bene.quantita }}</td>
+            <td class="stato">{{ bene.stato_conservazione }}</td>
+            <td class="valore">{% if bene.valore_stimato %}{{ bene.valore_stimato|ita }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+        <tr class="riga-totale">
+            <td colspan="4">Totale beni: {{ totale_beni }}</td>
+            <td></td>
+            <td></td>
+            <td class="valore">{{ valore_totale|ita }}</td>
+        </tr>
+    </tbody>
+</table>
+
+{% if note %}
+<div class="note">
+    <strong>Note:</strong> {{ note }}
+</div>
+{% endif %}
+
+<div class="riepilogo">
+    <p><span class="label">Totale beni inventariati:</span> {{ totale_beni }}</p>
+    <p><span class="label">Valore totale stimato:</span> € {{ valore_totale|ita }}</p>
+    {% if not is_bozza and ente.parroco %}
+    <p style="margin-top: 10px;"><span class="label">Il Parroco:</span> {{ ente.parroco }}</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

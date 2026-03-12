@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: A4;
+        margin: 15mm 15mm 20mm 15mm;
+        @bottom-center {
+            content: "Pagina " counter(page) " di " counter(pages);
+            font-size: 7pt;
+            color: #888;
+        }
+    }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 9pt;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Intestazione */
+    .header {
+        text-align: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #1a365d;
+    }
+    .header img {
+        height: 45px;
+        margin-bottom: 4px;
+    }
+    .header .ente-nome {
+        font-size: 13pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin: 2px 0;
+    }
+    .header .titolo {
+        font-size: 14pt;
+        font-weight: bold;
+        color: #1a365d;
+        margin-top: 6px;
+    }
+    .header .data-stampa {
+        font-size: 7.5pt;
+        color: #888;
+        margin-top: 2px;
+    }
+
+    /* Sezione dati */
+    .sezione {
+        margin-bottom: 12px;
+    }
+    .sezione-titolo {
+        font-size: 10pt;
+        font-weight: bold;
+        color: #1a365d;
+        border-bottom: 1px solid #cbd5e0;
+        padding-bottom: 3px;
+        margin-bottom: 6px;
+    }
+
+    /* Griglia dati 2 colonne con float */
+    .campo-riga {
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+    .campo {
+        float: left;
+        width: 48%;
+        margin-right: 2%;
+        margin-bottom: 4px;
+    }
+    .campo-intero {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+    .campo .label {
+        font-weight: bold;
+        color: #555;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+    }
+    .campo .valore {
+        font-size: 9pt;
+        color: #333;
+        margin-top: 1px;
+    }
+    .campo-intero .label {
+        font-weight: bold;
+        color: #555;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+    }
+    .campo-intero .valore {
+        font-size: 9pt;
+        color: #333;
+        margin-top: 1px;
+    }
+
+    /* Badge stato */
+    .badge {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 3px;
+        font-size: 7.5pt;
+        font-weight: bold;
+    }
+    .badge-attivo { background: #c6f6d5; color: #276749; }
+    .badge-rimosso { background: #fed7d7; color: #9b2c2c; }
+    .badge-bloccato { background: #fefcbf; color: #975a16; }
+
+    /* Foto */
+    .foto-griglia {
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .foto-item {
+        float: left;
+        width: 47%;
+        margin-right: 3%;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .foto-item img {
+        max-width: 100%;
+        max-height: 200px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+    }
+    .foto-didascalia {
+        font-size: 7.5pt;
+        color: #666;
+        margin-top: 3px;
+        font-style: italic;
+    }
+
+    .no-foto {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    {% if logo_base64 %}
+    <img src="{{ logo_base64 }}" alt="Logo">
+    {% endif %}
+    <div class="ente-nome">{{ ente.denominazione }}</div>
+    <div class="titolo">SCHEDA BENE N. {{ bene.numero_progressivo }}</div>
+    <div class="data-stampa">Stampata il {{ data_stampa }}</div>
+</div>
+
+<!-- Dati principali -->
+<div class="sezione">
+    <div class="sezione-titolo">Dati Generali</div>
+    <div class="campo-intero">
+        <div class="label">Descrizione</div>
+        <div class="valore">{{ bene.descrizione }}</div>
+    </div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Categoria</div>
+            <div class="valore">{{ bene.categoria_nome or "—" }}</div>
+        </div>
+        <div class="campo">
+            <div class="label">Ubicazione</div>
+            <div class="valore">{{ bene.ubicazione_nome or "—" }}</div>
+        </div>
+    </div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Quantità</div>
+            <div class="valore">{{ bene.quantita }}</div>
+        </div>
+        <div class="campo">
+            <div class="label">Stato conservazione</div>
+            <div class="valore">{{ bene.stato_conservazione or "—" }}</div>
+        </div>
+    </div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Provenienza</div>
+            <div class="valore">{{ bene.provenienza or "—" }}</div>
+        </div>
+        <div class="campo">
+            <div class="label">Stato</div>
+            <div class="valore">
+                {% if bene.stato == 'attivo' %}
+                    <span class="badge badge-attivo">Attivo</span>
+                {% else %}
+                    <span class="badge badge-rimosso">Rimosso</span>
+                {% endif %}
+                {% if bene.bloccato %}
+                    <span class="badge badge-bloccato">Bloccato</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Valori economici -->
+<div class="sezione">
+    <div class="sezione-titolo">Dati Economici</div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Valore stimato</div>
+            <div class="valore">{% if bene.valore_stimato %}€ {{ bene.valore_stimato|ita }}{% else %}—{% endif %}</div>
+        </div>
+        <div class="campo">
+            <div class="label">Valore assicurato</div>
+            <div class="valore">{% if bene.valore_assicurato %}€ {{ bene.valore_assicurato|ita }}{% else %}—{% endif %}</div>
+        </div>
+    </div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Data acquisto</div>
+            <div class="valore">{{ bene.data_acquisto|data or "—" }}</div>
+        </div>
+        <div class="campo">
+            <div class="label">Fornitore</div>
+            <div class="valore">{{ bene.fornitore or "—" }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Codici catalogazione -->
+{% if bene.codice_regione or bene.numero_catalogo_generale or bene.codice_ente_competente %}
+<div class="sezione">
+    <div class="sezione-titolo">Codici Catalogazione</div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Codice Regione</div>
+            <div class="valore">{{ bene.codice_regione or "—" }}</div>
+        </div>
+        <div class="campo">
+            <div class="label">N. Catalogo Generale</div>
+            <div class="valore">{{ bene.numero_catalogo_generale or "—" }}</div>
+        </div>
+    </div>
+    <div class="campo-riga">
+        <div class="campo">
+            <div class="label">Codice Ente Competente</div>
+            <div class="valore">{{ bene.codice_ente_competente or "—" }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Note -->
+{% if bene.note or bene.note_storiche %}
+<div class="sezione">
+    <div class="sezione-titolo">Note</div>
+    {% if bene.note %}
+    <div class="campo-intero">
+        <div class="label">Note</div>
+        <div class="valore">{{ bene.note }}</div>
+    </div>
+    {% endif %}
+    {% if bene.note_storiche %}
+    <div class="campo-intero">
+        <div class="label">Note storiche</div>
+        <div class="valore">{{ bene.note_storiche }}</div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Foto -->
+<div class="sezione">
+    <div class="sezione-titolo">Documentazione Fotografica</div>
+    {% if foto %}
+    <div class="foto-griglia">
+        {% for f in foto %}
+        <div class="foto-item">
+            <img src="{{ f.data_uri }}" alt="{{ f.nome_file }}">
+            {% if f.didascalia %}
+            <div class="foto-didascalia">{{ f.didascalia }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-foto">Nessuna foto disponibile</div>
+    {% endif %}
+</div>
+
+</body>
+</html>
