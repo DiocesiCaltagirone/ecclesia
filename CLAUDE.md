@@ -113,7 +113,8 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── audit.py                    # Sistema audit log
 │   │   ├── inventario.py               # Aggregatore inventario (get_ente_id + include sub-routers)
 │   │   ├── inventario_lookup.py        # CRUD categorie e ubicazioni inventario (8 endpoint)
-│   │   └── inventario_beni.py          # CRUD beni + foto inventario (10 endpoint)
+│   │   ├── inventario_beni.py          # CRUD beni + foto inventario (10 endpoint)
+│   │   └── inventario_registri.py      # Registri ufficiali + storico beni (5 endpoint)
 │   ├── services\
 │   │   └── audit.py                    # Funzioni helper audit
 │   ├── migrations\
@@ -863,3 +864,10 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - inventario_lookup.py → 8 endpoint CRUD categorie e ubicazioni
 - inventario_beni.py → 10 endpoint CRUD beni e foto
 - 18 route totali, main.py invariato
+
+**INV.4 — Backend registri + storico** (commit ee120df):
+- 5 endpoint in inventario_registri.py
+- POST /registri/genera: snapshot JSONB, blocca beni (bloccato=TRUE), audit log
+- GET /storico: lista beni rimossi con filtri anno/motivo
+- PDF placeholder (501) per registri e storico → da completare in INV.5
+- 23 route totali

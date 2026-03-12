@@ -305,7 +305,11 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ inventario_beni.py → 10 endpoint CRUD beni e foto
 - ✅ 18 route totali verificate
 
-### INV.4 — Backend registri + storico ⬜ DA FARE
+### INV.4 — Backend registri + storico ✅ (commit ee120df)
+- ✅ 5 endpoint in inventario_registri.py (registri lista, genera, PDF placeholder, storico lista, storico PDF placeholder)
+- ✅ POST /registri/genera: snapshot JSONB di tutti i beni, bloccato=TRUE, audit log
+- ✅ GET /storico: filtri anno e motivo, dati estratti dallo snapshot
+- ✅ 23 route totali verificate
 ### INV.5 — Backend PDF ⬜ DA FARE
 ### INV.6 — Frontend Layout + ListaBeni ⬜ DA FARE
 ### INV.7 — Frontend SchedaBene + foto ⬜ DA FARE
