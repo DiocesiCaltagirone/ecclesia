@@ -306,11 +306,18 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ 18 route totali verificate
 
 ### INV.4 — Backend registri + storico ✅ (commit ee120df)
-- ✅ 5 endpoint in inventario_registri.py (registri lista, genera, PDF placeholder, storico lista, storico PDF placeholder)
+- ✅ 3 endpoint in inventario_registri.py (registri lista, genera, storico lista)
 - ✅ POST /registri/genera: snapshot JSONB di tutti i beni, bloccato=TRUE, audit log
 - ✅ GET /storico: filtri anno e motivo, dati estratti dallo snapshot
-- ✅ 23 route totali verificate
-### INV.5 — Backend PDF ⬜ DA FARE
+
+### INV.5 — Backend PDF ✅ (commit 79f91fd)
+- ✅ 4 endpoint in inventario_pdf.py (bozza, scheda bene, registro PDF, storico PDF)
+- ✅ 3 template Jinja2+WeasyPrint: inventario_registro.html, inventario_scheda_bene.html, inventario_storico.html
+- ✅ Foto embeddate come base64 nella scheda bene
+- ✅ StreamingResponse in memoria (no file su disco)
+- ✅ Rimossi 2 placeholder 501 da inventario_registri.py
+- ✅ 25 route totali verificate
+- **Backend inventario completo (INV.1–INV.5)**
 ### INV.6 — Frontend Layout + ListaBeni ⬜ DA FARE
 ### INV.7 — Frontend SchedaBene + foto ⬜ DA FARE
 ### INV.8 — Frontend Registri + Storico ⬜ DA FARE

@@ -114,7 +114,8 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── inventario.py               # Aggregatore inventario (get_ente_id + include sub-routers)
 │   │   ├── inventario_lookup.py        # CRUD categorie e ubicazioni inventario (8 endpoint)
 │   │   ├── inventario_beni.py          # CRUD beni + foto inventario (10 endpoint)
-│   │   └── inventario_registri.py      # Registri ufficiali + storico beni (5 endpoint)
+│   │   ├── inventario_registri.py      # Registri ufficiali + storico beni (3 endpoint)
+│   │   └── inventario_pdf.py           # Generazione PDF inventario (4 endpoint)
 │   ├── services\
 │   │   └── audit.py                    # Funzioni helper audit
 │   ├── migrations\
@@ -128,7 +129,10 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── 008_add_dati_canonici_enti.sql
 │   │   └── run_migrations.py
 │   └── templates\
-│       └── rendiconto.html             # Template Jinja2 V4 per PDF rendiconto (WeasyPrint, 3 pagine)
+│       ├── rendiconto.html             # Template Jinja2 V4 per PDF rendiconto (WeasyPrint, 3 pagine)
+│       ├── inventario_registro.html    # Template PDF registro beni (landscape, tabella)
+│       ├── inventario_scheda_bene.html # Template PDF scheda singolo bene con foto
+│       └── inventario_storico.html     # Template PDF storico beni rimossi
 ├── frontend\
 │   ├── src\
 │   │   ├── App.jsx                     # Router principale
@@ -866,8 +870,13 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - 18 route totali, main.py invariato
 
 **INV.4 — Backend registri + storico** (commit ee120df):
-- 5 endpoint in inventario_registri.py
+- 3 endpoint in inventario_registri.py
 - POST /registri/genera: snapshot JSONB, blocca beni (bloccato=TRUE), audit log
 - GET /storico: lista beni rimossi con filtri anno/motivo
-- PDF placeholder (501) per registri e storico → da completare in INV.5
-- 23 route totali
+
+**INV.5 — Backend PDF** (commit 79f91fd):
+- 4 endpoint in inventario_pdf.py: bozza, scheda bene, registro PDF, storico PDF
+- 3 template Jinja2+WeasyPrint: inventario_registro.html, inventario_scheda_bene.html, inventario_storico.html
+- Foto embeddate come base64 nella scheda bene
+- StreamingResponse in memoria (no file su disco)
+- 25 route totali — **Backend inventario completo (INV.1–INV.5)**
