@@ -110,7 +110,10 @@ C:\Users\Lux\parrocchia-app\
 │   │   ├── sacramenti.py               # Gestione sacramenti (battesimo, comunione, cresima, matrimonio)
 │   │   ├── certificati.py              # Stampa certificati sacramentali PDF
 │   │   ├── stampe.py                   # Report e stampe varie
-│   │   └── audit.py                    # Sistema audit log
+│   │   ├── audit.py                    # Sistema audit log
+│   │   ├── inventario.py               # Aggregatore inventario (get_ente_id + include sub-routers)
+│   │   ├── inventario_lookup.py        # CRUD categorie e ubicazioni inventario (8 endpoint)
+│   │   └── inventario_beni.py          # CRUD beni + foto inventario (10 endpoint)
 │   ├── services\
 │   │   └── audit.py                    # Funzioni helper audit
 │   ├── migrations\
@@ -849,3 +852,14 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 **INV.2 — Backend CRUD** (commit d3cf0f4):
 - 13 endpoint in backend/routes/inventario.py (categorie, ubicazioni, beni)
 - Lista beni con filtri, soft delete → snapshot in inventario_storico
+
+**INV.3 — Backend upload foto** (commit d3cf0f4):
+- 5 endpoint foto: lista, upload, visualizza, elimina, riordina
+- Filesystem locale (uploads/inventario/ente_id/bene_id/) — NO MinIO
+- Validazione MIME (JPG/PNG/WEBP) + max 10MB
+
+**Refactor split inventario** (commit 14580c1):
+- inventario.py → aggregatore (30 righe: get_ente_id + include sub-routers)
+- inventario_lookup.py → 8 endpoint CRUD categorie e ubicazioni
+- inventario_beni.py → 10 endpoint CRUD beni e foto
+- 18 route totali, main.py invariato

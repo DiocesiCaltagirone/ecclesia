@@ -292,7 +292,19 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ CRUD categorie (protezione is_sistema), CRUD ubicazioni, CRUD beni
 - ✅ Lista beni con 5 filtri, soft delete → snapshot in inventario_storico
 - ✅ Router registrato in main.py
-### INV.3 — Backend upload foto (MinIO) ⬜ DA FARE
+
+### INV.3 — Backend upload foto ✅ (commit d3cf0f4)
+- ✅ 5 endpoint foto in inventario_beni.py (lista, upload, visualizza, elimina, riordina)
+- ✅ Filesystem locale (uploads/inventario/ente_id/bene_id/) — NO MinIO
+- ✅ Validazione MIME type (JPG, PNG, WEBP) e dimensione max 10MB
+- ✅ Riordina foto con swap posizioni
+
+### Refactor split inventario ✅ (commit 14580c1)
+- ✅ inventario.py → aggregatore (get_ente_id + include sub-routers)
+- ✅ inventario_lookup.py → 8 endpoint CRUD categorie e ubicazioni
+- ✅ inventario_beni.py → 10 endpoint CRUD beni e foto
+- ✅ 18 route totali verificate
+
 ### INV.4 — Backend registri + storico ⬜ DA FARE
 ### INV.5 — Backend PDF ⬜ DA FARE
 ### INV.6 — Frontend Layout + ListaBeni ⬜ DA FARE
