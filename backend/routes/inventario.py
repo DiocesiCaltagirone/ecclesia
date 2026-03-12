@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from uuid import UUID
 from datetime import datetime
+from pathlib import Path
 import uuid
 import sys
 import os
@@ -12,6 +14,13 @@ from auth import get_current_user
 from services.audit import registra_audit_psycopg2
 
 router = APIRouter(prefix="/api/inventario", tags=["Inventario"])
+
+# Directory upload foto inventario
+FOTO_UPLOAD_DIR = Path("uploads/inventario")
+FOTO_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+FOTO_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+FOTO_MAX_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 # ============================================
@@ -902,6 +911,320 @@ async def delete_bene(
             "message": f"Bene N.{bene[1]} rimosso e archiviato nello storico",
             "storico_id": storico_id
         }
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
+# FOTO — LISTA
+# ============================================
+
+@router.get("/beni/{bene_id}/foto")
+async def get_foto_bene(
+    bene_id: UUID,
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = get_ente_id(current_user, x_ente_id)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        # Verifica bene appartenga all'ente
+        cur.execute("""
+            SELECT id FROM beni_inventario WHERE id = %s AND ente_id = %s
+        """, (str(bene_id), ente_id))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Bene non trovato")
+
+        cur.execute("""
+            SELECT id, nome_file, path_file, mime_type, dimensione, ordine, didascalia, created_at
+            FROM inventario_foto
+            WHERE bene_id = %s
+            ORDER BY ordine
+        """, (str(bene_id),))
+        rows = cur.fetchall()
+
+        foto = []
+        for r in rows:
+            foto.append({
+                "id": str(r[0]),
+                "nome_file": r[1],
+                "path_file": r[2],
+                "mime_type": r[3],
+                "dimensione": r[4],
+                "ordine": r[5],
+                "didascalia": r[6],
+                "created_at": r[7].isoformat() if r[7] else None
+            })
+        return {"foto": foto, "totale": len(foto)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
+# FOTO — UPLOAD
+# ============================================
+
+@router.post("/beni/{bene_id}/foto", status_code=status.HTTP_201_CREATED)
+async def upload_foto(
+    bene_id: UUID,
+    file: UploadFile = File(...),
+    didascalia: str = Form(None),
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = get_ente_id(current_user, x_ente_id)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        # Verifica bene appartenga all'ente
+        cur.execute("""
+            SELECT id FROM beni_inventario WHERE id = %s AND ente_id = %s AND stato = 'attivo'
+        """, (str(bene_id), ente_id))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Bene non trovato o rimosso")
+
+        # Verifica MIME type
+        if file.content_type not in FOTO_MIME_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail="Tipo file non consentito. Consentiti: JPG, PNG, WEBP"
+            )
+
+        # Leggi e verifica dimensione
+        contents = await file.read()
+        file_size = len(contents)
+        if file_size > FOTO_MAX_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File troppo grande. Massimo 10MB (ricevuto {file_size / 1024 / 1024:.1f}MB)"
+            )
+
+        # Crea directory per ente/bene
+        bene_dir = FOTO_UPLOAD_DIR / str(ente_id) / str(bene_id)
+        bene_dir.mkdir(parents=True, exist_ok=True)
+
+        # Genera nome file univoco
+        ext_map = {
+            'image/jpeg': '.jpg', 'image/jpg': '.jpg',
+            'image/png': '.png', 'image/webp': '.webp'
+        }
+        file_ext = Path(file.filename).suffix.lower()
+        if file_ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+            file_ext = ext_map.get(file.content_type, '.jpg')
+
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        file_path = bene_dir / unique_filename
+
+        # Salva file
+        with open(file_path, "wb") as f:
+            f.write(contents)
+
+        # Percorso relativo per DB
+        relative_path = str(file_path.relative_to(FOTO_UPLOAD_DIR))
+
+        # Prossimo ordine
+        cur.execute("""
+            SELECT COALESCE(MAX(ordine), -1) + 1 FROM inventario_foto WHERE bene_id = %s
+        """, (str(bene_id),))
+        ordine = cur.fetchone()[0]
+
+        foto_id = str(uuid.uuid4())
+        cur.execute("""
+            INSERT INTO inventario_foto (
+                id, bene_id, ente_id, nome_file, path_file, mime_type,
+                dimensione, ordine, didascalia, uploaded_by
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, created_at
+        """, (
+            foto_id, str(bene_id), ente_id,
+            file.filename, relative_path, file.content_type,
+            file_size, ordine, didascalia,
+            current_user['user_id']
+        ))
+        row = cur.fetchone()
+        conn.commit()
+
+        return {
+            "id": str(row[0]),
+            "nome_file": file.filename,
+            "path_file": relative_path,
+            "ordine": ordine,
+            "dimensione": file_size,
+            "created_at": row[1].isoformat()
+        }
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
+# FOTO — VISUALIZZA (serve immagine al browser)
+# ============================================
+
+@router.get("/foto/{foto_id}/visualizza")
+async def visualizza_foto(
+    foto_id: UUID,
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = get_ente_id(current_user, x_ente_id)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT path_file, nome_file, mime_type
+            FROM inventario_foto
+            WHERE id = %s AND ente_id = %s
+        """, (str(foto_id), ente_id))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Foto non trovata")
+
+        full_path = FOTO_UPLOAD_DIR / row[0]
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail="File non trovato sul server")
+
+        return FileResponse(
+            path=str(full_path),
+            filename=row[1],
+            media_type=row[2]
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
+# FOTO — ELIMINA
+# ============================================
+
+@router.delete("/foto/{foto_id}")
+async def delete_foto(
+    foto_id: UUID,
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = get_ente_id(current_user, x_ente_id)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT path_file, bene_id FROM inventario_foto
+            WHERE id = %s AND ente_id = %s
+        """, (str(foto_id), ente_id))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Foto non trovata")
+
+        # Elimina file fisico
+        full_path = FOTO_UPLOAD_DIR / row[0]
+        if full_path.exists():
+            os.remove(str(full_path))
+
+        # Elimina dal DB
+        cur.execute("DELETE FROM inventario_foto WHERE id = %s", (str(foto_id),))
+
+        # Riordina foto rimanenti
+        cur.execute("""
+            SELECT id FROM inventario_foto
+            WHERE bene_id = %s ORDER BY ordine
+        """, (str(row[1]),))
+        foto_rimanenti = cur.fetchall()
+        for i, f in enumerate(foto_rimanenti):
+            cur.execute("UPDATE inventario_foto SET ordine = %s WHERE id = %s", (i, str(f[0])))
+
+        conn.commit()
+        return {"message": "Foto eliminata"}
+    except HTTPException:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ============================================
+# FOTO — RIORDINA
+# ============================================
+
+@router.put("/foto/{foto_id}/ordine")
+async def update_ordine_foto(
+    foto_id: UUID,
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+    x_ente_id: str = Header(None, alias="X-Ente-Id")
+):
+    ente_id = get_ente_id(current_user, x_ente_id)
+    nuovo_ordine = data.get("ordine")
+    if nuovo_ordine is None:
+        raise HTTPException(status_code=400, detail="Campo 'ordine' obbligatorio")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT bene_id, ordine FROM inventario_foto
+            WHERE id = %s AND ente_id = %s
+        """, (str(foto_id), ente_id))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Foto non trovata")
+
+        bene_id = row[0]
+        vecchio_ordine = row[1]
+
+        if nuovo_ordine == vecchio_ordine:
+            return {"message": "Ordine invariato"}
+
+        # Sposta le altre foto per fare spazio
+        if nuovo_ordine < vecchio_ordine:
+            # Spostamento verso l'alto: le foto tra nuovo e vecchio scalano di 1
+            cur.execute("""
+                UPDATE inventario_foto
+                SET ordine = ordine + 1
+                WHERE bene_id = %s AND ordine >= %s AND ordine < %s AND id != %s
+            """, (str(bene_id), nuovo_ordine, vecchio_ordine, str(foto_id)))
+        else:
+            # Spostamento verso il basso: le foto tra vecchio e nuovo scalano di -1
+            cur.execute("""
+                UPDATE inventario_foto
+                SET ordine = ordine - 1
+                WHERE bene_id = %s AND ordine > %s AND ordine <= %s AND id != %s
+            """, (str(bene_id), vecchio_ordine, nuovo_ordine, str(foto_id)))
+
+        # Imposta nuovo ordine
+        cur.execute("""
+            UPDATE inventario_foto SET ordine = %s WHERE id = %s
+        """, (nuovo_ordine, str(foto_id)))
+
+        conn.commit()
+        return {"message": "Ordine aggiornato", "ordine": nuovo_ordine}
     except HTTPException:
         conn.rollback()
         raise
