@@ -845,3 +845,7 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - 6 tabelle create: inventario_categorie, inventario_ubicazioni, beni_inventario, inventario_foto, inventario_registri, inventario_storico
 - Seed: 17 categorie predefinite + 9 ubicazioni per ogni ente
 - Specifica completa in INVENTARIO_SPEC.md
+
+**INV.2 — Backend CRUD** (commit d3cf0f4):
+- 13 endpoint in backend/routes/inventario.py (categorie, ubicazioni, beni)
+- Lista beni con filtri, soft delete → snapshot in inventario_storico

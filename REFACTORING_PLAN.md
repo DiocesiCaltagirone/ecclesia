@@ -287,7 +287,11 @@ Dopo ogni blocco di lavoro con Claude Code:
 - ✅ CREATE TABLE IF NOT EXISTS migrations_history in testa al file
 - ✅ Droppata vecchia tabella beni_inventario (schema incompatibile, 0 righe)
 
-### INV.2 — Backend CRUD beni + categorie + ubicazioni ⬜ DA FARE
+### INV.2 — Backend CRUD beni + categorie + ubicazioni ✅ (commit d3cf0f4)
+- ✅ 13 endpoint in backend/routes/inventario.py
+- ✅ CRUD categorie (protezione is_sistema), CRUD ubicazioni, CRUD beni
+- ✅ Lista beni con 5 filtri, soft delete → snapshot in inventario_storico
+- ✅ Router registrato in main.py
 ### INV.3 — Backend upload foto (MinIO) ⬜ DA FARE
 ### INV.4 — Backend registri + storico ⬜ DA FARE
 ### INV.5 — Backend PDF ⬜ DA FARE
