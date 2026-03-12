@@ -24,6 +24,8 @@ def get_ente_id(current_user: dict, x_ente_id: str = None):
 
 from routes.inventario_lookup import router as lookup_router
 from routes.inventario_beni import router as beni_router
+from routes.inventario_registri import router as registri_router
 
 router.include_router(lookup_router)
 router.include_router(beni_router)
+router.include_router(registri_router)
