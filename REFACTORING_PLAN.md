@@ -50,6 +50,7 @@ contenuto interno cambia pagina per pagina. Ogni nuovo modulo futuro
 - ✅ commit 2883ac1: moduli senza permesso visibili ma grigi/disabilitati
 - ✅ commit 1e12c15: header Inventario unificato stile ContabilitaLayout (6 file)
 - ✅ commit c25eb4c: fix padding InventarioLayout allineato a ContabilitaLayout
+- ✅ commit 2cd0503: fix header NuovoBene e SchedaBene full-width, maxWidth solo sul form
 
 ### Risultato
 - ~1.240 righe di duplicazione eliminate

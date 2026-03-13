@@ -910,3 +910,7 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 **Fix padding** (commit c25eb4c):
 - InventarioLayout allineato a ContabilitaLayout (flex-col + p-4 attorno a Outlet)
 - Rimosso maxWidth inline dagli header NuovoBene/SchedaBene
+
+**Fix header full-width** (commit 2cd0503):
+- NuovoBene e SchedaBene: header e barra azioni estratti fuori dal div maxWidth:900
+- maxWidth:900 ora wrappa solo il form/contenuto, non le barre in cima
