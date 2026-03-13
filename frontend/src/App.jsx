@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import SelectEnte from './pages/SelectEnte';
-import Layout from './components/Layout';
+import AppShell from './components/AppShell';
 import Dashboard from './pages/Dashboard';
 import Persone from './pages/Persone';
 import ImpostazioniDatiGenerali from './pages/ImpostazioniDatiGenerali';
@@ -23,8 +23,8 @@ import Rapporti from './pages/Contabilita/Rapporti';
 import MovimentiConto from './pages/Contabilita/MovimentiConto';
 import MovimentiGenerale from './pages/Contabilita/MovimentiGenerale';
 import Rendiconto from './pages/Contabilita/Rendiconto';
-import NuovoRendiconto from './pages/Contabilita/NuovoRendiconto';  // ← NUOVO
-import ListaRendiconti from './pages/Contabilita/ListaRendiconti';  // ← NUOVO
+import NuovoRendiconto from './pages/Contabilita/NuovoRendiconto';
+import ListaRendiconti from './pages/Contabilita/ListaRendiconti';
 import EconomatoContabilita from './pages/EconomatoContabilita';
 
 // Import Inventario
@@ -86,6 +86,7 @@ function App() {
     <DataProvider>
       <BrowserRouter>
         <Routes>
+          {/* Pagine senza layout */}
           <Route path="/login" element={<Login />} />
 
           <Route path="/select-ente" element={
@@ -94,50 +95,12 @@ function App() {
             </PrivateRoute>
           } />
 
-          {/* Layout Principale - Sidebar standard */}
-          <Route path="/" element={
+          {/* Pagine amministrazione — standalone senza AppShell */}
+          <Route path="/amministrazione" element={
             <PrivateRoute>
-              <Layout />
+              <Amministrazione />
             </PrivateRoute>
-          }>
-            <Route index element={<Navigate to="/dashboard" />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="persone" element={<Persone />} />
-            <Route path="impostazioni/dati-generali" element={<ImpostazioniDatiGenerali />} />
-            <Route path="registro" element={<Registro />} />
-          </Route>
-
-          {/* Inventario - Layout separato con sidebar propria */}
-          <Route path="/inventario" element={
-            <PrivateRoute>
-              <InventarioLayout />
-            </PrivateRoute>
-          }>
-            <Route index element={<Navigate to="/inventario/beni" replace />} />
-            <Route path="beni" element={<ListaBeni />} />
-            <Route path="beni/nuovo" element={<NuovoBene />} />
-            <Route path="beni/:id" element={<SchedaBene />} />
-            <Route path="registri" element={<ListaRegistri />} />
-            <Route path="storico" element={<StoricoInventario />} />
-            <Route path="impostazioni" element={<ImpostazioniInventario />} />
-          </Route>
-
-          {/* Contabilità - Layout separato con sidebar propria */}
-          <Route path="/contabilita" element={
-            <PrivateRoute>
-              <ContabilitaLayout />
-            </PrivateRoute>
-          }>
-            <Route index element={<Conti />} />
-            <Route path="categoria" element={<Categorie />} />
-            <Route path="movimenti" element={<MovimentiGenerale />} />
-            <Route path="conti/:registroId/movimenti" element={<MovimentiConto />} />
-            <Route path="rapporti" element={<Rapporti />} />
-            <Route path="rendiconto" element={<Rendiconto />} />
-            <Route path="rendiconto/nuovo" element={<NuovoRendiconto />} />
-            <Route path="rendiconto/:id" element={<NuovoRendiconto />} />
-            <Route path="rendiconto/lista" element={<ListaRendiconti />} />
-          </Route>
+          } />
 
           <Route path="/gestione-enti" element={
             <PrivateRoute>
@@ -148,12 +111,6 @@ function App() {
           <Route path="/gestione-utenti" element={
             <PrivateRoute>
               <GestioneUtenti />
-            </PrivateRoute>
-          } />
-
-          <Route path="/amministrazione" element={
-            <PrivateRoute>
-              <Amministrazione />
             </PrivateRoute>
           } />
 
@@ -180,6 +137,39 @@ function App() {
               <TemplateCategorieAdmin />
             </PrivateRoute>
           } />
+
+          {/* TUTTO il resto dentro AppShell */}
+          <Route element={<PrivateRoute><AppShell /></PrivateRoute>}>
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/persone" element={<Persone />} />
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/impostazioni/dati-generali" element={<ImpostazioniDatiGenerali />} />
+
+            {/* Contabilità */}
+            <Route path="/contabilita" element={<ContabilitaLayout />}>
+              <Route index element={<Conti />} />
+              <Route path="categoria" element={<Categorie />} />
+              <Route path="movimenti" element={<MovimentiGenerale />} />
+              <Route path="conti/:registroId/movimenti" element={<MovimentiConto />} />
+              <Route path="rapporti" element={<Rapporti />} />
+              <Route path="rendiconto" element={<Rendiconto />} />
+              <Route path="rendiconto/nuovo" element={<NuovoRendiconto />} />
+              <Route path="rendiconto/:id" element={<NuovoRendiconto />} />
+              <Route path="rendiconto/lista" element={<ListaRendiconti />} />
+            </Route>
+
+            {/* Inventario */}
+            <Route path="/inventario" element={<InventarioLayout />}>
+              <Route index element={<Navigate to="/inventario/beni" replace />} />
+              <Route path="beni" element={<ListaBeni />} />
+              <Route path="beni/nuovo" element={<NuovoBene />} />
+              <Route path="beni/:id" element={<SchedaBene />} />
+              <Route path="registri" element={<ListaRegistri />} />
+              <Route path="storico" element={<StoricoInventario />} />
+              <Route path="impostazioni" element={<ImpostazioniInventario />} />
+            </Route>
+          </Route>
         </Routes>
       </BrowserRouter>
     </DataProvider>
