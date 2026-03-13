@@ -10,7 +10,7 @@
 
 | Fase | Descrizione | Stato |
 |------|-------------|-------|
-| Fase 0 | AppShell — Layout unificato (FONDAMENTO) | 🔄 PROSSIMO |
+| Fase 0 | AppShell — Layout unificato (FONDAMENTO) | ✅ COMPLETATA |
 | Fase 1 | Fix critici, sicurezza, pulizia | ✅ COMPLETATA |
 | Fase 2 | Eliminare duplicazioni backend | ✅ COMPLETATA (tranne 2.4 sospeso) |
 | Fase 3 | Estrarre servizi e costanti | 🔄 IN CORSO (3.1 fatto) |
@@ -32,37 +32,29 @@ contenuto interno cambia pagina per pagina. Ogni nuovo modulo futuro
 
 ---
 
-## FASE 0 — AppShell: Layout Unificato 🔄 PROSSIMO
+## FASE 0 — AppShell: Layout Unificato ✅ COMPLETATA (13/03/2026)
 
 > **Prerequisito per tutto il lavoro futuro sul frontend.**
-> Istruzioni complete: `ISTRUZIONI_APPSHELL_REFACTORING.md`
 
-### Obiettivo
-Sostituire i 3 layout separati con un unico `AppShell.jsx`:
-- `Layout.jsx` ❌ → eliminato
-- `ContabilitaLayout.jsx` → semplificato (solo contenuto)
-- `InventarioLayout.jsx` → semplificato (solo contenuto)
-- `AppShell.jsx` ✅ → header + sidebar accordion scritti UNA VOLTA
+### Blocco A.1+A.2 ✅ (commit 37db5a0)
+- AppShell.jsx creato: header unificato + sidebar accordion
+- Layout.jsx eliminato
+- ContabilitaLayout.jsx semplificato (solo sub-header + modal)
+- InventarioLayout.jsx ridotto a thin wrapper
+- App.jsx ristrutturato
 
-### Blocco A.1 — Creare AppShell.jsx ⬜
-- Copia ESATTA dell'header da ContabilitaLayout.jsx (riferimento assoluto)
-- Sidebar accordion: Home, Contabilità, Inventario, Anagrafica, Impostazioni
-- Un solo modulo aperto alla volta, apertura automatica in base alla route
-- Check permessi (permessi.contabilita, permessi.inventario, is_economo)
-- `<Outlet />` per il contenuto
-- **Stile**: copiato da ContabilitaLayout.jsx, nessun nuovo colore inventato
+### Commit successivi
+- ✅ commit 82a9b52: sidebar dedicata per /dashboard
+- ✅ commit 5b08b3b: rimosso titolo GESTIONALE dalla sidebar
+- ✅ commit 7a00245: sidebar dedicata per /impostazioni/dati-generali
+- ✅ commit 2883ac1: moduli senza permesso visibili ma grigi/disabilitati
+- ✅ commit 1e12c15: header Inventario unificato stile ContabilitaLayout (6 file)
+- ✅ commit c25eb4c: fix padding InventarioLayout allineato a ContabilitaLayout
 
-### Blocco A.2 — Semplificare layout esistenti ⬜
-- ContabilitaLayout.jsx → rimuovere header e sidebar, mantenere solo logica specifica
-- InventarioLayout.jsx → ridotto a `<Outlet />` puro
-- App.jsx → tutte le route protette dentro `<AppShell />`
-- Layout.jsx → eliminato
-
-### Benefici immediati
-- Qualsiasi modifica all'header o sidebar → UN solo file
+### Risultato
+- ~1.240 righe di duplicazione eliminate
+- Header e sidebar scritti UNA VOLTA in AppShell.jsx
 - Ogni nuovo modulo futuro eredita automaticamente il layout
-- Codice più leggero: ~300 righe di duplicazione eliminate
-- Stile visivo coerente su tutta l'app
 
 ---
 
@@ -172,11 +164,11 @@ Fix connection leak psycopg2 — usare context manager `with get_db_connection()
 
 | Fase | Lavoro rimasto | Tempo stimato |
 |------|---------------|--------------|
-| Fase 0 | AppShell (A.1 + A.2) | 2-3 ore |
+| Fase 0 | ✅ COMPLETATA | — |
 | Fase 3 | Blocchi 3.2, 3.3, 3.4 | 6 ore |
 | Fase 4 | Blocchi 4.3 → 4.7 | 5-6 ore |
 | Fase 5 | Blocchi 5.1 → 5.4 | 12-15 ore |
-| **TOTALE RIMANENTE** | | **25-30 ore** |
+| **TOTALE RIMANENTE** | | **23-27 ore** |
 
 ---
 

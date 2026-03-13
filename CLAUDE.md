@@ -157,10 +157,10 @@ C:\Users\Lux\parrocchia-app\
 │   │   │   └── Rendiconti\
 │   │   │       └── [vari componenti]
 │   │   ├── components\
-│   │   │   ├── Layout.jsx              # Layout con sidebar
+│   │   │   ├── AppShell.jsx            # Layout unificato: header + sidebar accordion + Outlet
 │   │   │   ├── Logo.jsx                # Logo SVG placeholder (NON PIU USATO, sostituito da logo-diocesi.png)
 │   │   │   ├── ModalAllegati.jsx       # Modal per upload/visualizza allegati movimenti
-│   │   │   └── CambioPasswordModal.jsx # Modal cambio password condiviso (usato in Layout, ContabilitaLayout, HeaderAmministrazione)
+│   │   │   └── CambioPasswordModal.jsx # Modal cambio password condiviso (usato in AppShell)
 │   │   ├── utils\
 │   │   │   └── formatters.js           # Funzione condivisa formatCurrency (formato italiano)
 │   │   └── services\
@@ -730,11 +730,12 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - .env backend: postgres:5432 in Docker, localhost:5432 fuori Docker
 - FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx (modal nella barra superiore) e Conti.jsx (modal nella pagina conti). Modifiche al form vanno fatte in ENTRAMBI i file!
 - SALDO INIZIALE NEGATIVO: contabilita.py gestisce saldi negativi come movimento tipo 'uscita' con valore assoluto (sia creazione che modifica conto)
-- 3 LAYOUT SEPARATI: l'app NON ha un header condiviso. Esistono 3 layout indipendenti:
-  - Layout.jsx → Home, Persone, Impostazioni, Registro
-  - ContabilitaLayout.jsx → tutta la sezione /contabilita/*
-  - HeaderAmministrazione.jsx → pagina Amministrazione
-  Funzionalita comuni (es. CambioPasswordModal) vanno importate in TUTTI e 3.
+- APPSHELL UNIFICATO: l'app usa un unico AppShell.jsx (header + sidebar) per tutte le pagine protette.
+  - AppShell.jsx → header condiviso + sidebar accordion (3 varianti: home, impostazioni, accordion moduli)
+  - ContabilitaLayout.jsx → solo sub-header (freccia+titolo+ora) + modal conto/transazione, NIENTE header/sidebar
+  - InventarioLayout.jsx → thin wrapper (flex-col + p-4 + Outlet)
+  - HeaderAmministrazione.jsx → pagina Amministrazione (standalone, fuori AppShell)
+  - Layout.jsx → ELIMINATO (sostituito da AppShell)
 - LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (SVG placeholder, deprecato).
 - SELECT ENTE PAGE: completamente ridisegnato con stile coerente al Login. Header bianco compatto (padding 8px) con onda SVG, logo diocesi + "EcclesiaWeb". Nome utente + Esci a destra. Titolo "SELEZIONA ENTE" alto e centrato. Grid flex (flex-wrap) con card 320px affiancate in riga (max-width 900px, allineate a sinistra). Card compatta: chiesa.png (170px), nome parrocchia piccolo (0.85rem), badge ruolo oro + moduli in unica riga, click su tutta la card (no bottone Accedi). CSS inline con prefisso `se-`. Immagine chiesa in frontend/src/assets/chiesa.png.
 - RESET PASSWORD: il frontend ha il modal ma l'endpoint backend /api/auth/reset-password NON ESISTE ancora. Il vecchio codice era in main_OLD.py. Nessun servizio email (SMTP/SendGrid) configurato.
@@ -880,3 +881,32 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Foto embeddate come base64 nella scheda bene
 - StreamingResponse in memoria (no file su disco)
 - 25 route totali — **Backend inventario completo (INV.1–INV.5)**
+
+### Fase 0 — AppShell Layout Unificato (COMPLETATA — 13/03/2026)
+
+**Blocco A.1+A.2** (commit 37db5a0):
+- Creato AppShell.jsx: header unificato + sidebar accordion (Home, Contabilità, Inventario, Anagrafica, Impostazioni)
+- Layout.jsx eliminato (verificato zero import residui)
+- ContabilitaLayout.jsx semplificato: rimossi header/sidebar/CambioPasswordModal, mantenuta solo logica contabilità (sub-header + modal conto/transazione)
+- InventarioLayout.jsx ridotto a thin wrapper con Outlet
+- App.jsx ristrutturato: tutte le route protette dentro AppShell
+
+**Sidebar home** (commit 82a9b52):
+- Sidebar dedicata per /dashboard: Dati Parrocchia + Documenti (disabled, "Prossimamente")
+
+**Fix sidebar** (commit 5b08b3b):
+- Rimosso titolo "GESTIONALE" dalla sidebar home
+
+**Sidebar impostazioni** (commit 7a00245):
+- Sidebar dedicata per /impostazioni/dati-generali: HOME + separatore + 3 moduli (Contabilità, Inventario, Anagrafica)
+
+**Permessi moduli** (commit 2883ac1):
+- Moduli senza permesso: sempre visibili ma grigi (text-gray-300), cursor-not-allowed, non navigano
+
+**Header Inventario unificato** (commit 1e12c15):
+- 6 file Inventario: header sostituito con stile ContabilitaLayout (freccia + titolo centrato + data/ora + azioni)
+- ListaBeni, NuovoBene, SchedaBene, ListaRegistri, StoricoInventario, ImpostazioniInventario
+
+**Fix padding** (commit c25eb4c):
+- InventarioLayout allineato a ContabilitaLayout (flex-col + p-4 attorno a Outlet)
+- Rimosso maxWidth inline dagli header NuovoBene/SchedaBene
