@@ -1,4 +1,4 @@
-# ISTRUZIONI CLAUDE CODE — Refactoring AppShell
+# ISTRUZIONI PER AGGIUNGERE UN NUOVO MODULO ALL'APPSHELL
 ## EcclesiaWeb — Layout Unificato
 *Leggi tutto prima di toccare qualsiasi file.*
 
