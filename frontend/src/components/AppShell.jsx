@@ -243,234 +243,270 @@ const AppShell = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* SIDEBAR ACCORDION — stile da ContabilitaLayout.jsx */}
+        {/* SIDEBAR */}
         <div className="w-56 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 overflow-y-auto">
-          {/* HOME */}
-          <div className="p-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                isActive('/dashboard') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-              }`}
-            >
-              <span className="text-lg">🏠</span>
-              <span>HOME</span>
-            </button>
-          </div>
-
-          <div className="mx-3 h-px bg-gray-200"></div>
-
-          {/* CONTABILITÀ */}
-          {mostraModulo('contabilita') && (
-            <div className="p-3 space-y-1">
-              <button
-                onClick={() => toggleModulo('contabilita')}
-                className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
-                  moduloAperto === 'contabilita' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">💰</span>
-                  <span>CONTABILITÀ</span>
+          {location.pathname === '/dashboard' ? (
+            <>
+              {/* SIDEBAR HOME */}
+              <div className="p-3">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  GESTIONALE
                 </div>
-                <span className={`transform transition-transform text-xs ${moduloAperto === 'contabilita' ? 'rotate-90' : ''}`}>▶</span>
-              </button>
+              </div>
 
-              {moduloAperto === 'contabilita' && (
-                <div className="space-y-1">
-                  <button
-                    onClick={() => navigate('/contabilita')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/contabilita') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    <span>💳</span>
-                    <span>Conti</span>
-                  </button>
-                  <button
-                    onClick={() => navigate('/contabilita/movimenti')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span>📊</span>
-                    <span>Movimentazione</span>
-                  </button>
-                  <button
-                    onClick={() => navigate('/contabilita/rapporti')}
-                    className={`w-full px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/contabilita/rapporti') ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-600 text-white hover:bg-gray-700'
-                    }`}
-                  >
-                    📄 Stampa
-                  </button>
-                  {/* Rendiconto sub-menu */}
-                  <div className="space-y-1">
-                    <button
-                      onClick={() => setRendicontoOpen(!rendicontoOpen)}
-                      className="w-full flex items-center justify-between px-3 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>📋</span>
-                        <span>Rendiconto</span>
-                      </span>
-                      <svg
-                        className={`w-4 h-4 transition-transform ${rendicontoOpen ? 'rotate-180' : ''}`}
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {rendicontoOpen && (
-                      <div className="pl-4 space-y-1">
-                        <button
-                          onClick={() => navigate('/contabilita/rendiconto/nuovo')}
-                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                            location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <span>✨</span>
-                          <span>Nuovo Rendiconto</span>
-                        </button>
-                        <button
-                          onClick={() => navigate('/contabilita/rendiconto/lista')}
-                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                            location.pathname === '/contabilita/rendiconto/lista' || (location.pathname.startsWith('/contabilita/rendiconto/') && location.pathname !== '/contabilita/rendiconto/nuovo')
-                              ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <span>📚</span>
-                          <span>Lista Rendiconti</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+              <div className="mx-3 h-px bg-gray-200"></div>
 
-          <div className="mx-3 h-px bg-gray-200"></div>
-
-          {/* INVENTARIO */}
-          {mostraModulo('inventario') && (
-            <div className="p-3 space-y-1">
-              <button
-                onClick={() => toggleModulo('inventario')}
-                className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
-                  moduloAperto === 'inventario' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-2">
+              <div className="p-3 space-y-1">
+                <button
+                  onClick={() => navigate('/impostazioni/dati-generali')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                >
                   <span className="text-lg">🏛️</span>
-                  <span>INVENTARIO</span>
+                  <span>Dati Parrocchia</span>
+                </button>
+                <div>
+                  <button
+                    disabled
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-400 rounded-md cursor-not-allowed"
+                  >
+                    <span className="text-lg">📥</span>
+                    <span>Documenti</span>
+                  </button>
+                  <p className="px-3 pl-10 text-[10px] text-gray-400 -mt-1">Prossimamente</p>
                 </div>
-                <span className={`transform transition-transform text-xs ${moduloAperto === 'inventario' ? 'rotate-90' : ''}`}>▶</span>
-              </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* SIDEBAR ACCORDION */}
+              {/* HOME */}
+              <div className="p-3">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+                    isActive('/dashboard') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                  }`}
+                >
+                  <span className="text-lg">🏠</span>
+                  <span>HOME</span>
+                </button>
+              </div>
 
-              {moduloAperto === 'inventario' && (
-                <div className="space-y-1">
+              <div className="mx-3 h-px bg-gray-200"></div>
+
+              {/* CONTABILITÀ */}
+              {mostraModulo('contabilita') && (
+                <div className="p-3 space-y-1">
                   <button
-                    onClick={() => navigate('/inventario/beni')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/inventario/beni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                    onClick={() => toggleModulo('contabilita')}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
+                      moduloAperto === 'contabilita' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <span>📦</span>
-                    <span>Beni</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">💰</span>
+                      <span>CONTABILITÀ</span>
+                    </div>
+                    <span className={`transform transition-transform text-xs ${moduloAperto === 'contabilita' ? 'rotate-90' : ''}`}>▶</span>
                   </button>
-                  <button
-                    onClick={() => navigate('/inventario/registri')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/inventario/registri') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    <span>📋</span>
-                    <span>Registri</span>
-                  </button>
-                  <button
-                    onClick={() => navigate('/inventario/storico')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/inventario/storico') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    <span>🗂️</span>
-                    <span>Storico</span>
-                  </button>
-                  <button
-                    onClick={() => navigate('/inventario/impostazioni')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/inventario/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    <span>⚙️</span>
-                    <span>Impostazioni</span>
-                  </button>
+
+                  {moduloAperto === 'contabilita' && (
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => navigate('/contabilita')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/contabilita') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>💳</span>
+                        <span>Conti</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/contabilita/movimenti')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <span>📊</span>
+                        <span>Movimentazione</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/contabilita/rapporti')}
+                        className={`w-full px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/contabilita/rapporti') ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-600 text-white hover:bg-gray-700'
+                        }`}
+                      >
+                        📄 Stampa
+                      </button>
+                      {/* Rendiconto sub-menu */}
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => setRendicontoOpen(!rendicontoOpen)}
+                          className="w-full flex items-center justify-between px-3 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded transition-colors"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>📋</span>
+                            <span>Rendiconto</span>
+                          </span>
+                          <svg
+                            className={`w-4 h-4 transition-transform ${rendicontoOpen ? 'rotate-180' : ''}`}
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {rendicontoOpen && (
+                          <div className="pl-4 space-y-1">
+                            <button
+                              onClick={() => navigate('/contabilita/rendiconto/nuovo')}
+                              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                                location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              <span>✨</span>
+                              <span>Nuovo Rendiconto</span>
+                            </button>
+                            <button
+                              onClick={() => navigate('/contabilita/rendiconto/lista')}
+                              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                                location.pathname === '/contabilita/rendiconto/lista' || (location.pathname.startsWith('/contabilita/rendiconto/') && location.pathname !== '/contabilita/rendiconto/nuovo')
+                                  ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              <span>📚</span>
+                              <span>Lista Rendiconti</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          <div className="mx-3 h-px bg-gray-200"></div>
+              <div className="mx-3 h-px bg-gray-200"></div>
 
-          {/* ANAGRAFICA */}
-          {mostraModulo('anagrafica') && (
-            <div className="p-3 space-y-1">
-              <button
-                onClick={() => toggleModulo('anagrafica')}
-                className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
-                  moduloAperto === 'anagrafica' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">👥</span>
-                  <span>ANAGRAFICA</span>
-                </div>
-                <span className={`transform transition-transform text-xs ${moduloAperto === 'anagrafica' ? 'rotate-90' : ''}`}>▶</span>
-              </button>
-
-              {moduloAperto === 'anagrafica' && (
-                <div className="space-y-1">
+              {/* INVENTARIO */}
+              {mostraModulo('inventario') && (
+                <div className="p-3 space-y-1">
                   <button
-                    onClick={() => navigate('/persone')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/persone') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                    onClick={() => toggleModulo('inventario')}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
+                      moduloAperto === 'inventario' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    <span>👤</span>
-                    <span>Persone</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🏛️</span>
+                      <span>INVENTARIO</span>
+                    </div>
+                    <span className={`transform transition-transform text-xs ${moduloAperto === 'inventario' ? 'rotate-90' : ''}`}>▶</span>
                   </button>
-                  <button
-                    onClick={() => navigate('/registro')}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isActive('/registro') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                    }`}
-                  >
-                    <span>📖</span>
-                    <span>Registro</span>
-                  </button>
+
+                  {moduloAperto === 'inventario' && (
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => navigate('/inventario/beni')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/inventario/beni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>📦</span>
+                        <span>Beni</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/inventario/registri')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/inventario/registri') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>📋</span>
+                        <span>Registri</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/inventario/storico')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/inventario/storico') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>🗂️</span>
+                        <span>Storico</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/inventario/impostazioni')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/inventario/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>⚙️</span>
+                        <span>Impostazioni</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+
+              <div className="mx-3 h-px bg-gray-200"></div>
+
+              {/* ANAGRAFICA */}
+              {mostraModulo('anagrafica') && (
+                <div className="p-3 space-y-1">
+                  <button
+                    onClick={() => toggleModulo('anagrafica')}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
+                      moduloAperto === 'anagrafica' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">👥</span>
+                      <span>ANAGRAFICA</span>
+                    </div>
+                    <span className={`transform transition-transform text-xs ${moduloAperto === 'anagrafica' ? 'rotate-90' : ''}`}>▶</span>
+                  </button>
+
+                  {moduloAperto === 'anagrafica' && (
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => navigate('/persone')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/persone') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>👤</span>
+                        <span>Persone</span>
+                      </button>
+                      <button
+                        onClick={() => navigate('/registro')}
+                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/registro') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span>📖</span>
+                        <span>Registro</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SPACER */}
+              <div className="flex-1"></div>
+
+              <div className="mx-3 h-px bg-gray-200"></div>
+
+              {/* IMPOSTAZIONI */}
+              <div className="p-3">
+                <button
+                  onClick={() => navigate('/impostazioni/dati-generali')}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+                    isActive('/impostazioni') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="text-lg">⚙️</span>
+                  <span>Impostazioni</span>
+                </button>
+              </div>
+            </>
           )}
-
-          {/* SPACER */}
-          <div className="flex-1"></div>
-
-          <div className="mx-3 h-px bg-gray-200"></div>
-
-          {/* IMPOSTAZIONI */}
-          <div className="p-3">
-            <button
-              onClick={() => navigate('/impostazioni/dati-generali')}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                isActive('/impostazioni') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <span className="text-lg">⚙️</span>
-              <span>Impostazioni</span>
-            </button>
-          </div>
         </div>
 
         {/* CONTENUTO PRINCIPALE */}
