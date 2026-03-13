@@ -114,8 +114,8 @@ const NuovoBene = () => {
   };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: 900, margin: '0 auto' }}>
-      {/* HEADER */}
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      {/* HEADER — full width */}
       <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 p-1" title="Indietro">
@@ -133,6 +133,7 @@ const NuovoBene = () => {
         </div>
       </div>
 
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
       <form onSubmit={handleSubmit}>
         {/* SEZIONE 1 — Dati principali */}
         <div style={cardStyle}>
@@ -373,6 +374,7 @@ const NuovoBene = () => {
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 };

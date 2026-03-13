@@ -249,8 +249,8 @@ const SchedaBene = () => {
   };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: 900, margin: '0 auto' }}>
-      {/* HEADER */}
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      {/* HEADER — full width */}
       <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 p-1" title="Indietro">
@@ -268,7 +268,7 @@ const SchedaBene = () => {
         </div>
       </div>
 
-      {/* AZIONI */}
+      {/* AZIONI — full width */}
       <div className="bg-white border-b border-gray-200 px-6 -mx-4 mb-4">
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-4">
@@ -305,6 +305,7 @@ const SchedaBene = () => {
         </div>
       </div>
 
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
       {/* SEZIONE 1 — Dati principali */}
       <div style={cardStyle}>
         <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a2e55', fontSize: 16, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid #d4af37' }}>
@@ -559,6 +560,7 @@ const SchedaBene = () => {
           {bene.modificato_da && <span>Modificato da: {bene.modificato_da}</span>}
           {bene.updated_at && <span> — {formatDataItaliana(bene.updated_at.split('T')[0])}</span>}
         </div>
+      </div>
       </div>
     </div>
   );
