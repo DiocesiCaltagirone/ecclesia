@@ -285,22 +285,31 @@ const AppShell = () => {
 
               <div className="p-3 space-y-1">
                 <button
-                  onClick={() => navigate('/contabilita')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                  onClick={() => mostraModulo('contabilita') && navigate('/contabilita')}
+                  disabled={!mostraModulo('contabilita')}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    mostraModulo('contabilita') ? 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' : 'text-gray-300 cursor-not-allowed'
+                  }`}
                 >
                   <span className="text-lg">💰</span>
                   <span>CONTABILITÀ</span>
                 </button>
                 <button
-                  onClick={() => navigate('/inventario/beni')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                  onClick={() => mostraModulo('inventario') && navigate('/inventario/beni')}
+                  disabled={!mostraModulo('inventario')}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    mostraModulo('inventario') ? 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' : 'text-gray-300 cursor-not-allowed'
+                  }`}
                 >
                   <span className="text-lg">🏛️</span>
                   <span>INVENTARIO</span>
                 </button>
                 <button
-                  onClick={() => navigate('/persone')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                  onClick={() => mostraModulo('anagrafica') && navigate('/persone')}
+                  disabled={!mostraModulo('anagrafica')}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    mostraModulo('anagrafica') ? 'text-gray-700 hover:bg-blue-50 hover:text-blue-700' : 'text-gray-300 cursor-not-allowed'
+                  }`}
                 >
                   <span className="text-lg">👥</span>
                   <span>ANAGRAFICA</span>
@@ -326,198 +335,198 @@ const AppShell = () => {
               <div className="mx-3 h-px bg-gray-200"></div>
 
               {/* CONTABILITÀ */}
-              {mostraModulo('contabilita') && (
-                <div className="p-3 space-y-1">
-                  <button
-                    onClick={() => toggleModulo('contabilita')}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
-                      moduloAperto === 'contabilita' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">💰</span>
-                      <span>CONTABILITÀ</span>
-                    </div>
-                    <span className={`transform transition-transform text-xs ${moduloAperto === 'contabilita' ? 'rotate-90' : ''}`}>▶</span>
-                  </button>
+              <div className="p-3 space-y-1">
+                <button
+                  onClick={() => mostraModulo('contabilita') && toggleModulo('contabilita')}
+                  disabled={!mostraModulo('contabilita')}
+                  className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
+                    !mostraModulo('contabilita') ? 'text-gray-300 cursor-not-allowed' :
+                    moduloAperto === 'contabilita' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    <span>CONTABILITÀ</span>
+                  </div>
+                  <span className={`transform transition-transform text-xs ${moduloAperto === 'contabilita' ? 'rotate-90' : ''}`}>▶</span>
+                </button>
 
-                  {moduloAperto === 'contabilita' && (
+                {mostraModulo('contabilita') && moduloAperto === 'contabilita' && (
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => navigate('/contabilita')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/contabilita') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>💳</span>
+                      <span>Conti</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/contabilita/movimenti')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span>📊</span>
+                      <span>Movimentazione</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/contabilita/rapporti')}
+                      className={`w-full px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/contabilita/rapporti') ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-600 text-white hover:bg-gray-700'
+                      }`}
+                    >
+                      📄 Stampa
+                    </button>
+                    {/* Rendiconto sub-menu */}
                     <div className="space-y-1">
                       <button
-                        onClick={() => navigate('/contabilita')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/contabilita') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
+                        onClick={() => setRendicontoOpen(!rendicontoOpen)}
+                        className="w-full flex items-center justify-between px-3 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded transition-colors"
                       >
-                        <span>💳</span>
-                        <span>Conti</span>
-                      </button>
-                      <button
-                        onClick={() => navigate('/contabilita/movimenti')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <span>📊</span>
-                        <span>Movimentazione</span>
-                      </button>
-                      <button
-                        onClick={() => navigate('/contabilita/rapporti')}
-                        className={`w-full px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/contabilita/rapporti') ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-600 text-white hover:bg-gray-700'
-                        }`}
-                      >
-                        📄 Stampa
-                      </button>
-                      {/* Rendiconto sub-menu */}
-                      <div className="space-y-1">
-                        <button
-                          onClick={() => setRendicontoOpen(!rendicontoOpen)}
-                          className="w-full flex items-center justify-between px-3 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded transition-colors"
+                        <span className="flex items-center gap-2">
+                          <span>📋</span>
+                          <span>Rendiconto</span>
+                        </span>
+                        <svg
+                          className={`w-4 h-4 transition-transform ${rendicontoOpen ? 'rotate-180' : ''}`}
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
-                          <span className="flex items-center gap-2">
-                            <span>📋</span>
-                            <span>Rendiconto</span>
-                          </span>
-                          <svg
-                            className={`w-4 h-4 transition-transform ${rendicontoOpen ? 'rotate-180' : ''}`}
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {rendicontoOpen && (
+                        <div className="pl-4 space-y-1">
+                          <button
+                            onClick={() => navigate('/contabilita/rendiconto/nuovo')}
+                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                              location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        {rendicontoOpen && (
-                          <div className="pl-4 space-y-1">
-                            <button
-                              onClick={() => navigate('/contabilita/rendiconto/nuovo')}
-                              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                                location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              <span>✨</span>
-                              <span>Nuovo Rendiconto</span>
-                            </button>
-                            <button
-                              onClick={() => navigate('/contabilita/rendiconto/lista')}
-                              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                                location.pathname === '/contabilita/rendiconto/lista' || (location.pathname.startsWith('/contabilita/rendiconto/') && location.pathname !== '/contabilita/rendiconto/nuovo')
-                                  ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              <span>📚</span>
-                              <span>Lista Rendiconti</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                            <span>✨</span>
+                            <span>Nuovo Rendiconto</span>
+                          </button>
+                          <button
+                            onClick={() => navigate('/contabilita/rendiconto/lista')}
+                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                              location.pathname === '/contabilita/rendiconto/lista' || (location.pathname.startsWith('/contabilita/rendiconto/') && location.pathname !== '/contabilita/rendiconto/nuovo')
+                                ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span>📚</span>
+                            <span>Lista Rendiconti</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
 
               <div className="mx-3 h-px bg-gray-200"></div>
 
               {/* INVENTARIO */}
-              {mostraModulo('inventario') && (
-                <div className="p-3 space-y-1">
-                  <button
-                    onClick={() => toggleModulo('inventario')}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
-                      moduloAperto === 'inventario' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🏛️</span>
-                      <span>INVENTARIO</span>
-                    </div>
-                    <span className={`transform transition-transform text-xs ${moduloAperto === 'inventario' ? 'rotate-90' : ''}`}>▶</span>
-                  </button>
+              <div className="p-3 space-y-1">
+                <button
+                  onClick={() => mostraModulo('inventario') && toggleModulo('inventario')}
+                  disabled={!mostraModulo('inventario')}
+                  className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
+                    !mostraModulo('inventario') ? 'text-gray-300 cursor-not-allowed' :
+                    moduloAperto === 'inventario' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🏛️</span>
+                    <span>INVENTARIO</span>
+                  </div>
+                  <span className={`transform transition-transform text-xs ${moduloAperto === 'inventario' ? 'rotate-90' : ''}`}>▶</span>
+                </button>
 
-                  {moduloAperto === 'inventario' && (
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => navigate('/inventario/beni')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/inventario/beni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>📦</span>
-                        <span>Beni</span>
-                      </button>
-                      <button
-                        onClick={() => navigate('/inventario/registri')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/inventario/registri') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>📋</span>
-                        <span>Registri</span>
-                      </button>
-                      <button
-                        onClick={() => navigate('/inventario/storico')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/inventario/storico') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>🗂️</span>
-                        <span>Storico</span>
-                      </button>
-                      <button
-                        onClick={() => navigate('/inventario/impostazioni')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/inventario/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>⚙️</span>
-                        <span>Impostazioni</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                {mostraModulo('inventario') && moduloAperto === 'inventario' && (
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => navigate('/inventario/beni')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/inventario/beni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>📦</span>
+                      <span>Beni</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/inventario/registri')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/inventario/registri') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>📋</span>
+                      <span>Registri</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/inventario/storico')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/inventario/storico') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>🗂️</span>
+                      <span>Storico</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/inventario/impostazioni')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/inventario/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>⚙️</span>
+                      <span>Impostazioni</span>
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <div className="mx-3 h-px bg-gray-200"></div>
 
               {/* ANAGRAFICA */}
-              {mostraModulo('anagrafica') && (
-                <div className="p-3 space-y-1">
-                  <button
-                    onClick={() => toggleModulo('anagrafica')}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
-                      moduloAperto === 'anagrafica' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">👥</span>
-                      <span>ANAGRAFICA</span>
-                    </div>
-                    <span className={`transform transition-transform text-xs ${moduloAperto === 'anagrafica' ? 'rotate-90' : ''}`}>▶</span>
-                  </button>
+              <div className="p-3 space-y-1">
+                <button
+                  onClick={() => mostraModulo('anagrafica') && toggleModulo('anagrafica')}
+                  disabled={!mostraModulo('anagrafica')}
+                  className={`w-full flex items-center justify-between px-2 py-1.5 text-sm font-bold rounded transition-colors ${
+                    !mostraModulo('anagrafica') ? 'text-gray-300 cursor-not-allowed' :
+                    moduloAperto === 'anagrafica' ? 'text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">👥</span>
+                    <span>ANAGRAFICA</span>
+                  </div>
+                  <span className={`transform transition-transform text-xs ${moduloAperto === 'anagrafica' ? 'rotate-90' : ''}`}>▶</span>
+                </button>
 
-                  {moduloAperto === 'anagrafica' && (
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => navigate('/persone')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/persone') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>👤</span>
-                        <span>Persone</span>
-                      </button>
-                      <button
-                        onClick={() => navigate('/registro')}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                          isActive('/registro') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        <span>📖</span>
-                        <span>Registro</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                {mostraModulo('anagrafica') && moduloAperto === 'anagrafica' && (
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => navigate('/persone')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/persone') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>👤</span>
+                      <span>Persone</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/registro')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/registro') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>📖</span>
+                      <span>Registro</span>
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* SPACER */}
               <div className="flex-1"></div>
