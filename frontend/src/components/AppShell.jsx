@@ -360,7 +360,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/contabilita/movimenti')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/contabilita/movimenti') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📊</span>
@@ -369,7 +369,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/contabilita/rapporti')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita/rapporti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/contabilita/rapporti') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📄</span>
@@ -380,7 +380,7 @@ const AppShell = () => {
                       <button
                         onClick={() => setRendicontoOpen(!rendicontoOpen)}
                         className={`w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors ${
-                          location.pathname.startsWith('/contabilita/rendiconto') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                          location.pathname.startsWith('/contabilita/rendiconto') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                         }`}
                       >
                         <span className="flex items-center gap-2">
@@ -399,7 +399,7 @@ const AppShell = () => {
                           <button
                             onClick={() => navigate('/contabilita/rendiconto/nuovo')}
                             className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                              location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                              location.pathname === '/contabilita/rendiconto/nuovo' ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                             }`}
                           >
                             <span>✨</span>
@@ -409,7 +409,7 @@ const AppShell = () => {
                             onClick={() => navigate('/contabilita/rendiconto/lista')}
                             className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
                               location.pathname === '/contabilita/rendiconto/lista' || (location.pathname.startsWith('/contabilita/rendiconto/') && location.pathname !== '/contabilita/rendiconto/nuovo')
-                                ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                                ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                             }`}
                           >
                             <span>📚</span>
@@ -421,7 +421,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/contabilita/impostazioni')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/contabilita/impostazioni') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>⚙️</span>
@@ -455,7 +455,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/inventario/beni')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/inventario/beni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/inventario/beni') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📦</span>
@@ -464,7 +464,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/inventario/registri')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/inventario/registri') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/inventario/registri') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📋</span>
@@ -473,7 +473,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/inventario/storico')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/inventario/storico') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/inventario/storico') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>🗂️</span>
@@ -482,7 +482,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/inventario/stampa')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/inventario/stampa') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/inventario/stampa') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📄</span>
@@ -491,7 +491,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/inventario/impostazioni')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/inventario/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/inventario/impostazioni') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>⚙️</span>
@@ -525,7 +525,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/persone')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/persone') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/persone') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>👤</span>
@@ -534,7 +534,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/registro')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/registro') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        isActive('/registro') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📖</span>
@@ -544,23 +544,6 @@ const AppShell = () => {
                 )}
               </div>
 
-              {/* SPACER */}
-              <div className="flex-1"></div>
-
-              <div className="mx-3 h-px bg-gray-200"></div>
-
-              {/* IMPOSTAZIONI */}
-              <div className="p-3">
-                <button
-                  onClick={() => navigate('/impostazioni/dati-generali')}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                    isActive('/impostazioni') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="text-lg">⚙️</span>
-                  <span>Impostazioni</span>
-                </button>
-              </div>
             </>
           )}
         </div>
