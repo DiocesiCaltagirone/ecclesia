@@ -268,6 +268,45 @@ const AppShell = () => {
                 </div>
               </div>
             </>
+          ) : location.pathname === '/impostazioni/dati-generali' ? (
+            <>
+              {/* SIDEBAR IMPOSTAZIONI */}
+              <div className="p-3">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                >
+                  <span className="text-lg">🏠</span>
+                  <span>HOME</span>
+                </button>
+              </div>
+
+              <div className="mx-3 h-px bg-gray-200"></div>
+
+              <div className="p-3 space-y-1">
+                <button
+                  onClick={() => navigate('/contabilita')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                >
+                  <span className="text-lg">💰</span>
+                  <span>CONTABILITÀ</span>
+                </button>
+                <button
+                  onClick={() => navigate('/inventario/beni')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                >
+                  <span className="text-lg">🏛️</span>
+                  <span>INVENTARIO</span>
+                </button>
+                <button
+                  onClick={() => navigate('/persone')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors"
+                >
+                  <span className="text-lg">👥</span>
+                  <span>ANAGRAFICA</span>
+                </button>
+              </div>
+            </>
           ) : (
             <>
               {/* SIDEBAR ACCORDION */}
