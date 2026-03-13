@@ -379,7 +379,9 @@ const AppShell = () => {
                     <div className="space-y-1">
                       <button
                         onClick={() => setRendicontoOpen(!rendicontoOpen)}
-                        className="w-full flex items-center justify-between px-3 py-1.5 text-sm bg-purple-600 text-white hover:bg-purple-700 rounded transition-colors"
+                        className={`w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors ${
+                          location.pathname.startsWith('/contabilita/rendiconto') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
                       >
                         <span className="flex items-center gap-2">
                           <span>📋</span>
@@ -397,7 +399,7 @@ const AppShell = () => {
                           <button
                             onClick={() => navigate('/contabilita/rendiconto/nuovo')}
                             className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                              location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                              location.pathname === '/contabilita/rendiconto/nuovo' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                             }`}
                           >
                             <span>✨</span>
@@ -407,7 +409,7 @@ const AppShell = () => {
                             onClick={() => navigate('/contabilita/rendiconto/lista')}
                             className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
                               location.pathname === '/contabilita/rendiconto/lista' || (location.pathname.startsWith('/contabilita/rendiconto/') && location.pathname !== '/contabilita/rendiconto/nuovo')
-                                ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                                ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                             }`}
                           >
                             <span>📚</span>
