@@ -10,11 +10,18 @@ const statoBadgeColors = {
   scadente:  { background: '#fee2e2', color: '#991b1b', border: '#fca5a5' },
 };
 
+const formatDate = (date) => {
+  const giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+  const mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+  return `${giorni[date.getDay()]}, ${date.getDate()} ${mesi[date.getMonth()]} ${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+
 const SchedaBene = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [bene, setBene] = useState(null);
   const [foto, setFoto] = useState([]);
   const [categorie, setCategorie] = useState([]);
@@ -43,6 +50,11 @@ const SchedaBene = () => {
     note: '',
     note_storiche: '',
   });
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     caricaDati();
@@ -239,52 +251,57 @@ const SchedaBene = () => {
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: 900, margin: '0 auto' }}>
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/inventario/beni')}
-            className="px-3 py-1.5 rounded-lg text-sm"
-            style={{ color: '#6b7280', border: '1px solid #ddd' }}
-          >
-            ← Torna ai beni
+      <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4" style={{ maxWidth: 'calc(900px + 2rem)', marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className="flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 p-1" title="Indietro">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
-          <h1 style={{ fontFamily: 'Georgia, serif', color: '#1a1a2e', fontSize: 22, fontWeight: 700, margin: 0 }}>
-            Bene #{String(bene.numero_progressivo).padStart(3, '0')} — {bene.descrizione.substring(0, 40)}
-            {bene.descrizione.length > 40 ? '...' : ''}
-          </h1>
-          {bloccato && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ background: '#1a2e55', color: '#d4af37' }}>
-              🔒 BLOCCATO
-            </span>
-          )}
+          <h1 className="text-base font-bold text-gray-800 flex-1 text-center tracking-wide">SCHEDA BENE</h1>
+          <div className="text-xs text-gray-500 flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{formatDate(currentTime)}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={scaricaSchedaPdf}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium"
-            style={{ color: '#1a2e55', border: '2px solid #1a2e55' }}
-          >
-            🖨️ PDF
-          </button>
-          {!bloccato && editMode && (
-            <>
-              <button
-                onClick={() => { setEditMode(false); caricaDati(); }}
-                className="px-4 py-2 rounded-lg text-sm"
-                style={{ border: '1px solid #ddd', color: '#6b7280' }}
-              >
-                Annulla
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-5 py-2 rounded-lg text-sm font-semibold text-white"
-                style={{ background: '#d4af37', opacity: saving ? 0.6 : 1 }}
-              >
-                {saving ? 'Salvataggio...' : 'Aggiorna Bene'}
-              </button>
-            </>
-          )}
+      </div>
+
+      {/* AZIONI */}
+      <div className="bg-white border-b border-gray-200 px-6 -mx-4 mb-4" style={{ maxWidth: 'calc(900px + 2rem)', marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className="flex items-center justify-end">
+          <div className="flex items-center gap-4">
+            {bloccato && (
+              <span className="px-2 py-1 text-xs font-semibold" style={{ color: '#991b1b' }}>
+                BLOCCATO
+              </span>
+            )}
+            <button
+              onClick={scaricaSchedaPdf}
+              className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
+            >
+              PDF
+            </button>
+            {!bloccato && editMode && (
+              <>
+                <button
+                  onClick={() => { setEditMode(false); caricaDati(); }}
+                  className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-2 py-2 text-sm font-semibold text-green-600 border-b-2 border-transparent hover:text-green-700 transition-colors"
+                  style={{ opacity: saving ? 0.6 : 1 }}
+                >
+                  {saving ? 'Salvataggio...' : 'Aggiorna Bene'}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

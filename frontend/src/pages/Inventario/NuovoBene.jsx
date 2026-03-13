@@ -2,8 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
+const formatDate = (date) => {
+  const giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+  const mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+  return `${giorni[date.getDay()]}, ${date.getDate()} ${mesi[date.getMonth()]} ${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+
 const NuovoBene = () => {
   const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [categorie, setCategorie] = useState([]);
   const [ubicazioni, setUbicazioni] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -26,6 +33,11 @@ const NuovoBene = () => {
     note: '',
     note_storiche: '',
   });
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const caricaDati = async () => {
@@ -104,18 +116,20 @@ const NuovoBene = () => {
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: 900, margin: '0 auto' }}>
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/inventario/beni')}
-            className="px-3 py-1.5 rounded-lg text-sm"
-            style={{ color: '#6b7280', border: '1px solid #ddd' }}
-          >
-            ← Torna ai beni
+      <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4" style={{ maxWidth: 'calc(900px + 2rem)', marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className="flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 p-1" title="Indietro">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
-          <h1 style={{ fontFamily: 'Georgia, serif', color: '#1a1a2e', fontSize: 22, fontWeight: 700, margin: 0 }}>
-            Nuovo Bene
-          </h1>
+          <h1 className="text-base font-bold text-gray-800 flex-1 text-center tracking-wide">NUOVO BENE</h1>
+          <div className="text-xs text-gray-500 flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{formatDate(currentTime)}</span>
+          </div>
         </div>
       </div>
 

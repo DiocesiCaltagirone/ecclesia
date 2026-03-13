@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+
+const formatDate = (date) => {
+  const giorni = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+  const mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+  return `${giorni[date.getDay()]}, ${date.getDate()} ${mesi[date.getMonth()]} ${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
 
 const motivoBadgeColors = {
   venduto:     { background: '#dbeafe', color: '#1e40af' },
@@ -14,6 +21,8 @@ const motivoBadgeColors = {
 };
 
 const StoricoInventario = () => {
+  const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [storico, setStorico] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,6 +35,11 @@ const StoricoInventario = () => {
   // Modal dettaglio
   const [showDettaglio, setShowDettaglio] = useState(false);
   const [beneDettaglio, setBeneDettaglio] = useState(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     caricaStorico();
@@ -95,24 +109,35 @@ const StoricoInventario = () => {
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-2">
-        <div>
-          <h1 style={{ fontFamily: 'Georgia, serif', color: '#1a1a2e', fontSize: 24, fontWeight: 700, margin: 0 }}>
-            Storico Beni
-          </h1>
-          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>
-            Beni non più presenti nell'inventario
-          </p>
+      <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4">
+        <div className="flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 p-1" title="Indietro">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-base font-bold text-gray-800 flex-1 text-center tracking-wide">STORICO</h1>
+          <div className="text-xs text-gray-500 flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{formatDate(currentTime)}</span>
+          </div>
         </div>
-        <button
-          onClick={scaricaStoricoPdf}
-          className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-          style={{ color: '#1a2e55', border: '2px solid #1a2e55' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#1a2e55'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1a2e55'; }}
-        >
-          🖨️ Stampa Storico Completo
-        </button>
+      </div>
+
+      {/* AZIONI */}
+      <div className="bg-white border-b border-gray-200 px-6 -mx-4 mb-4">
+        <div className="flex items-center justify-end">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={scaricaStoricoPdf}
+              className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
+            >
+              Stampa Storico Completo
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* FILTRI */}
