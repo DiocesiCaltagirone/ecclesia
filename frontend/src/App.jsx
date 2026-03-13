@@ -25,6 +25,7 @@ import MovimentiGenerale from './pages/Contabilita/MovimentiGenerale';
 import Rendiconto from './pages/Contabilita/Rendiconto';
 import NuovoRendiconto from './pages/Contabilita/NuovoRendiconto';
 import ListaRendiconti from './pages/Contabilita/ListaRendiconti';
+import ImpostazioniContabilita from './pages/Contabilita/ImpostazioniContabilita';
 import EconomatoContabilita from './pages/EconomatoContabilita';
 
 // Import Inventario
@@ -154,6 +155,7 @@ function App() {
               <Route path="movimenti" element={<MovimentiGenerale />} />
               <Route path="conti/:registroId/movimenti" element={<MovimentiConto />} />
               <Route path="rapporti" element={<Rapporti />} />
+              <Route path="impostazioni" element={<ImpostazioniContabilita />} />
               <Route path="rendiconto" element={<Rendiconto />} />
               <Route path="rendiconto/nuovo" element={<NuovoRendiconto />} />
               <Route path="rendiconto/:id" element={<NuovoRendiconto />} />

@@ -97,15 +97,12 @@ const AppShell = () => {
   };
 
   const toggleModulo = (key) => {
-    if (moduloAperto === key) {
-      setModuloAperto(null);
-    } else {
-      setModuloAperto(key);
-      // Naviga alla prima sotto-voce del modulo
-      if (key === 'contabilita') navigate('/contabilita');
-      else if (key === 'inventario') navigate('/inventario/beni');
-      else if (key === 'anagrafica') navigate('/persone');
-    }
+    if (moduloAperto === key) return;
+    setModuloAperto(key);
+    // Naviga alla prima sotto-voce del modulo
+    if (key === 'contabilita') navigate('/contabilita');
+    else if (key === 'inventario') navigate('/inventario/beni');
+    else if (key === 'anagrafica') navigate('/persone');
   };
 
   const mostraModulo = (permesso) => {
@@ -355,9 +352,7 @@ const AppShell = () => {
                   <div className="space-y-1">
                     <button
                       onClick={() => navigate('/contabilita')}
-                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                      }`}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors bg-blue-600 text-white font-semibold"
                     >
                       <span>💳</span>
                       <span>Conti</span>
@@ -365,7 +360,7 @@ const AppShell = () => {
                     <button
                       onClick={() => navigate('/contabilita/movimenti')}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                        isActive('/contabilita/movimenti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
                       <span>📊</span>
@@ -373,11 +368,12 @@ const AppShell = () => {
                     </button>
                     <button
                       onClick={() => navigate('/contabilita/rapporti')}
-                      className={`w-full px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita/rapporti') ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-600 text-white hover:bg-gray-700'
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/contabilita/rapporti') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
-                      📄 Stampa
+                      <span>📄</span>
+                      <span>Stampa</span>
                     </button>
                     {/* Rendiconto sub-menu */}
                     <div className="space-y-1">
@@ -420,6 +416,15 @@ const AppShell = () => {
                         </div>
                       )}
                     </div>
+                    <button
+                      onClick={() => navigate('/contabilita/impostazioni')}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/contabilita/impostazioni') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                    >
+                      <span>⚙️</span>
+                      <span>Impostazioni</span>
+                    </button>
                   </div>
                 )}
               </div>

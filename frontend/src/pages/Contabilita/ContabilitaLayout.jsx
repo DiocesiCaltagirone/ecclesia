@@ -125,21 +125,6 @@ const ContabilitaLayout = () => {
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setShowModalConto(true)}
-              className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
-            >
-              + Aggiungi Conto
-            </button>
-            <button
-              onClick={() => navigate('/contabilita/categoria')}
-              className={`px-2 py-2 text-sm font-semibold border-b-2 transition-colors ${isActive('/contabilita/categoria')
-                ? 'text-blue-600 border-blue-600'
-                : 'text-gray-600 border-transparent hover:text-blue-600'
-                }`}
-            >
-              Impostazione Categoria
-            </button>
-            <button
               onClick={() => setShowModalTransazione(true)}
               className="px-2 py-2 text-sm font-semibold text-green-600 border-b-2 border-transparent hover:text-green-700 transition-colors"
             >
