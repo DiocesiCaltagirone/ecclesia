@@ -21,6 +21,7 @@ const AppShell = () => {
   // Accordion: quale modulo e' aperto
   const [moduloAperto, setModuloAperto] = useState(null);
   const [rendicontoOpen, setRendicontoOpen] = useState(false);
+  const [impostazioniContOpen, setImpostazioniContOpen] = useState(false);
 
   // Apri automaticamente il modulo in base alla route
   useEffect(() => {
@@ -418,15 +419,46 @@ const AppShell = () => {
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => navigate('/contabilita/impostazioni')}
-                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/contabilita/impostazioni') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                      }`}
-                    >
-                      <span>⚙️</span>
-                      <span>Impostazioni</span>
-                    </button>
+                    {/* Impostazioni sub-menu */}
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => setImpostazioniContOpen(!impostazioniContOpen)}
+                        className={`w-full flex items-center justify-between px-3 py-1.5 text-sm rounded transition-colors ${
+                          isActive('/contabilita/categoria') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>⚙️</span>
+                          <span>Impostazioni</span>
+                        </span>
+                        <svg
+                          className={`w-4 h-4 transition-transform ${impostazioniContOpen ? 'rotate-180' : ''}`}
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {impostazioniContOpen && (
+                        <div className="pl-4 space-y-1">
+                          <button
+                            onClick={() => navigate('/contabilita?openModal=true')}
+                            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                          >
+                            <span>➕</span>
+                            <span>Aggiungi Conto</span>
+                          </button>
+                          <button
+                            onClick={() => navigate('/contabilita/categoria')}
+                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                              isActive('/contabilita/categoria') ? 'border-l-2 border-blue-600 bg-gray-50 text-gray-900 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                            }`}
+                          >
+                            <span>📂</span>
+                            <span>Gestione Categorie</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

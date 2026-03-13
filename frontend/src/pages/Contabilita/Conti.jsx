@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
 import api from '../../services/api';
 
 const Conti = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [conti, setConti] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +37,14 @@ const Conti = () => {
     fetchConti();
     fetchUltimoRendiconto();
   }, []);
+
+  // Apri modal se arrivi con ?openModal=true
+  useEffect(() => {
+    if (searchParams.get('openModal') === 'true') {
+      openModal();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams]);
 
   const fetchConti = async () => {
     try {
