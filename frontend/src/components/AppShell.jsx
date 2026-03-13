@@ -474,11 +474,12 @@ const AppShell = () => {
                     </button>
                     <button
                       onClick={() => navigate('/inventario/stampa')}
-                      className={`w-full px-3 py-1.5 text-sm rounded transition-colors ${
-                        isActive('/inventario/stampa') ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-600 text-white hover:bg-gray-700'
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors ${
+                        isActive('/inventario/stampa') ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
-                      📄 Stampa
+                      <span>📄</span>
+                      <span>Stampa</span>
                     </button>
                     <button
                       onClick={() => navigate('/inventario/impostazioni')}
