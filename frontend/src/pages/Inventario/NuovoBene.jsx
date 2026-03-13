@@ -116,7 +116,7 @@ const NuovoBene = () => {
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", maxWidth: 900, margin: '0 auto' }}>
       {/* HEADER */}
-      <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4" style={{ maxWidth: 'calc(900px + 2rem)', marginLeft: 'auto', marginRight: 'auto' }}>
+      <div className="bg-white border-b border-gray-200 px-6 py-2 -mx-4 -mt-4 mb-4">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 p-1" title="Indietro">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
