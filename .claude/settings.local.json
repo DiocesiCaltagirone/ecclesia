@@ -10,7 +10,11 @@
       "Bash(git:*)",
       "Bash(test:*)",
       "Bash(wc:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker-compose:*)",
+      "Bash(cd C:/Users/Lux/parrocchia-app/frontend && npx vite build 2>&1 | tail -20)",
+      "Bash(npx vite:*)"
     ]
   }
 }

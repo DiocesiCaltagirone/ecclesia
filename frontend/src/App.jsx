@@ -27,6 +27,15 @@ import NuovoRendiconto from './pages/Contabilita/NuovoRendiconto';  // ← NUOVO
 import ListaRendiconti from './pages/Contabilita/ListaRendiconti';  // ← NUOVO
 import EconomatoContabilita from './pages/EconomatoContabilita';
 
+// Import Inventario
+import InventarioLayout from './pages/Inventario/InventarioLayout';
+import ListaBeni from './pages/Inventario/ListaBeni';
+import NuovoBene from './pages/Inventario/NuovoBene';
+import SchedaBene from './pages/Inventario/SchedaBene';
+import ListaRegistri from './pages/Inventario/ListaRegistri';
+import StoricoInventario from './pages/Inventario/StoricoInventario';
+import ImpostazioniInventario from './pages/Inventario/ImpostazioniInventario';
+
 // Componente per proteggere le rotte
 function PrivateRoute({ children }) {
   const token = sessionStorage.getItem('token');
@@ -96,6 +105,21 @@ function App() {
             <Route path="persone" element={<Persone />} />
             <Route path="impostazioni/dati-generali" element={<ImpostazioniDatiGenerali />} />
             <Route path="registro" element={<Registro />} />
+          </Route>
+
+          {/* Inventario - Layout separato con sidebar propria */}
+          <Route path="/inventario" element={
+            <PrivateRoute>
+              <InventarioLayout />
+            </PrivateRoute>
+          }>
+            <Route index element={<Navigate to="/inventario/beni" replace />} />
+            <Route path="beni" element={<ListaBeni />} />
+            <Route path="beni/nuovo" element={<NuovoBene />} />
+            <Route path="beni/:id" element={<SchedaBene />} />
+            <Route path="registri" element={<ListaRegistri />} />
+            <Route path="storico" element={<StoricoInventario />} />
+            <Route path="impostazioni" element={<ImpostazioniInventario />} />
           </Route>
 
           {/* Contabilità - Layout separato con sidebar propria */}
