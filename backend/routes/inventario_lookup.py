@@ -118,8 +118,6 @@ async def update_categoria(
         cat = cur.fetchone()
         if not cat:
             raise HTTPException(status_code=404, detail="Categoria non trovata")
-        if cat[0]:
-            raise HTTPException(status_code=403, detail="Le categorie di sistema non possono essere modificate")
 
         nome = data.get("nome", "").strip()
         if not nome:

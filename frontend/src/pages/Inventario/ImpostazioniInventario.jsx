@@ -138,6 +138,7 @@ const ImpostazioniInventario = () => {
         {[
           { key: 'categorie', icon: '📁', label: 'Categorie' },
           { key: 'ubicazioni', icon: '📍', label: 'Ubicazioni' },
+          { key: 'importexport', icon: '📤', label: 'Import/Export' },
         ].map(tab => (
           <button
             key={tab.key}
@@ -154,127 +155,285 @@ const ImpostazioniInventario = () => {
         ))}
       </div>
 
-      {/* CONTENUTO TAB */}
-      <div className="rounded-xl p-5" style={{ background: '#fefcf8', border: '1px solid rgba(212,175,55,0.2)' }}>
-        {/* Bottone aggiungi */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => apriForm()}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#d4af37' }}
-          >
-            + Aggiungi {tabAttiva === 'categorie' ? 'Categoria' : 'Ubicazione'}
-          </button>
-        </div>
+      {/* CONTENUTO TAB — Categorie/Ubicazioni */}
+      {(tabAttiva === 'categorie' || tabAttiva === 'ubicazioni') && (
+        <div className="rounded-xl p-5" style={{ background: '#fefcf8', border: '1px solid rgba(212,175,55,0.2)' }}>
+          {/* Bottone aggiungi */}
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => apriForm()}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background: '#d4af37' }}
+            >
+              + Aggiungi {tabAttiva === 'categorie' ? 'Categoria' : 'Ubicazione'}
+            </button>
+          </div>
 
-        {/* Form inline */}
-        {showForm && (
-          <div className="mb-4 p-4 rounded-lg" style={{ background: '#fefbf0', border: '1px solid #d4af37' }}>
-            <div className="flex items-end gap-3 flex-wrap">
-              <div className="flex-1" style={{ minWidth: 200 }}>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a1a2e' }}>Nome *</label>
-                <input
-                  type="text"
-                  value={formNome}
-                  onChange={(e) => setFormNome(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ border: '1px solid #ddd', outline: 'none' }}
-                  placeholder={`Nome ${tabAttiva === 'categorie' ? 'categoria' : 'ubicazione'}...`}
-                  autoFocus
-                />
-              </div>
-              <div className="flex-1" style={{ minWidth: 200 }}>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a1a2e' }}>Descrizione</label>
-                <input
-                  type="text"
-                  value={formDescrizione}
-                  onChange={(e) => setFormDescrizione(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ border: '1px solid #ddd', outline: 'none' }}
-                  placeholder="Descrizione (opzionale)"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={chiudiForm}
-                  className="px-4 py-2 rounded-lg text-sm font-medium"
-                  style={{ border: '1px solid #ddd', color: '#6b7280' }}
-                >
-                  Annulla
-                </button>
-                <button
-                  onClick={salva}
-                  disabled={saving}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                  style={{ background: '#1a2e55', opacity: saving ? 0.6 : 1 }}
-                >
-                  {saving ? 'Salvataggio...' : 'Salva'}
-                </button>
+          {/* Form inline */}
+          {showForm && (
+            <div className="mb-4 p-4 rounded-lg" style={{ background: '#fefbf0', border: '1px solid #d4af37' }}>
+              <div className="flex items-end gap-3 flex-wrap">
+                <div className="flex-1" style={{ minWidth: 200 }}>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: '#1a1a2e' }}>Nome *</label>
+                  <input
+                    type="text"
+                    value={formNome}
+                    onChange={(e) => setFormNome(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-lg"
+                    style={{ border: '1px solid #ddd', outline: 'none', fontSize: 13 }}
+                    placeholder={`Nome ${tabAttiva === 'categorie' ? 'categoria' : 'ubicazione'}...`}
+                    autoFocus
+                  />
+                </div>
+                <div className="flex-1" style={{ minWidth: 200 }}>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: '#1a1a2e' }}>Descrizione</label>
+                  <input
+                    type="text"
+                    value={formDescrizione}
+                    onChange={(e) => setFormDescrizione(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-lg"
+                    style={{ border: '1px solid #ddd', outline: 'none', fontSize: 13 }}
+                    placeholder="Descrizione (opzionale)"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={chiudiForm}
+                    className="px-4 py-1.5 rounded-lg text-sm font-medium"
+                    style={{ border: '1px solid #ddd', color: '#6b7280' }}
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    onClick={salva}
+                    disabled={saving}
+                    className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white"
+                    style={{ background: '#1a2e55', opacity: saving ? 0.6 : 1 }}
+                  >
+                    {saving ? 'Salvataggio...' : 'Salva'}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Lista */}
-        {items.length === 0 ? (
-          <p style={{ color: '#6b7280', textAlign: 'center', padding: 30 }}>
-            Nessuna {tabAttiva === 'categorie' ? 'categoria' : 'ubicazione'} presente
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {items.map((item) => {
-              const isSistema = tabAttiva === 'categorie' && item.is_sistema;
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg"
-                  style={{ background: '#fff', border: '1px solid rgba(212,175,55,0.15)' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span style={{ color: '#d4af37', fontSize: 12, fontFamily: "'Courier New', monospace", minWidth: 30 }}>
-                      #{item.ordine}
-                    </span>
-                    <div>
-                      <span style={{ fontWeight: 600, color: '#1a1a2e', fontSize: 14 }}>{item.nome}</span>
-                      {item.descrizione && (
-                        <span style={{ color: '#6b7280', fontSize: 12, marginLeft: 8 }}>— {item.descrizione}</span>
+          {/* Lista */}
+          {items.length === 0 ? (
+            <p style={{ color: '#6b7280', textAlign: 'center', padding: 30 }}>
+              Nessuna {tabAttiva === 'categorie' ? 'categoria' : 'ubicazione'} presente
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item) => {
+                const isSistema = tabAttiva === 'categorie' && item.is_sistema;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between px-4 py-3 rounded-lg"
+                    style={{ background: '#fff', border: '1px solid rgba(212,175,55,0.15)' }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span style={{ color: '#d4af37', fontSize: 12, fontFamily: "'Courier New', monospace", minWidth: 30 }}>
+                        #{item.ordine}
+                      </span>
+                      <div>
+                        <span style={{ fontWeight: 600, color: '#1a1a2e', fontSize: 14 }}>{item.nome}</span>
+                        {item.descrizione && (
+                          <span style={{ color: '#6b7280', fontSize: 12, marginLeft: 8 }}>— {item.descrizione}</span>
+                        )}
+                      </div>
+                      {isSistema && (
+                        <span
+                          className="px-2 py-0.5 rounded text-xs font-semibold"
+                          style={{ background: '#f0e6c0', color: '#7a5c00', border: '1px solid #d4af37' }}
+                        >
+                          Sistema
+                        </span>
                       )}
                     </div>
-                    {isSistema && (
-                      <span
-                        className="px-2 py-0.5 rounded text-xs font-semibold"
-                        style={{ background: '#f0e6c0', color: '#7a5c00', border: '1px solid #d4af37' }}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => apriForm(item)}
+                        className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+                        style={{ fontSize: 14 }}
+                        title="Modifica"
                       >
-                        Sistema
-                      </span>
-                    )}
+                        ✏️
+                      </button>
+                      {!isSistema && (
+                        <button
+                          onClick={() => elimina(item.id)}
+                          className="p-1.5 rounded hover:bg-red-50 transition-colors"
+                          style={{ fontSize: 14 }}
+                          title="Elimina"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => !isSistema && apriForm(item)}
-                      className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-                      style={{ opacity: isSistema ? 0.3 : 1, cursor: isSistema ? 'not-allowed' : 'pointer', fontSize: 14 }}
-                      disabled={isSistema}
-                      title={isSistema ? 'Non modificabile' : 'Modifica'}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => !isSistema && elimina(item.id)}
-                      className="p-1.5 rounded hover:bg-red-50 transition-colors"
-                      style={{ opacity: isSistema ? 0.3 : 1, cursor: isSistema ? 'not-allowed' : 'pointer', fontSize: 14 }}
-                      disabled={isSistema}
-                      title={isSistema ? 'Non eliminabile' : 'Elimina'}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CONTENUTO TAB — Import/Export */}
+      {tabAttiva === 'importexport' && (
+        <div className="rounded-xl p-5" style={{ background: '#fefcf8', border: '1px solid rgba(212,175,55,0.2)' }}>
+          {/* Sezione Esporta */}
+          <div className="mb-6">
+            <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a1a2e', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+              Esporta Dati
+            </h3>
+            <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 16 }}>
+              Scarica l'elenco completo dei beni attivi nel formato desiderato.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await api.get('/api/inventario/export/csv', { responseType: 'blob' });
+                    const urlBlob = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = urlBlob;
+                    link.setAttribute('download', 'inventario_beni.csv');
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(urlBlob);
+                  } catch {
+                    alert('Errore nel download CSV');
+                  }
+                }}
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white"
+                style={{ background: '#1a2e55' }}
+              >
+                Esporta CSV
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await api.get('/api/inventario/export/excel', { responseType: 'blob' });
+                    const urlBlob = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = urlBlob;
+                    link.setAttribute('download', 'inventario_beni.xlsx');
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(urlBlob);
+                  } catch {
+                    alert('Errore nel download Excel');
+                  }
+                }}
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold"
+                style={{ background: '#d4af37', color: '#fff' }}
+              >
+                Esporta Excel
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div style={{ height: 1, background: 'rgba(212,175,55,0.3)', margin: '24px 0' }}></div>
+
+          {/* Sezione Importa */}
+          <div>
+            <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a1a2e', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+              Importa Dati
+            </h3>
+            <div className="mb-4">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await api.get('/api/inventario/import/template', { responseType: 'blob' });
+                    const urlBlob = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = urlBlob;
+                    link.setAttribute('download', 'template_importazione_beni.xlsx');
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(urlBlob);
+                  } catch {
+                    alert('Errore nel download del template');
+                  }
+                }}
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold"
+                style={{ border: '2px solid #1a2e55', color: '#1a2e55' }}
+              >
+                Scarica Template Excel
+              </button>
+            </div>
+
+            {/* Area upload */}
+            <div
+              className="rounded-lg p-8 text-center cursor-pointer"
+              style={{
+                border: '2px dashed rgba(212,175,55,0.5)',
+                background: '#fefbf0',
+              }}
+              onClick={() => document.getElementById('import-file-input').click()}
+              onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#d4af37'; }}
+              onDragLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.5)'; }}
+              onDrop={async (e) => {
+                e.preventDefault();
+                e.currentTarget.style.borderColor = 'rgba(212,175,55,0.5)';
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  try {
+                    const res = await api.post('/api/inventario/import', formData, {
+                      headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    alert(`Importazione completata: ${res.data.importati || 0} beni importati.`);
+                  } catch (err) {
+                    alert(err.response?.data?.detail || 'Errore nell\'importazione');
+                  }
+                }
+              }}
+            >
+              <div style={{ fontSize: 40, marginBottom: 8 }}>📁</div>
+              <p style={{ color: '#1a1a2e', fontWeight: 600, fontSize: 14 }}>
+                Trascina un file qui oppure clicca per selezionare
+              </p>
+              <p style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
+                Formati accettati: CSV, Excel (.xlsx)
+              </p>
+            </div>
+            <input
+              id="import-file-input"
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              style={{ display: 'none' }}
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  try {
+                    const res = await api.post('/api/inventario/import', formData, {
+                      headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    alert(`Importazione completata: ${res.data.importati || 0} beni importati.`);
+                  } catch (err) {
+                    alert(err.response?.data?.detail || 'Errore nell\'importazione');
+                  }
+                }
+                e.target.value = '';
+              }}
+            />
+
+            <div className="mt-4 p-3 rounded-lg" style={{ background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+              <p style={{ color: '#0c4a6e', fontSize: 12 }}>
+                Il file deve seguire il formato del template. Le colonne obbligatorie sono: <strong>Descrizione</strong>, <strong>Categoria</strong>, <strong>Ubicazione</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

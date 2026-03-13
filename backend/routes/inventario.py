@@ -26,8 +26,10 @@ from routes.inventario_lookup import router as lookup_router
 from routes.inventario_beni import router as beni_router
 from routes.inventario_registri import router as registri_router
 from routes.inventario_pdf import router as pdf_router
+from routes.inventario_export import router as export_router
 
 router.include_router(lookup_router)
 router.include_router(beni_router)
 router.include_router(registri_router)
 router.include_router(pdf_router)
+router.include_router(export_router)

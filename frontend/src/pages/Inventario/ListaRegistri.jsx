@@ -69,6 +69,22 @@ const ListaRegistri = () => {
     }
   };
 
+  const scaricaBozzaPdf = async () => {
+    try {
+      const res = await api.get('/api/inventario/stampa/bozza', { responseType: 'blob' });
+      const urlBlob = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = urlBlob;
+      link.setAttribute('download', 'bozza_registro_beni.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(urlBlob);
+    } catch {
+      alert('Errore nel download del PDF');
+    }
+  };
+
   const scaricaPdf = async (registroId, anno, numero) => {
     try {
       const res = await api.get(`/api/inventario/registri/${registroId}/pdf`, { responseType: 'blob' });
@@ -123,10 +139,16 @@ const ListaRegistri = () => {
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-4">
             <button
+              onClick={scaricaBozzaPdf}
+              className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
+            >
+              Bozza PDF
+            </button>
+            <button
               onClick={apriModal}
               className="px-2 py-2 text-sm font-semibold text-green-600 border-b-2 border-transparent hover:text-green-700 transition-colors"
             >
-              + Genera Nuovo Registro
+              + Genera Registro
             </button>
           </div>
         </div>

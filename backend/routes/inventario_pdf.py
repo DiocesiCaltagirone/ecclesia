@@ -110,6 +110,14 @@ def render_pdf(html_content, filename):
 
 @router.get("/stampa/bozza")
 async def stampa_bozza(
+    categoria_id: str = None,
+    ubicazione_id: str = None,
+    stato_conservazione: str = None,
+    data_da: str = None,
+    data_a: str = None,
+    valore_min: float = None,
+    valore_max: float = None,
+    bloccato: str = None,
     current_user: dict = Depends(get_current_user),
     x_ente_id: str = Header(None, alias="X-Ente-Id")
 ):
@@ -120,7 +128,7 @@ async def stampa_bozza(
     try:
         ente = get_ente_info(cur, ente_id)
 
-        cur.execute("""
+        query = """
             SELECT
                 b.numero_progressivo, b.descrizione, b.quantita,
                 b.stato_conservazione, b.valore_stimato, b.bloccato,
@@ -130,8 +138,39 @@ async def stampa_bozza(
             LEFT JOIN inventario_categorie c ON b.categoria_id = c.id
             LEFT JOIN inventario_ubicazioni u ON b.ubicazione_id = u.id
             WHERE b.ente_id = %s AND b.stato = 'attivo'
-            ORDER BY b.numero_progressivo
-        """, (ente_id,))
+        """
+        params = [ente_id]
+
+        if categoria_id:
+            query += " AND b.categoria_id = %s"
+            params.append(categoria_id)
+        if ubicazione_id:
+            query += " AND b.ubicazione_id = %s"
+            params.append(ubicazione_id)
+        if stato_conservazione:
+            query += " AND b.stato_conservazione = %s"
+            params.append(stato_conservazione)
+        if data_da:
+            query += " AND b.data_acquisto >= %s"
+            params.append(data_da)
+        if data_a:
+            query += " AND b.data_acquisto <= %s"
+            params.append(data_a)
+        if valore_min is not None:
+            query += " AND b.valore_stimato >= %s"
+            params.append(valore_min)
+        if valore_max is not None:
+            query += " AND b.valore_stimato <= %s"
+            params.append(valore_max)
+        if bloccato is not None:
+            if bloccato.lower() == 'true':
+                query += " AND b.bloccato = TRUE"
+            elif bloccato.lower() == 'false':
+                query += " AND b.bloccato = FALSE"
+
+        query += " ORDER BY b.numero_progressivo"
+
+        cur.execute(query, params)
         rows = cur.fetchall()
 
         beni = []

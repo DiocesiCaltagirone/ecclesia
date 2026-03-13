@@ -35,6 +35,7 @@ import SchedaBene from './pages/Inventario/SchedaBene';
 import ListaRegistri from './pages/Inventario/ListaRegistri';
 import StoricoInventario from './pages/Inventario/StoricoInventario';
 import ImpostazioniInventario from './pages/Inventario/ImpostazioniInventario';
+import StampaInventario from './pages/Inventario/StampaInventario';
 
 // Componente per proteggere le rotte
 function PrivateRoute({ children }) {
@@ -167,6 +168,7 @@ function App() {
               <Route path="beni/:id" element={<SchedaBene />} />
               <Route path="registri" element={<ListaRegistri />} />
               <Route path="storico" element={<StoricoInventario />} />
+              <Route path="stampa" element={<StampaInventario />} />
               <Route path="impostazioni" element={<ImpostazioniInventario />} />
             </Route>
           </Route>

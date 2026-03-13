@@ -224,8 +224,8 @@ const SchedaBene = () => {
   const inputStyle = {
     border: '1px solid #ddd',
     borderRadius: 8,
-    padding: '8px 12px',
-    fontSize: 14,
+    padding: '6px 10px',
+    fontSize: 13,
     width: '100%',
     outline: 'none',
     fontFamily: "'Segoe UI', system-ui, sans-serif",
@@ -234,10 +234,10 @@ const SchedaBene = () => {
 
   const labelStyle = {
     display: 'block',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 600,
     color: '#1a1a2e',
-    marginBottom: 4,
+    marginBottom: 3,
   };
 
   const cardStyle = {
@@ -245,7 +245,7 @@ const SchedaBene = () => {
     border: '1px solid rgba(212,175,55,0.2)',
     borderRadius: 12,
     padding: 20,
-    marginBottom: 16,
+    marginBottom: 12,
   };
 
   return (
@@ -311,7 +311,7 @@ const SchedaBene = () => {
         <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a2e55', fontSize: 16, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid #d4af37' }}>
           Dati Principali
         </h3>
-        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={labelStyle}>Descrizione *</label>
             <textarea
@@ -371,11 +371,11 @@ const SchedaBene = () => {
         <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a2e55', fontSize: 16, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid #d4af37' }}>
           Dati Economici
         </h3>
-        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
           <div>
             <label style={labelStyle}>Valore stimato</label>
             <div className="relative">
-              <span className="absolute left-3 top-2" style={{ color: '#6b7280', fontSize: 14 }}>€</span>
+              <span className="absolute left-3 top-1.5" style={{ color: '#6b7280', fontSize: 14 }}>€</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -392,7 +392,7 @@ const SchedaBene = () => {
           <div>
             <label style={labelStyle}>Valore assicurato</label>
             <div className="relative">
-              <span className="absolute left-3 top-2" style={{ color: '#6b7280', fontSize: 14 }}>€</span>
+              <span className="absolute left-3 top-1.5" style={{ color: '#6b7280', fontSize: 14 }}>€</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -445,7 +445,7 @@ const SchedaBene = () => {
         <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a2e55', fontSize: 16, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid #d4af37' }}>
           Note
         </h3>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
             <label style={labelStyle}>Note generali</label>
             <textarea value={form.note} onChange={(e) => handleChange('note', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} rows={3} disabled={bloccato} />

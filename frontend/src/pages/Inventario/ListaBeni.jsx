@@ -39,11 +39,6 @@ const ListaBeni = () => {
   const [dataRimozione, setDataRimozione] = useState(new Date().toISOString().split('T')[0]);
   const [rimozioneLoading, setRimozioneLoading] = useState(false);
 
-  // Modal genera registro
-  const [showModalRegistro, setShowModalRegistro] = useState(false);
-  const [noteRegistro, setNoteRegistro] = useState('');
-  const [registroLoading, setRegistroLoading] = useState(false);
-
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
@@ -129,42 +124,6 @@ const ListaBeni = () => {
     }
   };
 
-  const scaricaBozzaPdf = async () => {
-    try {
-      const res = await api.get('/api/inventario/stampa/bozza', { responseType: 'blob' });
-      const urlBlob = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = urlBlob;
-      link.setAttribute('download', 'bozza_registro_beni.pdf');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(urlBlob);
-    } catch {
-      alert('Errore nel download del PDF');
-    }
-  };
-
-  const apriModalRegistro = () => {
-    setNoteRegistro('');
-    setShowModalRegistro(true);
-  };
-
-  const generaRegistro = async () => {
-    setRegistroLoading(true);
-    try {
-      const anno = new Date().getFullYear();
-      await api.post('/api/inventario/registri/genera', { anno, note: noteRegistro });
-      setShowModalRegistro(false);
-      caricaBeni();
-      alert('Registro generato con successo! I beni sono stati bloccati.');
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Errore nella generazione del registro');
-    } finally {
-      setRegistroLoading(false);
-    }
-  };
-
   const fotoUrl = (bene) => {
     // foto_principale contiene il path_file, ma serve l'id per l'URL di visualizzazione
     // Nella lista usiamo un placeholder perché non abbiamo l'id della foto
@@ -209,18 +168,6 @@ const ListaBeni = () => {
               className="px-2 py-2 text-sm font-semibold text-green-600 border-b-2 border-transparent hover:text-green-700 transition-colors"
             >
               + Aggiungi Bene
-            </button>
-            <button
-              onClick={scaricaBozzaPdf}
-              className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
-            >
-              Bozza PDF
-            </button>
-            <button
-              onClick={apriModalRegistro}
-              className="px-2 py-2 text-sm font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600 transition-colors"
-            >
-              Genera Registro
             </button>
           </div>
         </div>
@@ -498,54 +445,6 @@ const ListaBeni = () => {
         </div>
       )}
 
-      {/* MODAL GENERA REGISTRO */}
-      {showModalRegistro && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="rounded-xl shadow-xl w-full max-w-md mx-4" style={{ background: '#fefcf8' }}>
-            <div className="px-6 py-4" style={{ borderBottom: '1px solid rgba(212,175,55,0.3)' }}>
-              <h3 style={{ fontFamily: 'Georgia, serif', color: '#1a1a2e', fontSize: 18, fontWeight: 700 }}>
-                Genera Registro Ufficiale
-              </h3>
-            </div>
-            <div className="px-6 py-4 space-y-4">
-              <div className="p-4 rounded-lg" style={{ background: '#fef3c7', border: '1px solid #d4af37' }}>
-                <p style={{ color: '#92400e', fontSize: 14 }}>
-                  ⚠️ Questa operazione blocca tutti i <strong>{beni.length}</strong> beni attivi.
-                  Una volta generato il registro, i beni non potranno più essere modificati.
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a1a2e' }}>Note (opzionale)</label>
-                <textarea
-                  value={noteRegistro}
-                  onChange={(e) => setNoteRegistro(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg text-sm"
-                  style={{ border: '1px solid #ddd' }}
-                  rows={3}
-                  placeholder="Note aggiuntive..."
-                />
-              </div>
-            </div>
-            <div className="px-6 py-4 flex justify-end gap-3" style={{ borderTop: '1px solid rgba(212,175,55,0.3)' }}>
-              <button
-                onClick={() => setShowModalRegistro(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium"
-                style={{ border: '1px solid #ddd', color: '#6b7280' }}
-              >
-                Annulla
-              </button>
-              <button
-                onClick={generaRegistro}
-                disabled={registroLoading || beni.length === 0}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                style={{ background: '#1a2e55', opacity: (registroLoading || beni.length === 0) ? 0.6 : 1 }}
-              >
-                {registroLoading ? 'Generazione...' : 'Genera Registro'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
