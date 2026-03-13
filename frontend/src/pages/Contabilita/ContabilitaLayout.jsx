@@ -120,20 +120,6 @@ const ContabilitaLayout = () => {
         </div>
       </div>
 
-      {/* MENU ORIZZONTALE COMPATTO */}
-      <div className="bg-white border-b border-gray-200 px-6">
-        <div className="flex items-center justify-end">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowModalTransazione(true)}
-              className="px-2 py-2 text-sm font-semibold text-green-600 border-b-2 border-transparent hover:text-green-700 transition-colors"
-            >
-              + Aggiungi transazione
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* CONTENUTO */}
       <div className="flex-1 overflow-auto p-4">
         <Outlet />
