@@ -96,20 +96,22 @@ NOTA IMPORTANTE su .env backend:
 ```
 C:\Users\Lux\parrocchia-app\
 ├── backend\
-│   ├── main.py                         # Entry point FastAPI + endpoint /api/enti (GET/PUT)
+│   ├── main.py                         # Entry point FastAPI (anagrafica persone + root + health)
 │   ├── database.py                     # Connessione DB (SQLAlchemy)
 │   ├── auth.py                         # Autenticazione JWT
+│   ├── constants.py                    # Enum: StatoRendiconto, RuoloUtente, TipoMovimento, TipoSpecialeMovimento, TipoRegistro
 │   ├── .env                            # Configurazione (DATABASE_URL, SECRET_KEY)
 │   ├── routes\
+│   │   ├── enti.py                     # CRUD enti (my-enti, GET, PUT)
 │   │   ├── amministrazione.py          # CRUD parrocchie per economo diocesano
 │   │   ├── contabilita.py              # Registri, movimenti, categorie, saldi
 │   │   ├── piano_conti.py              # Categorie gerarchiche
 │   │   ├── rendiconti_crud.py          # CRUD rendiconti (creazione, stati, blocco movimenti)
 │   │   ├── rendiconti_documenti.py     # Upload documenti + generazione PDF rendiconto
-│   │   ├── persone.py                  # Anagrafica parrocchiani
-│   │   ├── sacramenti.py               # Gestione sacramenti (battesimo, comunione, cresima, matrimonio)
+│   │   ├── persone.py                  # Anagrafica parrocchiani (NON usato dal frontend)
+│   │   ├── sacramenti.py               # Gestione sacramenti (pattern DB incompatibile, da riscrivere)
 │   │   ├── certificati.py              # Stampa certificati sacramentali PDF
-│   │   ├── stampe.py                   # Report e stampe varie
+│   │   ├── stampe.py                   # Report e stampe varie (pattern DB incompatibile, da riscrivere)
 │   │   ├── audit.py                    # Sistema audit log
 │   │   ├── inventario.py               # Aggregatore inventario (get_ente_id + include sub-routers)
 │   │   ├── inventario_lookup.py        # CRUD categorie e ubicazioni inventario (8 endpoint)
@@ -119,14 +121,7 @@ C:\Users\Lux\parrocchia-app\
 │   ├── services\
 │   │   └── audit.py                    # Funzioni helper audit
 │   ├── migrations\
-│   │   ├── 001_add_firma_fields.sql
-│   │   ├── 002_add_giroconto_fields.sql
-│   │   ├── 003_add_missing_saldo_iniziale.sql
-│   │   ├── 004_remove_tipo_check.sql
-│   │   ├── 005_nuovi_stati_rendiconti.sql
-│   │   ├── 006_impostazioni_diocesi.sql
-│   │   ├── 007_audit_log.sql
-│   │   ├── 008_add_dati_canonici_enti.sql
+│   │   ├── 001-008                     # Migration storiche
 │   │   └── run_migrations.py
 │   └── templates\
 │       ├── rendiconto.html             # Template Jinja2 V4 per PDF rendiconto (WeasyPrint, 3 pagine)
@@ -143,7 +138,7 @@ C:\Users\Lux\parrocchia-app\
 │   │   │   ├── Amministrazione\        # Sezione economo diocesano
 │   │   │   │   └── GestioneParrocchie.jsx
 │   │   │   ├── Contabilita\
-│   │   │   │   ├── ContabilitaLayout.jsx # Layout con barra superiore + modal "Aggiungi Conto"
+│   │   │   │   ├── ContabilitaLayout.jsx # Sub-header + modal "Aggiungi Conto" + modal transazione
 │   │   │   │   ├── Conti.jsx           # Lista conti (cassa/banca) + modal modifica conto
 │   │   │   │   ├── MovimentiConto.jsx  # Movimenti per singolo conto
 │   │   │   │   ├── MovimentiGenerale.jsx # Tutti i movimenti
@@ -158,11 +153,11 @@ C:\Users\Lux\parrocchia-app\
 │   │   │       └── [vari componenti]
 │   │   ├── components\
 │   │   │   ├── AppShell.jsx            # Layout unificato: header + sidebar accordion + Outlet
-│   │   │   ├── Logo.jsx                # Logo SVG placeholder (NON PIU USATO, sostituito da logo-diocesi.png)
 │   │   │   ├── ModalAllegati.jsx       # Modal per upload/visualizza allegati movimenti
 │   │   │   └── CambioPasswordModal.jsx # Modal cambio password condiviso (usato in AppShell)
 │   │   ├── utils\
-│   │   │   └── formatters.js           # Funzione condivisa formatCurrency (formato italiano)
+│   │   │   ├── formatters.js           # Funzione condivisa formatCurrency (formato italiano)
+│   │   │   └── auth.js                 # Funzione logout(navigate) condivisa
 │   │   └── services\
 │   │       └── api.js                  # Configurazione Axios + base URL + interceptor 401
 │   └── vite.config.js                  # Config Vite + proxy API
@@ -216,7 +211,7 @@ diocesi VARCHAR(200),
 anno_fondazione INTEGER,
 santo_patrono VARCHAR(200),
 numero_abitanti INTEGER,
--- Campi canonici (aggiunti con migration 008):
+-- Campi canonici (migration 008):
 data_erezione_canonica DATE,
 data_riconoscimento_civile DATE,
 registro_pg VARCHAR(100),
@@ -246,12 +241,12 @@ id UUID PRIMARY KEY,
 ente_id UUID REFERENCES enti(id),
 codice VARCHAR(20),           -- "01", "01.01", "01.02" (univoco per ente)
 descrizione VARCHAR(200),
-tipo VARCHAR(20),             -- 'economico'/'patrimoniale' (attualmente NULL, per futuro)
+tipo VARCHAR(20),             -- 'economico'/'patrimoniale' (attualmente NULL)
 categoria VARCHAR(20),        -- 'entrata'/'uscita'/'attivo'/'passivo' (attualmente NULL)
 livello INTEGER,              -- 1=padre, 2=figlio, 3=nipote
-conto_padre_id UUID,          -- riferimento alla categoria padre
+conto_padre_id UUID,
 categoria_padre_id UUID,
-is_sistema BOOLEAN,           -- categoria di sistema (non eliminabile)
+is_sistema BOOLEAN,
 ordine INTEGER,
 attivo BOOLEAN DEFAULT TRUE,
 created_at TIMESTAMP,
@@ -263,7 +258,7 @@ NOTA: Codice "000" e' riservato per "SALDO DA ESERCIZIO PRECEDENTE" (riporti)
 ```sql
 id UUID PRIMARY KEY,
 ente_id UUID REFERENCES enti(id),
-nome VARCHAR(200),            -- es. "Cassa Parrocchiale", "BCC Caltagirone"
+nome VARCHAR(200),
 tipo VARCHAR(20),             -- 'cassa', 'banca', 'postale', 'carta', ecc.
 iban VARCHAR(34),
 saldo_iniziale DECIMAL(12,2), -- NON USATO! I saldi iniziali sono movimenti
@@ -282,12 +277,13 @@ categoria_id UUID REFERENCES piano_conti(id),
 tipo_movimento VARCHAR(10),   -- 'entrata' o 'uscita'
 importo DECIMAL(12,2),
 data_movimento DATE,
-descrizione TEXT,             -- causale/descrizione
+descrizione TEXT,
 numero_documento VARCHAR(50),
 beneficiario VARCHAR(200),
 tipo_speciale VARCHAR(30),    -- NULL, 'saldo_iniziale', 'giroconto'
-riporto_saldo BOOLEAN,        -- TRUE se e' riporto da esercizio precedente
-bloccato BOOLEAN DEFAULT FALSE, -- TRUE se il rendiconto dell anno e' chiuso
+riporto_saldo BOOLEAN,
+bloccato BOOLEAN DEFAULT FALSE,
+giroconto_collegato_id UUID,  -- riferimento al gemello per giroconti
 created_by UUID REFERENCES utenti(id),
 created_at TIMESTAMP,
 updated_at TIMESTAMP
@@ -299,12 +295,12 @@ id UUID PRIMARY KEY,
 ente_id UUID REFERENCES enti(id),
 anno INTEGER,
 tipo VARCHAR(20),
-stato VARCHAR(20),            -- 'bozza', 'inviato', 'approvato'
+stato VARCHAR(20),            -- 'bozza', 'inviato', 'approvato', 'respinto', 'parrocchia', 'diocesi'
 periodo_inizio DATE,
 periodo_fine DATE,
 data_approvazione DATE,
 note TEXT,
-dati JSONB,                   -- dati calcolati del rendiconto
+dati JSONB,
 created_by UUID REFERENCES utenti(id),
 created_at TIMESTAMP,
 updated_at TIMESTAMP
@@ -318,7 +314,7 @@ cognome VARCHAR(100) NOT NULL,
 nome VARCHAR(100) NOT NULL,
 data_nascita DATE,
 luogo_nascita VARCHAR(100),
-sesso CHAR(1),               -- 'M' o 'F'
+sesso CHAR(1),
 indirizzo TEXT,
 comune VARCHAR(100),
 cap VARCHAR(5),
@@ -348,14 +344,14 @@ coniuge_cognome VARCHAR(100),
 created_at TIMESTAMP
 ```
 
-#### `audit_log` - Storico modifiche (migration 007)
+#### `audit_log` - Storico modifiche
 ```sql
 id UUID PRIMARY KEY,
 timestamp TIMESTAMP DEFAULT NOW(),
 utente_id UUID REFERENCES utenti(id),
 utente_email VARCHAR(100),
 ente_id UUID REFERENCES enti(id),
-azione VARCHAR(20),           -- 'INSERT', 'UPDATE', 'DELETE'
+azione VARCHAR(20),
 tabella VARCHAR(100),
 record_id UUID,
 descrizione TEXT,
@@ -365,12 +361,13 @@ ip_address VARCHAR(45),
 user_agent TEXT
 ```
 
-#### `migrations_history` - Tracking migrazioni eseguite
-```sql
-id SERIAL PRIMARY KEY,
-migration_name VARCHAR(255),
-executed_at TIMESTAMP DEFAULT NOW()
-```
+#### Tabelle Inventario (migration 009)
+- `inventario_categorie` — categorie beni (17 predefinite per ente)
+- `inventario_ubicazioni` — ubicazioni beni (9 predefinite per ente)
+- `beni_inventario` — beni mobili/immobili con soft delete
+- `inventario_foto` — foto beni (filesystem, max 10MB, JPG/PNG/WEBP)
+- `inventario_registri` — registri ufficiali con snapshot JSONB
+- `inventario_storico` — storico beni rimossi
 
 ---
 
@@ -401,21 +398,9 @@ Le statistiche in MovimentiConto.jsx e MovimentiGenerale.jsx INCLUDONO i saldi i
 I saldi iniziali sono visualizzati con righe di colore marrone nella tabella.
 
 ### Giroconti
-I giroconti (trasferimento tra conti) hanno tipo_speciale = 'giroconto'.
-DA IMPLEMENTARE: attualmente non c'e' un'interfaccia per i giroconti.
-
-### Esempio Contabile Reale
-Anno 2023 (primo anno):
-- Saldo iniziale: 52.061,94 EUR (manuale, riporto_saldo = FALSE)
-- Movimenti entrata: 10.591,16 EUR
-- Movimenti uscita: 27.632,14 EUR
-- TOTALE ENTRATE: 62.653,10 EUR (saldo + movimenti)
-- TOTALE USCITE: 27.632,14 EUR
-- SALDO FINALE: 35.020,96 EUR
-
-Dopo chiusura rendiconto 2023:
-- Tutti i movimenti 2023 bloccato = TRUE
-- Nuovo movimento 01/01/2024: 35.020,96 EUR (tipo_speciale='saldo_iniziale', riporto_saldo=TRUE)
+I giroconti hanno tipo_speciale = 'giroconto' e giroconto_collegato_id per collegare i gemelli.
+Eliminando un giroconto si cancella automaticamente anche il gemello.
+Giroconti esclusi dal rendiconto PDF (movimento interno neutro).
 
 ---
 
@@ -438,72 +423,70 @@ Dopo chiusura rendiconto 2023:
 
 ---
 
-## FUNZIONALITA IMPLEMENTATE (stato al 05/03/2026)
+## FUNZIONALITA IMPLEMENTATE (stato al 13/03/2026)
 
 ### Completate
 1. Autenticazione JWT con login/logout (sessionStorage per token, interceptor 401 in api.js)
 2. Sistema multi-ente (un utente puo gestire piu parrocchie)
 3. Sistema permessi basato su ruoli (economo, parroco, operatore)
 4. Dashboard con messaggio "Benvenuto in EcclesiaWeb"
-5. Gestione enti/parrocchie (CRUD completo)
+5. Gestione enti/parrocchie (CRUD completo, routes/enti.py)
 6. Impostazioni Dati Generali (form con dati parrocchia, parroco, vicario, dati canonici)
 7. Contabilita completa:
    - CRUD registri (cassa, banca, postale, carte, ecc.)
    - Movimenti con categorie gerarchiche
    - Saldo iniziale automatico alla creazione conto (anche negativo per scoperti)
-   - Blocco creazione conti in periodi con rendiconto chiuso (endpoint GET /contabilita/ultimo-rendiconto)
-   - Campo data_inizio_contabilita nel form creazione conto, con data minima da ultimo rendiconto
+   - Blocco creazione conti in periodi con rendiconto chiuso
    - Saldo iniziale bloccato (disabled) se incluso in un rendiconto
    - Menu contestuale (tasto destro) su movimenti con Modifica/Elimina/Allegati
    - Report per periodo/categoria
    - Saldi negativi visualizzati in rosso nella lista conti
+   - Giroconto tra registri con cancellazione a cascata del gemello
 8. Piano dei conti gerarchico (padre/figlio, codici numerici crescenti)
+   - Stampa PDF con selezione livelli
+   - Validazione duplicati nome (case-insensitive)
+   - Rinomina categoria con alert se ha movimenti
+   - Elimina categoria con riassegnazione movimenti
 9. Rendiconti economici:
-   - Workflow: bozza - inviato - approvato
+   - Workflow: bozza → parrocchia → inviato → diocesi → approvato/respinto
    - Generazione PDF V4 con WeasyPrint (template Jinja2, 3 pagine)
-   - Template V4: frontespizio elegante, movimenti entrate e uscite in sezioni separate, riepilogo+firme
-   - Categorie ordinate per codice numerico crescente (non alfabetico)
-   - Riporto da esercizio precedente: SUM di tutti i conti (non LIMIT 1)
-   - File di riferimento approvato: anteprima_rendiconto_v4.html (nella root)
-   - Upload documenti allegati
+   - Upload/scarica/elimina documenti allegati
    - Chiusura esercizio con blocco movimenti e creazione riporti
+   - Correggi rendiconto respinto (riporta a stato parrocchia)
+   - Elimina rendiconto con o senza documenti
 10. Anagrafica persone base
 11. Sacramenti (battesimo, comunione, cresima, matrimonio)
 12. Certificati sacramentali PDF
 13. Sistema Audit (tabella audit_log)
 14. Allegati ai movimenti contabili
-15. Formattazione importi coerente formato italiano (15.000,00) ovunque:
-   - Funzione condivisa formatCurrency in frontend/src/utils/formatters.js (implementazione manuale, NO Intl.NumberFormat che non e' affidabile su tutti i browser)
-   - Usata in tutti i file frontend (Conti, MovimentiConto, MovimentiGenerale, Rapporti, ListaRendiconti, NuovoRendiconto, Rendiconto, EconomatoContabilita)
-   - Template backend rendiconto.html usa filtro Jinja2 |ita (formato_italiano) e |ita_int (intero con separatore migliaia)
-16. Pagina Login redesign completa:
-   - Design: card bianca (logo + titolo) + onda SVG curva + form su sfondo blu scuro (#1a365d)
-   - Logo ufficiale Diocesi di Caltagirone (frontend/public/logo-diocesi.png)
-   - Checkbox "Ricordami" (salva email in localStorage, token resta in sessionStorage)
-   - Modal "Password dimenticata?" (chiede email, chiama POST /api/auth/reset-password)
-   - NOTA: endpoint /api/auth/reset-password NON ESISTE nel backend attivo (era in main_OLD.py). Nessun servizio email configurato (no SMTP/SendGrid). Da implementare.
-17. Gestione sessione migliorata:
-   - sessionStorage per token/user/ente_id (si cancella alla chiusura tab/browser, persiste su F5)
-   - localStorage SOLO per saved_email (ricordami) — deve persistere tra sessioni
-   - Interceptor response 401 in api.js: cancella sessione e redirect a /login se token scaduto
+15. Formattazione importi formato italiano (15.000,00) — formatCurrency in utils/formatters.js
+16. Pagina Login redesign (card bianca + onda SVG + form su sfondo blu, logo diocesi, ricordami)
+   - NOTA: endpoint /api/auth/reset-password NON ESISTE ancora
+17. Gestione sessione (sessionStorage, interceptor 401, verifica scadenza JWT ogni 30s)
+18. AppShell unificato con sidebar accordion (Home, Contabilità, Inventario, Anagrafica, Impostazioni)
+   - Moduli senza permesso: visibili ma grigi e non navigabili
+19. Modulo Inventario backend completo (INV.1–INV.5):
+   - 6 tabelle DB, 25 endpoint API, 3 template PDF
+   - CRUD beni + foto + categorie + ubicazioni
+   - Registri ufficiali con snapshot + storico beni rimossi
+   - Frontend: header unificato stile ContabilitaLayout su tutte le pagine
 
 ### Da implementare (priorita)
 ALTA:
-1. Endpoint backend POST /api/auth/reset-password + servizio email (SMTP o SendGrid)
-2. Giroconto tra registri
-3. Interfaccia visualizzazione Audit Log
-4. Riconciliazione bancaria
+1. Endpoint backend POST /api/auth/reset-password + servizio email
+2. Interfaccia visualizzazione Audit Log
+3. Riconciliazione bancaria
 
 MEDIA:
-5. Import movimenti da CSV/Excel
-6. Modulo Anagrafica completo (famiglie, relazioni)
-7. Modulo Inventario (beni mobili/immobili)
-8. Export dati
+4. Import movimenti da CSV/Excel
+5. Modulo Anagrafica completo (famiglie, relazioni)
+6. Frontend Inventario completo
+7. Export dati
 
 BASSA:
-9. Dashboard statistiche
-10. Notifiche email
-11. Backup automatico schedulato
+8. Dashboard statistiche
+9. Notifiche email
+10. Backup automatico schedulato
 
 ---
 
@@ -562,8 +545,8 @@ Tutte le route protette usano Depends(get_current_user) da auth.py.
 Token JWT nel header Authorization: Bearer <token>.
 
 ### Formattazione Importi
-- Frontend: usare SEMPRE `import { formatCurrency } from '../utils/formatters'` (o `../../utils/formatters` da sottocartelle). NON creare funzioni locali duplicate. La funzione usa implementazione manuale (regex), NON Intl.NumberFormat (non affidabile su tutti i browser/OS).
-- Backend template Jinja2: usare il filtro `|ita` (registrato in rendiconti_documenti.py come `formato_italiano`) per importi e `|ita_int` per numeri interi. NON usare `"%.2f"|format()`.
+- Frontend: usare SEMPRE `import { formatCurrency } from '../utils/formatters'` (o `../../utils/formatters` da sottocartelle). NON creare funzioni locali duplicate. La funzione usa implementazione manuale (regex), NON Intl.NumberFormat.
+- Backend template Jinja2: usare il filtro `|ita` (formato_italiano) per importi e `|ita_int` per numeri interi. NON usare `"%.2f"|format()`.
 
 ---
 
@@ -593,14 +576,6 @@ docker-compose restart backend
 docker-compose down && docker-compose up -d
 ```
 
-### Git
-```powershell
-cd C:\Users\Lux\parrocchia-app
-git add .
-git commit -m "Descrizione modifica"
-git push
-```
-
 ---
 
 ## DEPLOY SU SERVER
@@ -625,89 +600,47 @@ docker restart parrocchia-backend
 
 ---
 
-## BUG RISOLTI (storico)
+## REFACTORING ESEGUITO
 
-1. Creazione conti falliva in locale: mancava tabella audit_log (migration 007)
-2. Dati canonici non si salvavano: endpoint /api/enti in main.py incompleto
-3. Git pull falliva sul server: DNS (fix: nameserver 8.8.8.8)
-4. Migration falliva: mancava tabella migrations_history
-5. Rendiconto numeri sbagliati: includeva saldo_iniziale/giroconto nei totali
-6. Riporti non si creavano: categoria "000" non trovata
-7. Saldo progressivo includeva movimenti bloccati
-8. WeasyPrint non funzionava su Windows (import condizionale)
-9. Menu contestuale Modifica non apriva form
-10. Frontespizio PDF su 2 pagine (font 6.5pt)
-11. Saldo iniziale negativo bloccato: ContabilitaLayout.jsx aveva input type="number" min="0" (form duplicato rispetto a Conti.jsx)
-12. Totali rendiconto includevano saldi iniziali: rendiconti_crud.py usava `tipo_speciale IS NULL OR tipo_speciale = 'saldo_iniziale'` nella query calcolo totali (fix: solo `tipo_speciale IS NULL`)
-13. Saldo anno precedente in stampe.py non filtrava tipo_speciale: includeva saldi iniziali e giroconti nel calcolo (fix: aggiunto `AND tipo_speciale IS NULL`)
-14. Riporto PDF prendeva solo un conto (LIMIT 1): fix con SUM di tutti i saldi iniziali di tutti i conti
-15. Saldo rendiconto sovrascitto: variabile `saldo` in rendiconti_crud.py sovrascritta nel loop creazione saldi iniziali (fix: rinominata in `saldo_conto`)
-16. Ordinamento categorie PDF alfabetico: codice "12" prima di "8" (fix: ordinamento numerico con split('.'))
-17. formatCurrency non metteva punto migliaia: Intl.NumberFormat('it-IT') non affidabile su tutti i browser (fix: implementazione manuale con regex)
-18. PUT /registri check saldo bloccato usava colonna inesistente rendiconto_id (fix: controllo campo bloccato del movimento saldo_iniziale)
-19. Cambio password funzionava solo dalla Home (Layout.jsx): ContabilitaLayout.jsx aveva solo `alert('Da implementare')`, HeaderAmministrazione.jsx non aveva il modal. Fix: estratto CambioPasswordModal.jsx come componente condiviso, importato in tutti e 3 i layout.
-20. Sessione: pagina vuota dopo chiusura tab/browser perche token JWT in localStorage persisteva scaduto. Fix: migrato tutto a sessionStorage (si cancella alla chiusura). Aggiunto interceptor 401 in api.js per redirect automatico a /login.
-21. current_user["id"] non esisteva: dopo unificazione get_current_user su auth.py (che restituisce "user_id"), main.py e contabilita.py usavano ancora la chiave "id". Fix: 17 occorrenze corrette in "user_id" (2 in main.py, 15 in contabilita.py).
+Piano completo in REFACTORING_PLAN.md.
 
----
+### Fasi 1-2 — COMPLETATE
+- Pulizia file morti, fix sicurezza, rimossi console.log/print
+- Unificata get_current_user in auth.py, eliminato X-User-ID, migrato tutto a JWT
+- sacramenti.py e stampe.py SOSPESI (pattern DB incompatibile, da riscrivere)
 
-## REFACTORING ESEGUITO (05/03/2026)
+### Fase 3 — Costanti (COMPLETATA)
+- backend/constants.py: 5 Enum (StatoRendiconto, RuoloUtente, TipoMovimento, TipoSpecialeMovimento, TipoRegistro)
+- 32 magic strings sostituite in 4 file backend
 
-Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
+### Fase 4 — Frontend (COMPLETATA)
+- 19 file migrati a api.js (91 chiamate unificate), logout centralizzato in utils/auth.js
+- Fix: stampa PDF categorie (ordinamento gerarchico), codice automatico categorie, allegati movimenti/rendiconti
+- Modulo Rendiconti UI/UX completato (correggi respinto, elimina, gestione allegati)
 
-### Fase 1 — Fix critici e pulizia (COMPLETATA)
+### Fase 0 — AppShell (COMPLETATA — 13/03/2026)
+- AppShell.jsx: header + sidebar accordion per tutte le pagine protette
+- Layout.jsx eliminato
+- ContabilitaLayout.jsx: solo sub-header + modal, senza header/sidebar
+- InventarioLayout.jsx: thin wrapper (flex-col + p-4 + Outlet)
+- Header inventario unificato su 6 pagine (stile ContabilitaLayout)
 
-**Blocco 1** (commit 9049516):
-- Creato .gitignore, rimossi __pycache__ dal tracking git
-- Eliminati 10 file backup/morti (~3000 righe): main_OLD.py, certificati_OLD.py, certificati_backup.py, amministrazione_BACKUP.py, fix_db.py, fix_constraint.sql, test_certificati.py, Dockerfile.txt, templates/1.html, models/sacramenti.py.py
-- Eliminati file duplicati frontend: Logo.jsx (x2), DataContext duplicato, directory src/src/
-- Sicurezza: aggiunto check is_economo a 26 endpoint in amministrazione.py
-- Sicurezza: whitelist tabella in services/audit.py (prevenzione SQL injection)
-- Sicurezza: rimossa password predefinita dalle risposte API
-
-**Blocco 2** (commit ea37326):
-- Installato lucide-react (dipendenza mancante, sezione sacramenti non funzionava)
-- Fix Registro.jsx: definiti handleEdit, handleDelete, importato useNavigate
-- Fix Persone.jsx: aggiunto useState per error/setError
-- Fix DettaglioPersona.jsx: corretto path import TabSacramenti
-- Rimossi 132 console.log dal frontend (32 file)
-- Rimossi ~98 print dal backend (sostituiti con logging dove necessario)
-
-### Fase 2 — Eliminare duplicazioni backend (IN CORSO)
-
-**Blocco 3** (commit e3e1ff5):
-- Rimossi endpoint duplicati da main.py: login, /auth/me, persone (ridotto da 694 a 419 righe)
-- Fix auth.py: login accetta sia username che email
-- Unificata get_current_user: eliminata versione locale da main.py, si usa solo auth.py
-
-**Hotfix** (commit a193eb6):
-- Corrette 17 occorrenze current_user["id"] → current_user["user_id"] in main.py e contabilita.py
-
-**Blocco 4+5** (commit 387d773):
-- get_current_user unificata: esiste solo in auth.py, eliminate tutte le versioni duplicate
-- persone.py: 6 endpoint migrati da X-User-ID a JWT (Depends(get_current_user))
-- certificati.py: 4 endpoint migrati da X-User-ID a JWT (Depends(get_current_user))
-- middleware.py: eliminate get_current_user, get_current_parrocchia, require_economo (65 righe)
-- middleware.log_operation ora riceve user_id e parrocchia_id dal JWT
-- X-User-ID completamente eliminato dal backend. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT.
-
-**Blocco 6 — SOSPESO**:
-- 2.4: sacramenti.py (504 righe, asyncpg) e stampe.py (490 righe, async SQLAlchemy) usano pattern DB incompatibile
-- Auth JWT gia OK in entrambi. Verranno riscritti da zero quando si implementa il modulo anagrafica completo.
-
-**Fix produzione** (commit 4413b3e):
-- Dropdown Citta duplicata: aggiunto TRIM(comune) in amministrazione.py per eliminare spazi nascosti
-
-### Fase 3 — Estrarre servizi e costanti (IN CORSO)
-
-**Blocco 3.1** (commits 8bc519f → 1d1385d):
-- Creato backend/constants.py con 5 Enum: StatoRendiconto (6 stati), RuoloUtente (3), TipoMovimento (2), TipoSpecialeMovimento (2), TipoRegistro (2)
-- 32 magic strings sostituite in 4 file:
-  - rendiconti_crud.py: 11 (StatoRendiconto 10 + TipoMovimento 1)
-  - contabilita.py: 12 (TipoMovimento 12)
-  - rendiconti_documenti.py: 7 (StatoRendiconto 5 + TipoMovimento 2)
-  - amministrazione.py: 2 (RuoloUtente 2)
-- Query SQL lasciate intatte (stringhe letterali nelle query)
+### Sessione 14/03/2026 — Modulo Inventario + Sidebar Contabilità
+- Sidebar inventario: aggiunta voce Stampa, fix stile uniforme tutte le voci
+- ListaBeni: rimossi bottoni Bozza PDF e Genera Registro (spostati in ListaRegistri)
+- ListaRegistri: aggiunti Bozza PDF e Genera Registro
+- Nuova pagina StampaInventario.jsx con filtri (categoria, ubicazione, stato, date, valori)
+- ImpostazioniInventario: tab Import/Export (esporta CSV/Excel, scarica template, importa)
+- ImpostazioniInventario: categorie e ubicazioni sistema ora rinominabili (non eliminabili)
+- Backend: inventario_export.py con endpoint export CSV/Excel e import CSV/Excel
+- Backend: stampa/bozza aggiornata con filtri opzionali query params
+- Sidebar contabilità ristrutturata: Conti (sempre blu), Movimentazione, Stampa, Rendiconto ▶, Impostazioni ▶
+- ContabilitaLayout: barra superiore eliminata completamente
+- AppShell: accordion non si chiude su click modulo attivo, reset sotto-accordion al cambio modulo
+- Voci attive sidebar: bordo sinistro blu (border-l-2) invece di sfondo pieno
+- Impostazioni contabilità: tendina con Aggiungi Conto (?openModal=true) e Gestione Categorie
+- Form inventario compatti: label 12px, input 13px, padding 6px 10px, gap 12px
+- Rimosso bottone Impostazioni globale dalla sidebar, eliminata pagina ImpostazioniContabilita.jsx
 
 ---
 
@@ -717,200 +650,27 @@ Piano completo in REFACTORING_PLAN.md. Stato avanzamento:
 - Token JWT: salvati in sessionStorage (NON localStorage). Si cancellano alla chiusura tab. Interceptor 401 in api.js gestisce redirect automatico a /login.
 - STORAGE POLICY: sessionStorage per dati di sessione (token, user, ente_id, current_ente_id, current_ente). localStorage SOLO per preferenze persistenti (saved_email per "Ricordami").
 - Template PDF V4: backend/templates/rendiconto.html (Jinja2 + WeasyPrint, 3 pagine)
-  - Pagina 1: Frontespizio (logo, dati parrocchia, periodo)
-  - Pagina 2: Movimenti (entrate e uscite in sezioni separate con codici categoria, ordinamento numerico)
-  - Pagina 3: Riepilogo economico, disponibilita liquide, dichiarazione parroco, approvazione
   - NO flexbox (WeasyPrint non lo supporta bene) — usa float per layout orizzontali
   - Footer via @page @bottom-center di WeasyPrint (non div manuali)
-  - Logo come semplice <img> senza cerchio/bordo
-  - Riferimento visuale: anteprima_rendiconto_v4.html (NON modificare il CSS del template senza confrontare col riferimento)
+  - Riferimento visuale: anteprima_rendiconto_v4.html (NON modificare il CSS senza confrontare col riferimento)
 - Categorie: codici numerici crescenti (1, 2, 1.1, 1.2), "000" per riporti
 - api.js: gestisce automaticamente locale vs produzione, ha request interceptor (token + ente_id) e response interceptor (401 → redirect /login)
 - Password DB locale: parrocchia2025 (NON parrocchia)
 - .env backend: postgres:5432 in Docker, localhost:5432 fuori Docker
-- FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx (modal nella barra superiore) e Conti.jsx (modal nella pagina conti). Modifiche al form vanno fatte in ENTRAMBI i file!
+- FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx e Conti.jsx. Modifiche al form vanno fatte in ENTRAMBI i file!
 - SALDO INIZIALE NEGATIVO: contabilita.py gestisce saldi negativi come movimento tipo 'uscita' con valore assoluto (sia creazione che modifica conto)
 - APPSHELL UNIFICATO: l'app usa un unico AppShell.jsx (header + sidebar) per tutte le pagine protette.
   - AppShell.jsx → header condiviso + sidebar accordion (3 varianti: home, impostazioni, accordion moduli)
   - ContabilitaLayout.jsx → solo sub-header (freccia+titolo+ora) + modal conto/transazione, NIENTE header/sidebar
   - InventarioLayout.jsx → thin wrapper (flex-col + p-4 + Outlet)
   - HeaderAmministrazione.jsx → pagina Amministrazione (standalone, fuori AppShell)
-  - Layout.jsx → ELIMINATO (sostituito da AppShell)
-- LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (SVG placeholder, deprecato).
-- SELECT ENTE PAGE: completamente ridisegnato con stile coerente al Login. Header bianco compatto (padding 8px) con onda SVG, logo diocesi + "EcclesiaWeb". Nome utente + Esci a destra. Titolo "SELEZIONA ENTE" alto e centrato. Grid flex (flex-wrap) con card 320px affiancate in riga (max-width 900px, allineate a sinistra). Card compatta: chiesa.png (170px), nome parrocchia piccolo (0.85rem), badge ruolo oro + moduli in unica riga, click su tutta la card (no bottone Accedi). CSS inline con prefisso `se-`. Immagine chiesa in frontend/src/assets/chiesa.png.
-- RESET PASSWORD: il frontend ha il modal ma l'endpoint backend /api/auth/reset-password NON ESISTE ancora. Il vecchio codice era in main_OLD.py. Nessun servizio email (SMTP/SendGrid) configurato.
-- CURRENT_USER: get_current_user (auth.py) restituisce un dict con chiave "user_id" (NON "id"). Usare SEMPRE current_user["user_id"] o current_user.get("user_id"). La vecchia chiave "id" NON esiste piu.
-- X-USER-ID ELIMINATO: header X-User-ID completamente rimosso dal backend. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT. NON reintrodurre mai X-User-ID.
-- SACRAMENTI/STAMPE NON FUNZIONANTI: sacramenti.py (asyncpg) e stampe.py (async SQLAlchemy) hanno pattern DB incompatibile col setup sincrono. Auth JWT OK. Da riscrivere con pattern sincrono quando si implementa modulo anagrafica.
-- MAIN.PY — stato attuale (419 righe):
-  - 3 endpoint enti (/api/enti/my-enti, GET, PUT) → attivi, usati dal frontend, da migrare in routes/enti.py in futuro
-  - 2 endpoint anagrafica (/api/anagrafica/persone GET e POST) → usati dal frontend, da eliminare quando si riscrive anagrafica
-  - persone.py (prefix /api/persone/) → NON usato dal frontend, da eliminare quando si riscrive anagrafica
-  - DELETE /api/anagrafica/persone/{id} → chiamato da Registro.jsx ma non esiste in nessun file backend — BUG da fixare nell'anagrafica
+- LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (deprecato).
+- SELECT ENTE PAGE: stile coerente al Login. Header bianco + onda SVG, grid flex con card 320px, CSS inline con prefisso `se-`. Immagine chiesa in frontend/src/assets/chiesa.png.
+- RESET PASSWORD: frontend ha il modal ma endpoint backend NON ESISTE ancora.
+- CURRENT_USER: get_current_user (auth.py) restituisce dict con chiave "user_id" (NON "id"). Usare SEMPRE current_user["user_id"].
+- X-USER-ID ELIMINATO: NON reintrodurre mai. Unico pattern auth: Depends(get_current_user) da auth.py basato su JWT.
+- SACRAMENTI/STAMPE NON FUNZIONANTI: pattern DB incompatibile col setup sincrono. Da riscrivere quando si implementa modulo anagrafica.
+- MAIN.PY — stato attuale (~300 righe):
+  - 2 endpoint anagrafica (/api/anagrafica/persone GET e POST) → da eliminare quando si riscrive anagrafica
+  - DELETE /api/anagrafica/persone/{id} → chiamato da Registro.jsx ma non esiste — BUG
   - Root / e health /api/health → restano in main.py per sempre
-
----
-
-## SESSIONE 07/03/2026 - FUNZIONALITA COMPLETATE
-
-### Giroconto - Cancellazione a cascata
-- Aggiunta colonna `giroconto_collegato_id` su `movimenti_contabili`
-- Eliminando un movimento giroconto → cancella automaticamente anche il gemello
-- Giroconti esclusi dal rendiconto PDF (movimento interno neutro)
-
-### Stampa PDF Piano dei Conti
-- Endpoint `GET /api/contabilita/categorie/stampa-pdf?livelli=1,2,3`
-- Pulsante "Stampa PDF" in Categorie.jsx con pannello checkbox livelli
-- PDF con intestazione parrocchia + data, indentazione per livello
-
-### Validazione duplicati categorie
-- Controllo nome duplicato per livello e contesto (case-insensitive, trim)
-- Blocca creazione se esiste gia una voce con lo stesso nome nella stessa posizione
-
-### Rinomina categoria con movimenti
-- Alert se si rinomina una categoria con movimenti abbinati
-- Opzione "Rinomina comunque" per procedere consapevolmente
-
-### Elimina categoria con movimenti
-- Tre opzioni: Annulla, Riassegna movimenti, Elimina tutto
-- Modale riassegnazione con dropdown a cascata L1→L2→L3
-- Box "Categoria attuale" → "Nuova categoria" con percorso completo
-- Barra progresso movimenti riassegnati
-- Card verde + checkmark quando riassegnato
-- Data in formato italiano (gg/mm/aaaa)
-- Endpoint: DELETE /categorie/{id}, GET /categorie/{id}/movimenti-abbinati, POST /categorie/{id}/elimina-con-riassegnazione, POST /categorie/{id}/elimina-con-movimenti
-
-### Refactoring routes/enti.py
-- Creato backend/routes/enti.py con 3 endpoint migrati da main.py
-- GET /api/enti/my-enti
-- GET /api/enti/{ente_id}
-- PUT /api/enti/{ente_id}
-- main.py ora ha solo anagrafica persone + root + health
-
-### Fix Sessione Scaduta (Problema 9)
-- PrivateRoute ora verifica scadenza token JWT (non solo presenza)
-- Navigate usa `replace` — tasto indietro non torna a pagine protette
-- useEffect in App.jsx controlla token ogni 30 secondi → redirect login se scaduto
-- sessionStorage.clear() pulisce tutto alla scadenza
-
-### Fase 4 — Refactoring frontend (IN CORSO)
-
-**Blocco 4.1** (commit 4c5cc96):
-- Migrati 19 file da fetch()/axios diretto a api.js
-- 91 chiamate API unificate attraverso l'interceptor
-- Rimossi tutti i const token, const headers manuali
-- Ora il redirect su 401 (sessione scaduta) funziona in TUTTI i file, non più solo in 7 su 41
-- Rapporti.jsx: rimosso import axios diretto
-- File sacramenti NON toccati (sospesi)
-
-**Blocco 4.2** (commit dd27e5e):
-- Creato utils/auth.js con funzione logout(navigate)
-- 4 file aggiornati: Layout, ContabilitaLayout, HeaderAmministrazione, Amministrazione
-- Variante incompleta (removeItem x3) sostituita con sessionStorage.clear() ovunque
-
-**Fix stampa PDF piano dei conti** (commit b4f5e37):
-- Bug: categorie con codici 020-055 finivano fuori posto nel PDF
-- Causa: ORDER BY CAST AS FLOAT trattava "020" come 20.0 invece di raggrupparlo col suo padre tramite parent_id
-- Fix: albero gerarchico costruito in Python con walk() ricorsivo
-- Ordinamento naturale: split per "." → confronto per segmenti interi
-- Query semplificata: rimosso filtro livello IN (...) e CAST AS FLOAT
-
-**Fix codice automatico categorie** (commit e834c31):
-- Bug: POST /api/contabilita/categorie generava codici globali zfill(3) (020, 021...) ignorando parent_id
-- Fix: radici → prossimo intero puro (21, 22...); sottocategorie → codice_padre.N (1.9, 13.8...)
-
-**Fix allegati movimenti** (commit 693d78a):
-- Aggiunte colonne mancanti in movimenti_allegati: nome_originale, percorso, path_file NOT NULL rimosso
-
-**Fix allegati rendiconti** (commit 72f281f + hotfix):
-- Aggiunte colonne mancanti in rendiconti_allegati: filename, filepath, mime_type, file_size
-- Aggiunta created_at in rendiconti_documenti
-- Upload documenti rendiconto ora funzionante
-
-**Fix download PDF rendiconto economo** (commit d9438b7):
-- Economo diocesano bypassava controllo utenti_enti
-- Fix: OR is_economo = TRUE nella query permessi
-
-**Blocco R.1 — Correggi rendiconto respinto** (commits 446520b, e782fee):
-- Badge Respinto: aggiunto testo "Clicca per vedere le osservazioni" sotto il badge
-- Modal: bottone "Elimina Rendiconto" sostituito con "Correggi Rendiconto" (arancione)
-- Nuovo endpoint POST /rendiconti/{id}/correggi (respinto → parrocchia, documenti intatti)
-- Fix GestioneUtenti.jsx: if/else orfano da migrazione fetch→axios (blocco 4.1)
-
-**Blocco R.2 — Gestione eliminazione** (commit b5a308c):
-- DELETE /rendiconti/{id} con parametro ?elimina_documenti=true/false
-- Bottone "Elimina rendiconto" (arancione, solo parrocchia): mantiene documenti
-- Bottone "Elimina tutto" (rosso, parrocchia o respinto): elimina tutto
-
-**Blocco R.3 — Gestione allegati** (commit 76a7922):
-- Bottoni "Scarica" e "Elimina" per ogni documento in NuovoRendiconto.jsx
-- Endpoint backend già esistenti, zero modifiche backend
-
-**Modulo Rendiconti UI/UX: ✅ COMPLETATO (R.1 + R.2 + R.3)**
-
-### Modulo Inventario (IN CORSO)
-
-**INV.1 — Migration DB** (commit 310d8fd):
-- 6 tabelle create: inventario_categorie, inventario_ubicazioni, beni_inventario, inventario_foto, inventario_registri, inventario_storico
-- Seed: 17 categorie predefinite + 9 ubicazioni per ogni ente
-- Specifica completa in INVENTARIO_SPEC.md
-
-**INV.2 — Backend CRUD** (commit d3cf0f4):
-- 13 endpoint in backend/routes/inventario.py (categorie, ubicazioni, beni)
-- Lista beni con filtri, soft delete → snapshot in inventario_storico
-
-**INV.3 — Backend upload foto** (commit d3cf0f4):
-- 5 endpoint foto: lista, upload, visualizza, elimina, riordina
-- Filesystem locale (uploads/inventario/ente_id/bene_id/) — NO MinIO
-- Validazione MIME (JPG/PNG/WEBP) + max 10MB
-
-**Refactor split inventario** (commit 14580c1):
-- inventario.py → aggregatore (30 righe: get_ente_id + include sub-routers)
-- inventario_lookup.py → 8 endpoint CRUD categorie e ubicazioni
-- inventario_beni.py → 10 endpoint CRUD beni e foto
-- 18 route totali, main.py invariato
-
-**INV.4 — Backend registri + storico** (commit ee120df):
-- 3 endpoint in inventario_registri.py
-- POST /registri/genera: snapshot JSONB, blocca beni (bloccato=TRUE), audit log
-- GET /storico: lista beni rimossi con filtri anno/motivo
-
-**INV.5 — Backend PDF** (commit 79f91fd):
-- 4 endpoint in inventario_pdf.py: bozza, scheda bene, registro PDF, storico PDF
-- 3 template Jinja2+WeasyPrint: inventario_registro.html, inventario_scheda_bene.html, inventario_storico.html
-- Foto embeddate come base64 nella scheda bene
-- StreamingResponse in memoria (no file su disco)
-- 25 route totali — **Backend inventario completo (INV.1–INV.5)**
-
-### Fase 0 — AppShell Layout Unificato (COMPLETATA — 13/03/2026)
-
-**Blocco A.1+A.2** (commit 37db5a0):
-- Creato AppShell.jsx: header unificato + sidebar accordion (Home, Contabilità, Inventario, Anagrafica, Impostazioni)
-- Layout.jsx eliminato (verificato zero import residui)
-- ContabilitaLayout.jsx semplificato: rimossi header/sidebar/CambioPasswordModal, mantenuta solo logica contabilità (sub-header + modal conto/transazione)
-- InventarioLayout.jsx ridotto a thin wrapper con Outlet
-- App.jsx ristrutturato: tutte le route protette dentro AppShell
-
-**Sidebar home** (commit 82a9b52):
-- Sidebar dedicata per /dashboard: Dati Parrocchia + Documenti (disabled, "Prossimamente")
-
-**Fix sidebar** (commit 5b08b3b):
-- Rimosso titolo "GESTIONALE" dalla sidebar home
-
-**Sidebar impostazioni** (commit 7a00245):
-- Sidebar dedicata per /impostazioni/dati-generali: HOME + separatore + 3 moduli (Contabilità, Inventario, Anagrafica)
-
-**Permessi moduli** (commit 2883ac1):
-- Moduli senza permesso: sempre visibili ma grigi (text-gray-300), cursor-not-allowed, non navigano
-
-**Header Inventario unificato** (commit 1e12c15):
-- 6 file Inventario: header sostituito con stile ContabilitaLayout (freccia + titolo centrato + data/ora + azioni)
-- ListaBeni, NuovoBene, SchedaBene, ListaRegistri, StoricoInventario, ImpostazioniInventario
-
-**Fix padding** (commit c25eb4c):
-- InventarioLayout allineato a ContabilitaLayout (flex-col + p-4 attorno a Outlet)
-- Rimosso maxWidth inline dagli header NuovoBene/SchedaBene
-
-**Fix header full-width** (commit 2cd0503):
-- NuovoBene e SchedaBene: header e barra azioni estratti fuori dal div maxWidth:900
-- maxWidth:900 ora wrappa solo il form/contenuto, non le barre in cima

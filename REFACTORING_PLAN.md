@@ -179,6 +179,17 @@ Fix connection leak psycopg2 — usare context manager `with get_db_connection()
 ### INV.6–INV.9 ✅ Frontend completo (commit feat: frontend modulo inventario)
 ### INV.10 ⬜ Test completo + fix (dopo AppShell)
 
+### Sessione 14/03/2026 — Miglioramenti Inventario + Sidebar
+- ✅ commit ecd41dd: sidebar 5 voci, pagina Stampa, Import/Export, form compatti
+- ✅ commit 14b6ad3: fix stile voce Stampa inventario
+- ✅ commit 8e03190: ImpostazioniContabilita + sidebar contabilità ristrutturata
+- ✅ commit 5ba237b: Rendiconto e sottovoci stile uniforme blu
+- ✅ commit e477024: voci attive con bordo sinistro blu, rimosso Impostazioni globale
+- ✅ commit a3469eb: rimossa barra azioni da ContabilitaLayout
+- ✅ commit a040f2a: Impostazioni contabilità diventa tendina (Aggiungi Conto + Categorie)
+- ✅ commit ff7247b: sidebar accordion si chiude navigando fuori dal modulo
+- ✅ commit e8efb25: reset sotto-accordion al cambio modulo
+
 ---
 
 ## MODULO RENDICONTI
