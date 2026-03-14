@@ -33,10 +33,16 @@ const AppShell = () => {
       }
     } else if (path.startsWith('/inventario')) {
       setModuloAperto('inventario');
+      setRendicontoOpen(false);
+      setImpostazioniContOpen(false);
     } else if (path.startsWith('/persone') || path.startsWith('/famiglie') || path.startsWith('/registro')) {
       setModuloAperto('anagrafica');
+      setRendicontoOpen(false);
+      setImpostazioniContOpen(false);
     } else {
       setModuloAperto(null);
+      setRendicontoOpen(false);
+      setImpostazioniContOpen(false);
     }
   }, [location.pathname]);
 
