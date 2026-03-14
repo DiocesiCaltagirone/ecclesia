@@ -660,8 +660,13 @@ Piano completo in REFACTORING_PLAN.md.
 - FORM DUPLICATI: il form "Aggiungi Conto" esiste in DUE file: ContabilitaLayout.jsx e Conti.jsx. Modifiche al form vanno fatte in ENTRAMBI i file!
 - SALDO INIZIALE NEGATIVO: contabilita.py gestisce saldi negativi come movimento tipo 'uscita' con valore assoluto (sia creazione che modifica conto)
 - APPSHELL UNIFICATO: l'app usa un unico AppShell.jsx (header + sidebar) per tutte le pagine protette.
-  - AppShell.jsx → header condiviso + sidebar accordion (3 varianti: home, impostazioni, accordion moduli)
-  - ContabilitaLayout.jsx → solo sub-header (freccia+titolo+ora) + modal conto/transazione, NIENTE header/sidebar
+  - AppShell.jsx → header condiviso + sidebar accordion (2 varianti: home, accordion moduli)
+  - Sidebar contabilità: Conti (sempre blu), Movimentazione, Stampa, Rendiconto ▶ (sottovoci), Impostazioni ▶ (Aggiungi Conto + Categorie)
+  - Sidebar inventario: Beni, Registri, Storico, Stampa, Impostazioni
+  - Modulo attivo non si chiude con click, sotto-accordion resettati al cambio modulo
+  - Voci attive: bordo sinistro blu (border-l-2 bg-gray-50) — Conti sempre blu pieno
+  - Bottone Impostazioni globale eliminato dalla sidebar
+  - ContabilitaLayout.jsx → solo sub-header (freccia+titolo+ora), NIENTE barra azioni
   - InventarioLayout.jsx → thin wrapper (flex-col + p-4 + Outlet)
   - HeaderAmministrazione.jsx → pagina Amministrazione (standalone, fuori AppShell)
 - LOGIN PAGE: design card bianca con onda SVG + form su fondo blu. Logo ufficiale diocesi (frontend/public/logo-diocesi.png, 200px). CSS tutto inline nel tag <style> del componente (NO file CSS separati, NO TailwindCSS nella pagina login). NON usa Logo.jsx (deprecato).

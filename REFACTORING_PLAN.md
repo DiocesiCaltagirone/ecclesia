@@ -190,6 +190,13 @@ Fix connection leak psycopg2 — usare context manager `with get_db_connection()
 - ✅ commit ff7247b: sidebar accordion si chiude navigando fuori dal modulo
 - ✅ commit e8efb25: reset sotto-accordion al cambio modulo
 
+**Riepilogo funzionale:**
+- Sidebar contabilità ristrutturata: Conti (sempre blu), Movimentazione, Stampa, Rendiconto ▶, Impostazioni ▶
+- ContabilitaLayout: barra superiore eliminata completamente
+- AppShell: modulo attivo non si può chiudere con click
+- AppShell: useEffect su location.pathname chiude menu quando esci dal modulo
+- Bottone "Impostazioni" in fondo sidebar eliminato da tutti i layout
+
 ---
 
 ## MODULO RENDICONTI
