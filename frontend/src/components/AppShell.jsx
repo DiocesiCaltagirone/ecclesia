@@ -35,6 +35,8 @@ const AppShell = () => {
       setModuloAperto('inventario');
     } else if (path.startsWith('/persone') || path.startsWith('/famiglie') || path.startsWith('/registro')) {
       setModuloAperto('anagrafica');
+    } else {
+      setModuloAperto(null);
     }
   }, [location.pathname]);
 
